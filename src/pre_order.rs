@@ -1,12 +1,13 @@
 use tree_sitter::{Tree, TreeCursor};
 
-/// 
+/// Walks a Tree in pre-order.
+/// The map is used to extract state from the TreeCursor everytime it finds a Node.
 pub fn walk<'a, T, F: Fn(&TreeCursor<'a>) -> T>(tree: &'a Tree, map: F) -> impl Iterator<Item = T> + use<'a, T, F> {
     let cursor = tree.walk();
     Iter { cursor: Some(cursor), map }
 }
 
-pub struct Iter<'a, T, F: Fn(&TreeCursor<'a>) -> T> {
+struct Iter<'a, T, F: Fn(&TreeCursor<'a>) -> T> {
     cursor: Option<TreeCursor<'a>>,
     map: F,
 }
