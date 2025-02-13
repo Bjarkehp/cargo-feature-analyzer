@@ -1,24 +1,42 @@
 pub mod pre_order;
 
-use tree_sitter::{Language, Parser, TreeCursor};
+use colored::Colorize;
+use toml::Table;
+use tree_sitter::{Language, Parser};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let source_toml = include_str!("example.toml");
+    let source_rs = include_str!("example.rs");
+
+    // Using the crate 'toml' to parse and analyze example.toml
+    let table = source_toml.parse::<Table>()?;
+    let dependencies = table.get("dependencies")
+        .expect("example.toml doesn't have any dependencies")
+        .as_table()
+        .expect("dependencies in example.toml is not a table");
+    
+    println!("DEPENDENCIES:");
+    for dependency in dependencies.keys() {
+        println!("{} = {:?}", dependency, dependencies.get(dependency).unwrap());
+    }
+    println!();
+
+    // Using tree-sitter and tree-sitter-rust to parse example.rs.
+    // The tree can be walked by creating a TreeCursor using tree.walk.
+    // The function pre_order::walk creates an iterator of data selected from the cursor at each token.
+    // In this example, only the current node and current depth is selected.
     let mut parser = Parser::new();
     parser.set_language(&Language::new(tree_sitter_rust::LANGUAGE))?;
-    let source = include_bytes!("example.rs");
-    let tree = parser.parse(source, None)
-        .ok_or("Failed to parse")?;
+    let tree = parser.parse(source_rs, None)
+        .expect("Failed to parse");
 
-    for (node, depth) in pre_order::walk(tree.walk(), |c| (c.node(), c.depth())) {
-        tab(depth);
-        println!("{}: {}", node.kind(), node.kind_id());
+    println!("SOURCE CODE:");
+    for (node, depth) in pre_order::walk(&tree, |c| (c.node(), c.depth())) {
+        for _ in 0..depth {
+            print!(".   ");
+        }
+        println!("{}", node.kind().bright_green());
     }
 
     Ok(())
-}
-
-fn tab(depth: u32) {
-    for _ in 0..depth {
-        print!("    ");
-    }
 }

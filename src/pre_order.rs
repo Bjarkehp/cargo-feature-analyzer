@@ -1,6 +1,8 @@
-use tree_sitter::TreeCursor;
+use tree_sitter::{Tree, TreeCursor};
 
-pub fn walk<'a, T, F: Fn(&TreeCursor<'a>) -> T>(cursor: TreeCursor<'a>, map: F) -> impl Iterator<Item = T> + use<'a, T, F> {
+/// 
+pub fn walk<'a, T, F: Fn(&TreeCursor<'a>) -> T>(tree: &'a Tree, map: F) -> impl Iterator<Item = T> + use<'a, T, F> {
+    let cursor = tree.walk();
     Iter { cursor: Some(cursor), map }
 }
 
