@@ -1,6 +1,5 @@
 pub mod pre_order;
 
-use colored::Colorize;
 use toml::Table;
 use tree_sitter::{Language, Parser};
 
@@ -35,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for _ in 0..depth {
             print!(".   ");
         }
-        println!("{}", node.kind().bright_green());
+        println!("{}", node.kind());
     }
 
     Ok(())
