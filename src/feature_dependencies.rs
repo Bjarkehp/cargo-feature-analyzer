@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use thiserror::Error;
 use toml::{Table, Value};
 
-use crate::dependency::Dependency;   
+use crate::dependency::{Dependency, DependencyTrait};   
 
-type Graph = BTreeMap<String, Dependency>;
+type Graph = BTreeMap<String, Option<Dependency>>;
 
 pub fn from_cargo_toml(content: &str) -> Result<Graph> {
     let root = content.parse::<toml::Table>()
@@ -37,9 +37,9 @@ fn optional_dependency_features(graph: &mut Graph, root: &Table) -> Result<()> {
 
     let feature_dependency_set = features.values()
         .map(dependency_from_feature_value)
-        .collect::<Result<Vec<Dependency>>>()?
+        .collect::<Result<Vec<Option<Dependency>>>>()?
         .into_iter()
-        .flat_map(|d| d.dependencies().map(|s| s.to_string()).collect::<Vec<_>>())
+        .flat_map(|d| d.crates().map(|s| s.to_string()).collect::<Vec<_>>())
         .collect::<BTreeSet<String>>();
 
     for (key, value) in dependencies {
@@ -50,7 +50,7 @@ fn optional_dependency_features(graph: &mut Graph, root: &Table) -> Result<()> {
             .unwrap_or(false);
         
         if optional && !feature_dependency_set.contains(&feature) {
-            graph.insert(feature.clone(), Dependency::Dependency(feature));
+            graph.insert(feature.clone(), Some(Dependency::Crate(feature)));
         }
     }
 
@@ -84,7 +84,7 @@ fn get_dependency_tables(root: &Table) -> Result<Vec<&Table>> {
     }
 }
 
-fn dependency_from_feature_value(value: &Value) -> Result<Dependency> {
+fn dependency_from_feature_value(value: &Value) -> Result<Option<Dependency>> {
     let dependencies = value.as_array()
         .ok_or(Error::WrongType)?
         .iter()
@@ -93,15 +93,20 @@ fn dependency_from_feature_value(value: &Value) -> Result<Dependency> {
         .ok_or(Error::WrongType)?;
 
     if dependencies.is_empty() {
-        Ok(Dependency::None)
+        Ok(None)
     } else {
-        Ok(Dependency::And(dependencies))
+        Ok(Some(Dependency::And(dependencies)))
     }
 }
 
 fn feature_or_dependency(s: &str) -> Dependency {
     if let Some(stripped) = s.strip_prefix("dep:") {
-        Dependency::Dependency(stripped.to_string())
+        Dependency::Crate(stripped.to_string())
+    } else if let Some((left, _)) = s.split_once('/') {
+        // Example: "mio/os-poll" dependens both on the crate mio, 
+        // *and* the feature "os-poll" inside mio
+        Dependency::Crate(left.to_string())
+            .and(Dependency::Feature(s.to_string()))
     } else {
         Dependency::Feature(s.to_string())
     }
