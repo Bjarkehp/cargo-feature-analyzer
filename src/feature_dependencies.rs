@@ -103,7 +103,7 @@ fn feature_or_dependency(s: &str) -> Dependency {
     if let Some(stripped) = s.strip_prefix("dep:") {
         Dependency::Crate(stripped.to_string())
     } else if let Some((left, _)) = s.split_once('/') {
-        // Example: "mio/os-poll" dependens both on the crate mio, 
+        // Example: "mio/os-poll" depends both on the crate mio, 
         // *and* the feature "os-poll" inside mio
         Dependency::Crate(left.to_string())
             .and(Dependency::Feature(s.to_string()))
