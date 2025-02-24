@@ -1,22 +1,17 @@
-pub mod pre_order;
+mod pre_order;
+mod feature_dependencies;
+mod dependency;
 
-use toml::Table;
 use tree_sitter::{Language, Parser};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let source_toml = include_str!("example.toml");
+    let source_toml = include_str!("tokio.toml");
     let source_rs = include_str!("example.rs");
 
-    // Using the crate 'toml' to parse and analyze example.toml
-    let table = source_toml.parse::<Table>()?;
-    let dependencies = table.get("dependencies")
-        .expect("example.toml doesn't have any dependencies")
-        .as_table()
-        .expect("dependencies in example.toml is not a table");
-    
     println!("DEPENDENCIES:");
-    for dependency in dependencies.keys() {
-        println!("{} = {:?}", dependency, dependencies.get(dependency).unwrap());
+    let dependency_graph = feature_dependencies::from_cargo_toml(source_toml)?;
+    for (feature, dependency) in dependency_graph.iter() {
+        println!("{} = {:?}", feature, dependency);
     }
     println!();
 
