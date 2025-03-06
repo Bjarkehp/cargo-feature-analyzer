@@ -1,10 +1,10 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeSet, HashMap};
 use thiserror::Error;
 use toml::{Table, Value};
 
-use crate::dependency::Dependency;   
+use crate::dependency::{Dependencies, Dependency};   
 
-type Graph = BTreeMap<String, Dependency>;
+pub type Graph = HashMap<Dependency, Dependencies>;
 
 pub fn from_cargo_toml(content: &str) -> Result<Graph> {
     let root = content.parse::<toml::Table>()
@@ -22,8 +22,8 @@ fn feature_dependencies(graph: &mut Graph, root: &Table) -> Result<()> {
 
     for (key, value) in features {
         let feature = key.to_string();
-        let dependency = dependency_from_feature_value(value)?;
-        graph.insert(feature, dependency);
+        let dependency = dependencies_from_feature_value(value)?;
+        graph.insert(Dependency::Feature(feature), dependency);
     }
 
     Ok(())
@@ -36,8 +36,8 @@ fn optional_dependency_features(graph: &mut Graph, root: &Table) -> Result<()> {
         .flat_map(|table| table.into_iter());
 
     let feature_dependency_set = features.values()
-        .map(dependency_from_feature_value)
-        .collect::<Result<Vec<Dependency>>>()?
+        .map(dependencies_from_feature_value)
+        .collect::<Result<Vec<Dependencies>>>()?
         .into_iter()
         .flat_map(|d| d.crates().map(|s| s.to_string()).collect::<Vec<_>>())
         .collect::<BTreeSet<String>>();
@@ -50,7 +50,9 @@ fn optional_dependency_features(graph: &mut Graph, root: &Table) -> Result<()> {
             .unwrap_or(false);
         
         if optional && !feature_dependency_set.contains(&feature) {
-            graph.insert(feature.clone(), Dependency::Crate(feature));
+            //let dependencies = Dependencies::from_mandatory(vec![Dependency::Crate(feature.clone())]);
+            let dependencies = Dependencies::from_mandatory(vec![]);
+            graph.insert(Dependency::Feature(feature.clone()), dependencies);
         }
     }
 
@@ -84,29 +86,20 @@ fn get_dependency_tables(root: &Table) -> Result<Vec<&Table>> {
     }
 }
 
-fn dependency_from_feature_value(value: &Value) -> Result<Dependency> {
+fn dependencies_from_feature_value(value: &Value) -> Result<Dependencies> {
     let dependencies = value.as_array()
         .ok_or(Error::WrongType)?
         .iter()
-        .map(|d| d.as_str().map(feature_or_dependency))
+        .map(|d| d.as_str().map(parse_dependency))
         .collect::<Option<Vec<Dependency>>>()
         .ok_or(Error::WrongType)?;
 
-    if dependencies.is_empty() {
-        Ok(Dependency::None)
-    } else {
-        Ok(Dependency::And(dependencies))
-    }
+    Ok(Dependencies::from_mandatory(dependencies))
 }
 
-fn feature_or_dependency(s: &str) -> Dependency {
+fn parse_dependency(s: &str) -> Dependency {
     if let Some(stripped) = s.strip_prefix("dep:") {
         Dependency::Crate(stripped.to_string())
-    } else if let Some((left, _)) = s.split_once('/') {
-        // Example: "mio/os-poll" depends both on the crate mio, 
-        // *and* the feature "os-poll" inside mio
-        Dependency::Crate(left.to_string())
-            .and(Dependency::Feature(s.to_string()))
     } else {
         Dependency::Feature(s.to_string())
     }

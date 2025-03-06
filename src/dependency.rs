@@ -1,60 +1,66 @@
-#[derive(Debug)]
-pub enum Dependency {
-    And(Vec<Dependency>),
-    Or(Vec<Dependency>),
-    Xor(Vec<Dependency>),
-    Not(Box<Dependency>),
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Dependencies {
+    mandatory: Vec<Dependency>,
+    optional: Vec<Dependency>,
+    or: Vec<Dependency>,
+    alternative: Vec<Dependency>
+}
 
+impl Dependencies {
+    pub fn new(mandatory: Vec<Dependency>, optional: Vec<Dependency>, or: Vec<Dependency>, alternative: Vec<Dependency>) -> Self {
+        Self { mandatory, optional, or, alternative }
+    }
+
+    pub fn from_mandatory(mandatory: Vec<Dependency>) -> Self {
+        Self::new(mandatory, vec![], vec![], vec![])
+    }
+
+    pub fn empty() -> Self {
+        Self::new(vec![], vec![], vec![], vec![])
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.mandatory.is_empty() &&
+        self.optional.is_empty() &&
+        self.or.is_empty() &&
+        self.alternative.is_empty()
+    }
+
+    pub fn leafs(&self) -> impl Iterator<Item = &Dependency> {
+        self.mandatory.iter()
+            .chain(self.optional.iter())
+            .chain(self.or.iter())
+            .chain(self.alternative.iter())
+    }
+
+    pub fn crates(&self) -> impl Iterator<Item = &str> {
+        self.mandatory.iter()
+            .chain(self.optional.iter())
+            .chain(self.alternative.iter())
+            .filter_map(|d| match d {
+                Dependency::Crate(s) => Some(s.as_str()),
+                _ => None
+            })
+    }
+
+    pub fn mandatory(&self) -> impl Iterator<Item = &Dependency> {
+        self.mandatory.iter()
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum Dependency {
     Feature(String),
     Crate(String),
-    Flag { key: String, value: String },
-    
-    None
+    Flag(String, String)
 }
 
 impl Dependency {
-    pub fn and(self, other: Self) -> Self {
-        match (self, other) {
-            (Dependency::None, r) => r,
-            (l, Dependency::None) => l,
-            (Dependency::And(mut d), r) => {
-                d.push(r);
-                Dependency::And(d)
-            },
-            (l, r) => Dependency::And(vec![l, r])
-        }
-    }
-
-    pub fn or(self, other: Self) -> Self {
+    pub fn name(&self) -> String {
         match self {
-            Dependency::Or(mut d) => {
-                d.push(other);
-                Dependency::Or(d)
-            },
-            Dependency::None => other,
-            _ => Dependency::Or(vec![self, other])
-        }
-    }
-
-    pub fn not(self) -> Self {
-        match self {
-            Dependency::Not(d) => *d,
-            _ => Dependency::Not(Box::new(self))
-        }
-    }
-
-    pub fn crates<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
-        match self {
-            Dependency::And(v) => Box::new(v.iter().flat_map(|d| d.crates())),
-            Dependency::Or(v) => Box::new(v.iter().flat_map(|d| d.crates())),
-            Dependency::Xor(v) => Box::new(v.iter().flat_map(|d| d.crates())),
-            Dependency::Not(d) => d.crates(),
-            Dependency::Crate(d) => Box::new(vec![d.as_str()].into_iter()),
-
-            Dependency::Feature(_) | 
-            Dependency::Flag { .. } |
-            Dependency::None => 
-                Box::new(std::iter::empty()),
+            Dependency::Feature(s) => format!("\"{}\"", s),
+            Dependency::Crate(s) => format!("\"{}\"", s),
+            Dependency::Flag(s, _) => format!("\"{}\"", s)
         }
     }
 }

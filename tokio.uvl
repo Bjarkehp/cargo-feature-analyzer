@@ -1,0 +1,43 @@
+features
+	"mio"
+	"tracing"
+	"full"
+		mandatory
+			"fs"
+			"io-util"
+			"io-std"
+			"macros"
+				mandatory
+					"tokio-macros"
+			"net"
+				mandatory
+					"socket2"
+					"windows-sys/Win32_Security"
+					"windows-sys/Win32_Storage_FileSystem"
+					"windows-sys/Win32_System_Pipes"
+					"windows-sys/Win32_System_SystemServices"
+			"parking_lot"
+			"process"
+				mandatory
+					"windows-sys/Win32_System_Threading"
+					"windows-sys/Win32_System_WindowsProgramming"
+			"rt-multi-thread"
+			"signal"
+				mandatory
+					"windows-sys/Win32_System_Console"
+	"test-util"
+	"default"
+	"windows-sys"
+	"time"
+	"rt"
+	"bytes"
+	"libc"
+	"signal-hook-registry"
+	"sync"
+constraints
+	"full" => "rt"
+	"full" => "sync"
+	"full" => "time"
+	"test-util" => "rt"
+	"test-util" => "sync"
+	"test-util" => "time"
