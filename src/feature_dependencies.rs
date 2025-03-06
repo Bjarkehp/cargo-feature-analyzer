@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use thiserror::Error;
 use toml::{Table, Value};
 
-use crate::dependency::{Dependency, DependencyTrait};   
+use crate::dependency::Dependency;   
 
-type Graph = BTreeMap<String, Option<Dependency>>;
+type Graph = BTreeMap<String, Dependency>;
 
 pub fn from_cargo_toml(content: &str) -> Result<Graph> {
     let root = content.parse::<toml::Table>()
@@ -37,7 +37,7 @@ fn optional_dependency_features(graph: &mut Graph, root: &Table) -> Result<()> {
 
     let feature_dependency_set = features.values()
         .map(dependency_from_feature_value)
-        .collect::<Result<Vec<Option<Dependency>>>>()?
+        .collect::<Result<Vec<Dependency>>>()?
         .into_iter()
         .flat_map(|d| d.crates().map(|s| s.to_string()).collect::<Vec<_>>())
         .collect::<BTreeSet<String>>();
@@ -50,7 +50,7 @@ fn optional_dependency_features(graph: &mut Graph, root: &Table) -> Result<()> {
             .unwrap_or(false);
         
         if optional && !feature_dependency_set.contains(&feature) {
-            graph.insert(feature.clone(), Some(Dependency::Crate(feature)));
+            graph.insert(feature.clone(), Dependency::Crate(feature));
         }
     }
 
@@ -84,7 +84,7 @@ fn get_dependency_tables(root: &Table) -> Result<Vec<&Table>> {
     }
 }
 
-fn dependency_from_feature_value(value: &Value) -> Result<Option<Dependency>> {
+fn dependency_from_feature_value(value: &Value) -> Result<Dependency> {
     let dependencies = value.as_array()
         .ok_or(Error::WrongType)?
         .iter()
@@ -93,9 +93,9 @@ fn dependency_from_feature_value(value: &Value) -> Result<Option<Dependency>> {
         .ok_or(Error::WrongType)?;
 
     if dependencies.is_empty() {
-        Ok(None)
+        Ok(Dependency::None)
     } else {
-        Ok(Some(Dependency::And(dependencies)))
+        Ok(Dependency::And(dependencies))
     }
 }
 

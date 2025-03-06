@@ -3,78 +3,58 @@ pub enum Dependency {
     And(Vec<Dependency>),
     Or(Vec<Dependency>),
     Xor(Vec<Dependency>),
+    Not(Box<Dependency>),
 
     Feature(String),
     Crate(String),
     Flag { key: String, value: String },
+    
+    None
 }
 
-/// Methods on Dependency are declared in a trait,
-/// which enables Option<Dependency> to also implement this trait.
-pub trait DependencyTrait {
-    fn and(self, other: Self) -> Self;
-    fn or(self, other: Self) -> Self;
-
-    fn crates<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
-}
-
-impl DependencyTrait for Dependency {
-    fn and(self, other: Self) -> Self {
-        match self {
-            Dependency::And(mut d) => {
-                d.push(other);
+impl Dependency {
+    pub fn and(self, other: Self) -> Self {
+        match (self, other) {
+            (Dependency::None, r) => r,
+            (l, Dependency::None) => l,
+            (Dependency::And(mut d), r) => {
+                d.push(r);
                 Dependency::And(d)
             },
-            _ => Dependency::And(vec![self, other])
+            (l, r) => Dependency::And(vec![l, r])
         }
     }
 
-    fn or(self, other: Self) -> Self {
+    pub fn or(self, other: Self) -> Self {
         match self {
             Dependency::Or(mut d) => {
                 d.push(other);
                 Dependency::Or(d)
             },
+            Dependency::None => other,
             _ => Dependency::Or(vec![self, other])
         }
     }
 
-    fn crates<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
+    pub fn not(self) -> Self {
+        match self {
+            Dependency::Not(d) => *d,
+            _ => Dependency::Not(Box::new(self))
+        }
+    }
+
+    pub fn crates<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
         match self {
             Dependency::And(v) => Box::new(v.iter().flat_map(|d| d.crates())),
             Dependency::Or(v) => Box::new(v.iter().flat_map(|d| d.crates())),
             Dependency::Xor(v) => Box::new(v.iter().flat_map(|d| d.crates())),
+            Dependency::Not(d) => d.crates(),
             Dependency::Crate(d) => Box::new(vec![d.as_str()].into_iter()),
 
             Dependency::Feature(_) | 
-            Dependency::Flag { .. } => 
+            Dependency::Flag { .. } |
+            Dependency::None => 
                 Box::new(std::iter::empty()),
-        }
-    }
-}
-
-impl DependencyTrait for Option<Dependency> {
-    fn and(self, other: Self) -> Self {
-        match (self, other) {
-            (Some(l), Some(r)) => Some(l.and(r)),
-            (Some(l), None) => Some(l),
-            (None, Some(r)) => Some(r),
-            (None, None) => None
-        }
-    }
-
-    fn or(self, other: Self) -> Self {
-        match (self, other) {
-            (Some(l), Some(r)) => Some(l.or(r)),
-            _ => None
-        }
-    }
-
-    fn crates<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
-        if let Some(d) = self {
-            d.crates()
-        } else {
-            Box::new(std::iter::empty())
         }
     }
 }
