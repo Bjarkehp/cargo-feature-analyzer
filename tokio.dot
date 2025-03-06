@@ -5,10 +5,6 @@ bgcolor="#1e1e1e"
 edge [color=white]
 node [style=filled fontcolor="white" fontname="Arial Unicode MS, Arial"];
 
-"windows-sys" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
-"mio" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
-"test-util" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
-"default" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
 "fs" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
 "full" -> "fs" [arrowhead="dot", arrowtail="none", dir="both"]
 "io-util" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
@@ -47,4 +43,27 @@ node [style=filled fontcolor="white" fontname="Arial Unicode MS, Arial"];
 "full" -> "signal" [arrowhead="dot", arrowtail="none", dir="both"]
 "full" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
 "tracing" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"windows-sys" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"test-util" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"default" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"mio" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"libc" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"signal-hook-registry" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"time" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"rt" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"bytes" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"sync" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+
+
+subgraph cluster_constraints{
+    label="Constraints" color="white" fontcolor="white"
+    constraints [shape="box" color="#1e1e1e" label=<<table border="0" cellpadding="0" cellspacing="0" cellborder="0">
+        <tr><td align="left">"full" =&gt; "rt"</td></tr>
+    <tr><td align="left">"full" =&gt; "sync"</td></tr>
+    <tr><td align="left">"full" =&gt; "time"</td></tr>
+    <tr><td align="left">"test-util" =&gt; "rt"</td></tr>
+    <tr><td align="left">"test-util" =&gt; "sync"</td></tr>
+    <tr><td align="left">"test-util" =&gt; "time"</td></tr>
+</table>>]
+}
 }
