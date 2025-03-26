@@ -1,58 +1,57 @@
-use std::collections::{BTreeSet, HashMap};
+use std::collections::HashSet;
 use thiserror::Error;
 use toml::{Table, Value};
 
-use crate::dependency::{Dependencies, Dependency};   
+use crate::{dependency::Dependency, directed_graph::DirectedGraph};   
 
-pub type Graph = HashMap<Dependency, Dependencies>;
-
-pub fn from_cargo_toml(content: &str) -> Result<Graph> {
-    let root = content.parse::<toml::Table>()
-        .map_err(Error::Deserialization)?;
-
-    let mut graph = Graph::new();
-    feature_dependencies(&mut graph, &root)?;
-    optional_dependency_features(&mut graph, &root)?;
+pub fn from_cargo_toml(root: &toml::Table) -> Result<DirectedGraph<Dependency>> {
+    let mut graph = DirectedGraph::new();
+    feature_dependencies(&mut graph, root)?;
+    optional_dependency_features(&mut graph, root)?;
 
     Ok(graph)
 }
 
-fn feature_dependencies(graph: &mut Graph, root: &Table) -> Result<()> {
-    let features = get_table(root, "features")?;
+fn feature_dependencies<'a>(graph: &mut DirectedGraph<Dependency<'a>>, root: &'a Table) -> Result<()> {
+    let feature_table = get_table(root, "features")?;
 
-    for (key, value) in features {
-        let feature = key.to_string();
-        let dependency = dependencies_from_feature_value(value)?;
-        graph.insert(Dependency::Feature(feature), dependency);
+    for (key, value) in feature_table {
+        let feature = Dependency::Feature(key);
+        let dependencies = dependencies_from_feature_value(value)?;
+        graph.extend(feature, dependencies);
     }
 
     Ok(())
 }
 
-fn optional_dependency_features(graph: &mut Graph, root: &Table) -> Result<()> {
-    let features = get_table(root, "features")?;
+fn optional_dependency_features<'a>(graph: &mut DirectedGraph<Dependency<'a>>, root: &'a Table) -> Result<()> {
+    let feature_table = get_table(root, "features")?;
     let dependencies = get_dependency_tables(root)?
         .into_iter()
         .flat_map(|table| table.into_iter());
 
-    let feature_dependency_set = features.values()
+    let feature_dependency_set = feature_table.values()
         .map(dependencies_from_feature_value)
-        .collect::<Result<Vec<Dependencies>>>()?
+        .collect::<Result<Vec<_>>>()?
         .into_iter()
-        .flat_map(|d| d.crates().map(|s| s.to_string()).collect::<Vec<_>>())
-        .collect::<BTreeSet<String>>();
+        .flatten()
+        .filter_map(|d| match d {
+            Dependency::Crate(s) => Some(s),
+            _ => None
+        })
+        .collect::<HashSet<&str>>();
 
     for (key, value) in dependencies {
-        let feature = key.to_string();
+        let key = key.as_str();
         let optional = value.as_table()
             .and_then(|t| t.get("optional"))
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
         
-        if optional && !feature_dependency_set.contains(&feature) {
-            //let dependencies = Dependencies::from_mandatory(vec![Dependency::Crate(feature.clone())]);
-            let dependencies = Dependencies::from_mandatory(vec![]);
-            graph.insert(Dependency::Feature(feature.clone()), dependencies);
+        if optional && !feature_dependency_set.contains(key) {
+            let feature = Dependency::Feature(key);
+            let dependency = Dependency::Crate(key);
+            graph.insert(feature, dependency);
         }
     }
 
@@ -86,7 +85,7 @@ fn get_dependency_tables(root: &Table) -> Result<Vec<&Table>> {
     }
 }
 
-fn dependencies_from_feature_value(value: &Value) -> Result<Dependencies> {
+fn dependencies_from_feature_value(value: &Value) -> Result<impl Iterator<Item = Dependency>> {
     let dependencies = value.as_array()
         .ok_or(Error::WrongType)?
         .iter()
@@ -94,14 +93,14 @@ fn dependencies_from_feature_value(value: &Value) -> Result<Dependencies> {
         .collect::<Option<Vec<Dependency>>>()
         .ok_or(Error::WrongType)?;
 
-    Ok(Dependencies::from_mandatory(dependencies))
+    Ok(dependencies.into_iter())
 }
 
 fn parse_dependency(s: &str) -> Dependency {
     if let Some(stripped) = s.strip_prefix("dep:") {
-        Dependency::Crate(stripped.to_string())
+        Dependency::Crate(stripped)
     } else {
-        Dependency::Feature(s.to_string())
+        Dependency::Feature(s)
     }
 }
 

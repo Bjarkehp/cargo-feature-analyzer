@@ -1,0 +1,69 @@
+digraph FeatureModel {
+rankdir="TB"
+newrank=true
+bgcolor="#1e1e1e"
+edge [color=white]
+node [style=filled fontcolor="white" fontname="Arial Unicode MS, Arial"];
+
+"mio" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"default" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"windows-sys" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"fs" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "fs" [arrowhead="dot", arrowtail="none", dir="both"]
+"io-util" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "io-util" [arrowhead="dot", arrowtail="none", dir="both"]
+"io-std" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "io-std" [arrowhead="dot", arrowtail="none", dir="both"]
+"tokio-macros" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"macros" -> "tokio-macros" [arrowhead="dot", arrowtail="none", dir="both"]
+"macros" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "macros" [arrowhead="dot", arrowtail="none", dir="both"]
+"socket2" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"net" -> "socket2" [arrowhead="dot", arrowtail="none", dir="both"]
+"windows-sys/Win32_Security" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"net" -> "windows-sys/Win32_Security" [arrowhead="dot", arrowtail="none", dir="both"]
+"windows-sys/Win32_Storage_FileSystem" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"net" -> "windows-sys/Win32_Storage_FileSystem" [arrowhead="dot", arrowtail="none", dir="both"]
+"windows-sys/Win32_System_Pipes" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"net" -> "windows-sys/Win32_System_Pipes" [arrowhead="dot", arrowtail="none", dir="both"]
+"windows-sys/Win32_System_SystemServices" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"net" -> "windows-sys/Win32_System_SystemServices" [arrowhead="dot", arrowtail="none", dir="both"]
+"net" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "net" [arrowhead="dot", arrowtail="none", dir="both"]
+"parking_lot" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "parking_lot" [arrowhead="dot", arrowtail="none", dir="both"]
+"windows-sys/Win32_System_Threading" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"process" -> "windows-sys/Win32_System_Threading" [arrowhead="dot", arrowtail="none", dir="both"]
+"windows-sys/Win32_System_WindowsProgramming" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"process" -> "windows-sys/Win32_System_WindowsProgramming" [arrowhead="dot", arrowtail="none", dir="both"]
+"process" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "process" [arrowhead="dot", arrowtail="none", dir="both"]
+"rt-multi-thread" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "rt-multi-thread" [arrowhead="dot", arrowtail="none", dir="both"]
+"windows-sys/Win32_System_Console" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"signal" -> "windows-sys/Win32_System_Console" [arrowhead="dot", arrowtail="none", dir="both"]
+"signal" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"full" -> "signal" [arrowhead="dot", arrowtail="none", dir="both"]
+"full" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"tracing" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"test-util" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"signal-hook-registry" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"libc" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"time" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"bytes" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"rt" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+"sync" [fillcolor="#ABACEA" tooltip="Cardinality: None" shape="box"]
+
+
+subgraph cluster_constraints{
+    label="Constraints" color="white" fontcolor="white"
+    constraints [shape="box" color="#1e1e1e" label=<<table border="0" cellpadding="0" cellspacing="0" cellborder="0">
+        <tr><td align="left">"full" =&gt; "rt"</td></tr>
+    <tr><td align="left">"full" =&gt; "sync"</td></tr>
+    <tr><td align="left">"full" =&gt; "time"</td></tr>
+    <tr><td align="left">"test-util" =&gt; "rt"</td></tr>
+    <tr><td align="left">"test-util" =&gt; "sync"</td></tr>
+    <tr><td align="left">"test-util" =&gt; "time"</td></tr>
+</table>>]
+}
+}

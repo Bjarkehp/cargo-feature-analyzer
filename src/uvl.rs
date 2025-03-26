@@ -1,80 +1,69 @@
-use std::{collections::HashMap, io::Write};
+use std::{collections::{BTreeSet, HashMap, HashSet}, io::Write};
 
 use itertools::Itertools;
 
-use crate::{dependency::{Dependencies, Dependency}, feature_dependencies::Graph};
+use crate::{dependency::Dependency, directed_graph::DirectedGraph, max_tree};
 
-pub fn to_universal_variability_language<W: Write>(graph: &Graph, writer: &mut W) -> std::io::Result<()> {
-    let reference_count = graph.values()
-        .flat_map(|d| d.leafs())
-        .counts();
-
-    let top_level = graph.keys()
-        .filter(|d| !reference_count.contains_key(d))
-        .collect::<Vec<_>>();
+pub fn write<W: Write>(writer: &mut W, graph: &DirectedGraph<Dependency>) -> std::io::Result<()> {
+    let reversed = graph.reversed();
+    let mut visited = HashSet::new();
+    let mut visited_edges = HashSet::new();
 
     writeln!(writer, "features")?;
-    for &d in top_level.iter() {
-        visit_dependency(graph, d, &reference_count, writer, 1)?;
-    }
+    while let Some((root, tree_edges)) = max_tree_first_root_candidate(&reversed, &mut visited) {
+        let tree = tree_edges.iter().cloned().into_group_map();
+        write_tree(writer, &tree, root, 1)?;
 
-    for d in graph.keys().filter(|d| *reference_count.get(d).unwrap_or(&0) >= 2) {
-        writeln!(writer, "\t{}", d.name())?;
+        for (from, to) in tree_edges {
+            visited_edges.insert((to, from));
+        }
     }
 
     writeln!(writer, "constraints")?;
-    for &d in top_level.iter() {
-        visit_constraint(graph, d, &reference_count, writer)?;
+    for (from, to) in graph.edges().filter(|(&from, &to)| !visited_edges.contains(&(from, to))) {
+        writeln!(writer, "\t{} => {}", from.representation(), to.representation())?;
     }
 
     Ok(())
 }
 
-fn visit_dependency<W: Write>(graph: &Graph, dependency: &Dependency, reference_count: &HashMap<&Dependency, usize>, writer: &mut W, depth: usize) -> std::io::Result<()> {
-    tab(writer, depth)?;
-    writeln!(writer, "{}", dependency.name())?;
+fn root_candidates<T: Eq + std::hash::Hash + Ord>(graph: &DirectedGraph<T>) -> BTreeSet<&T> {
+    let mut nodes = graph.nodes().collect::<BTreeSet<_>>();
+
+    for (_from, to) in graph.edges() {
+        nodes.remove(to);
+    }
+
+    nodes
+}
+
+fn max_tree_first_root_candidate<'a>(graph: &'a DirectedGraph<Dependency>, visited: &mut HashSet<&'a Dependency<'a>>) -> Option<(Dependency<'a>, Vec<(Dependency<'a>, Dependency<'a>)>)> {
+    let root = root_candidates(graph)
+        .into_iter()
+        .find(|root| !visited.contains(root))?;
     
-    let empty = Dependencies::empty();
-    let children = graph.get(dependency)
-        .unwrap_or(&empty)
-        .mandatory()
-        .filter(|d| *reference_count.get(d).unwrap_or(&0) == 1)
+    let tree = max_tree::find(graph, root, visited)
+        .map(|(&from, &to)| (from, to))
         .collect::<Vec<_>>();
+
+    Some((*root, tree))
+}
+
+fn write_tree<W: Write>(writer: &mut W, tree: &HashMap<Dependency, Vec<Dependency>>, node: Dependency, depth: usize) -> std::io::Result<()> {
+    writeln!(writer, "{}{}", "\t".repeat(depth), node.representation())?;
+
+    let empty = vec![];
+    let children = tree.get(&node).unwrap_or(&empty);
 
     if children.is_empty() {
         return Ok(());
     }
 
-    tab(writer, depth + 1)?;
-    writeln!(writer, "mandatory")?;
+    writeln!(writer, "{}optional", "\t".repeat(depth + 1))?;
 
     for child in children {
-        visit_dependency(graph, child, reference_count, writer, depth + 2)?;
+        write_tree(writer, tree, *child, depth + 2)?;
     }
-
-    Ok(())
-}
-
-fn visit_constraint<W: Write>(graph: &Graph, dependency: &Dependency, reference_count: &HashMap<&Dependency, usize>, writer: &mut W) -> std::io::Result<()> {
-    let empty = Dependencies::empty();
-    let children = graph.get(dependency)
-        .unwrap_or(&empty)
-        .mandatory()
-        .filter(|d| *reference_count.get(d).unwrap_or(&0) > 1)
-        .collect::<Vec<_>>();
-
-    for child in children {
-        writeln!(writer, "\t{} => {}", dependency.name(), child.name())?;
-        visit_constraint(graph, child, reference_count, writer)?;
-    }
-
-    Ok(())
-}
-
-fn tab<W: Write>(writer: &mut W, depth: usize) -> std::io::Result<()> {
-    for _ in 0..depth {
-        write!(writer, "\t")?;
-    }
-
+    
     Ok(())
 }

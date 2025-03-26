@@ -1,7 +1,8 @@
-mod pre_order;
 mod feature_dependencies;
 mod dependency;
 mod uvl;
+mod directed_graph;
+mod max_tree;
 
 use std::{fs::File, io::{BufWriter, Write}};
 
@@ -10,8 +11,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tokio_uvl = File::create("tokio.uvl")?;
     let mut tokio_uvl_writer = BufWriter::new(tokio_uvl);
 
-    let graph = feature_dependencies::from_cargo_toml(source_toml)?;
-    uvl::to_universal_variability_language(&graph, &mut tokio_uvl_writer)?;
+    let toml_table = source_toml.parse()?;
+    let graph = feature_dependencies::from_cargo_toml(&toml_table)?;
+    uvl::write(&mut tokio_uvl_writer, &graph)?;
     tokio_uvl_writer.flush()?;
 
     Ok(())
