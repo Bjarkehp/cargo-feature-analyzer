@@ -13,11 +13,11 @@ use walkdir::WalkDir;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let source_toml = include_str!("../examples/toml/tokio.toml");
-    let tokio_uvl = File::create("tokio.uvl")?;
-    let mut tokio_uvl_writer = BufWriter::new(tokio_uvl);
-
     let toml_table = source_toml.parse()?;
     let graph = feature_dependencies::from_cargo_toml(&toml_table)?;
+    
+    // let tokio_uvl = File::create("tokio.uvl")?;
+    // let mut tokio_uvl_writer = BufWriter::new(tokio_uvl);
     // uvl::write(&mut tokio_uvl_writer, &graph)?;
     // tokio_uvl_writer.flush()?;
 
@@ -30,11 +30,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .filter_map(|toml| toml.as_str().parse().ok())
         .collect::<Vec<_>>();
 
+    // Normal dependencies
     configurations.iter()
         .filter_map(|table| feature_configuration::extract_features(table, "tokio").ok())
         .map(|hset| hset.into_iter().map(Dependency::name).collect::<BTreeSet<_>>())
         .for_each(|set| { map.entry(set).and_modify(|n| *n += 1).or_insert(1); });
 
+    // Dev dependencies
     configurations.iter()
         .filter_map(|table| feature_configuration::extract_dev_features(table, "tokio").ok())
         .map(|hset| hset.into_iter().map(Dependency::name).collect::<BTreeSet<_>>())
