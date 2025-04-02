@@ -21,10 +21,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let crates_client = create_client()?;
     let reqwest_client = reqwest::blocking::Client::new();
-    let dependents = top_dependents(&args.crate_name, &crates_client, args.count)
+    let dependents = top_dependents(&args.crate_name, &crates_client)
         .map(|d| crates_client.get_crate(&d.crate_version.crate_name).map(|c| c.crate_data));
 
-    let writes = dependents.map(|c| {
+    let mut writes = dependents.map(|c| {
         let c = c?;
         let name = c.name;
         let repository = c.repository.ok_or(format!("Failed to get repository for {}", name))?;
@@ -40,13 +40,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let count = args.count;
-    
-    writes.enumerate()
-        .map(|(i, r)| (i + 1, r))
-        .for_each(|(i, r)| match r {
-            Ok(name) => println!("({i}/{count}) {}", format!("Downloaded {}", name).green()),
-            Err(e) => println!("({i}/{count}) {}", format!("Failed to download: {}", e).red())
-        });
+    let mut current = 0;
+
+    while current < count {
+        match writes.next() {
+            Some(Ok(name)) => {
+                current += 1;
+                println!("({current}/{count}) {}", format!("Downloaded {}", name).green());
+            },
+            Some(Err(e)) => println!("({current}/{count}) {}", format!("{e}").red()),
+            None => break
+        }
+    }
 
     Ok(())
 }
@@ -58,24 +63,23 @@ fn create_client() -> Result<SyncClient, Box<dyn Error>> {
         .map_err(|_| "Failed to create client".into())
 }
 
-fn top_dependents(crate_name: &str, client: &SyncClient, count: u32) -> impl Iterator<Item = ReverseDependency> {
+fn top_dependents(crate_name: &str, client: &SyncClient) -> impl Iterator<Item = ReverseDependency> {
     (1..).map(|i| client.crate_reverse_dependencies_page(crate_name, i).map(|page| page.dependencies.into_iter()))
         .scan((), |_, page| page.ok())
         .flatten()
-        .take(count as usize)
 }
 
 fn download_cargo_toml(client: &reqwest::blocking::Client, repository: &str, crate_name: &str) -> Result<String, Box<dyn Error>> {
     download_github_file(client, repository, "Cargo.toml").ok()
-        .filter(|content| !content.contains("[workspace]"))
+        .filter(|content| content.contains("[package]"))
         .or_else(|| download_github_file(client, repository, &format!("{}/Cargo.toml", crate_name)).ok())
-        .ok_or("Failed to download Cargo.toml".into())
+        .ok_or(format!("Failed to download Cargo.toml from {}", repository).into())
 }
 
 fn download_github_file(client: &reqwest::blocking::Client, repository: &str, path: &str) -> Result<String, Box<dyn Error>> {
     let url = github_path(repository, path)
         .ok_or("Invalid repository or path")?;
-    Ok(client.get(url).send()?.text()?)
+    Ok(client.get(url).send()?.error_for_status()?.text()?)
 }
 
 fn github_path(repository_url: &str, path: &str) -> Option<String> {
