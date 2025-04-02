@@ -5,23 +5,8 @@ use toml::Table;
 
 use crate::{dependency::Dependency, directed_graph::DirectedGraph};
 
-pub fn extract<'a>(root: &'a Table, dependency: &'a str, dependency_graph: &'a DirectedGraph<Dependency>) -> Result<HashSet<Dependency<'a>>> {
-    let dependencies = get_table(root, "dependencies")?;
-    let dependency_node = dependencies.get(dependency)
-        .ok_or(Error::KeyMissing)?;
-
-    let feature_node = dependency_node.get("features")
-        .and_then(|v| v.as_array());
-
-    let features = if let Some(feature_node) = feature_node {
-        feature_node.iter()
-            .map(|f| f.as_str().map(|s| Dependency::Feature(s)))
-            .collect::<Option<HashSet<_>>>()
-            .ok_or(Error::WrongType)?
-    } else {
-        HashSet::new()
-    };
-
+pub fn extract_all<'a>(root: &'a Table, dependency: &str, dependency_graph: &'a DirectedGraph<Dependency>) -> Result<HashSet<Dependency<'a>>> {
+    let features = extract(root, dependency)?;
     let mut visited = HashSet::new();
 
     for feature in features {
@@ -29,6 +14,33 @@ pub fn extract<'a>(root: &'a Table, dependency: &'a str, dependency_graph: &'a D
     }
 
     Ok(visited)
+}
+
+pub fn extract_features<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
+    extract(get_table(root, "dependencies")?, dependency)
+}
+
+pub fn extract_dev_features<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
+    extract(get_table(root, "dev-dependencies")?, dependency)
+}
+
+fn extract<'a>(table: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
+    let dependency_node = table.get(dependency)
+        .ok_or(Error::KeyMissing)?;
+
+    let feature_node = dependency_node.get("features")
+        .and_then(|v| v.as_array());
+
+    let features = if let Some(feature_node) = feature_node {
+        feature_node.iter()
+            .map(|f| f.as_str().map(Dependency::Feature))
+            .collect::<Option<Vec<_>>>()
+            .ok_or(Error::WrongType)?
+    } else {
+        Vec::new()
+    };
+
+    Ok(features)
 }
 
 fn get_table<'a>(parent: &'a Table, key: &str) -> Result<&'a Table> {
