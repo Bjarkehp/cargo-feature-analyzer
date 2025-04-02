@@ -108,8 +108,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error(transparent)]
-    Deserialization(#[from] toml::de::Error),
     #[error("Missing key in toml")]
     KeyMissing,
     #[error("Wrong type in toml")]

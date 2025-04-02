@@ -3,6 +3,7 @@ mod dependency;
 mod uvl;
 mod directed_graph;
 mod max_tree;
+mod feature_configuration;
 
 use std::{fs::File, io::{BufWriter, Write}};
 
