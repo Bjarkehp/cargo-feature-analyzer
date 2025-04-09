@@ -10,7 +10,7 @@ use std::{collections::{BTreeSet, HashMap}, error::Error, fs::File, io::{BufWrit
 use dependency::Dependency;
 use derive_new::new;
 use itertools::Itertools;
-use petgraph::graph::{DiGraph, UnGraph};
+use petgraph::{graph::{DiGraph, UnGraph}, Direction::{Incoming, Outgoing}};
 use toml::Table;
 use walkdir::WalkDir;
 
@@ -71,29 +71,16 @@ fn concept_latice_feature_model() -> Result<(), Box<dyn Error>> {
         .filter_map(|toml| toml.as_str().parse().ok())
         .collect::<Vec<Table>>();
 
-    let configuration_features = configurations.iter()
-        .filter_map(|table| Some((table.get("name")?.as_str()?, feature_configuration::extract_features(table, "tokio").ok()?)))
-        .map(|(name, hset)| (name, hset.into_iter().map(Dependency::name).collect::<BTreeSet<_>>()))
-        .collect::<HashMap<_, _>>();
-
     let concepts = configurations.iter()
         .filter_map(|table| Some((table.get("name")?.as_str()?, feature_configuration::extract_features(table, "tokio").ok()?)))
         .map(|(name, hset)| (hset.into_iter().map(Dependency::name).collect::<BTreeSet<_>>(), name))
         .into_grouping_map().collect::<BTreeSet<&str>>()
         .into_iter()
         .map(|(intent, extent)| Concept::new(intent, extent))
+        .filter(|concept| !concept.extent.is_empty())
         .collect::<Vec<_>>();
-        
-    //let mut graph = DiGraph::default();
-    
-    // for concept in concepts.iter() {
-    //     graph.add_node(1);
-    // }
 
     let mut edges = Vec::new();
-    let test = &[
-        (1, 2), (2, 3), (3, 4),
-        (1, 4)];
 
     for (i, a) in concepts.iter().enumerate() {
         for (j, b) in concepts.iter().enumerate() {
@@ -103,7 +90,7 @@ fn concept_latice_feature_model() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let graph = DiGraph::<u32, ()>::from_edges(edges);
+    let mut graph = DiGraph::<u32, ()>::from_edges(edges);
 
     Ok(())
 }
