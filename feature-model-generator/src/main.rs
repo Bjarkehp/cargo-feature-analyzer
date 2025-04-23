@@ -6,17 +6,36 @@ mod max_tree;
 mod configuration;
 mod concept;
 
-use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{BufWriter, Write}};
+use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{stdin, BufWriter, Read, Write}, path::{Path, PathBuf}};
 
+use clap::Parser;
 use dependency::Dependency;
 use itertools::Itertools;
 use petgraph::dot::Dot;
 use walkdir::WalkDir;
 
+/// Generates an ac-poset from a set of configurations at a specified directory.
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    feature: String,
+    source: PathBuf,
+    destination: PathBuf,
+
+    #[arg(short, long, default_value_t = false)]
+    force: bool
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
-    let configuration_tables = configuration::load_tables("../feature-configuration-scraper/example-configurations");
+    let args = Args::parse();
+
+    if !args.force && !confirm_overwrite(&args.destination) {
+        return Err("User declined operation.".into());
+    }
+
+    let configuration_tables = configuration::load_tables(args.source);
     let configurations = configuration_tables.iter()
-        .filter_map(|table| configuration::from(table, "tokio"))
+        .filter_map(|table| configuration::from(table, &args.feature))
         .collect::<Vec<_>>();
     let graph = concept::ac_poset(&configurations);
 
@@ -32,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         &|_, _node| "shape=box".to_string()
     );
 
-    fs::write("dot.dot", format!("{:#?}", graphviz))?;
+    fs::write(args.destination, format!("{:#?}", graphviz))?;
 
     Ok(())
 }
@@ -79,4 +98,22 @@ fn map_of_occurrences() -> Result<(), Box<dyn Error>> {
         .for_each(|(k, v)| println!("{:?}: {}", k, v));
 
     Ok(())
+}
+
+fn confirm_overwrite(path: impl AsRef<Path>) -> bool {
+    println!("Are you sure you want to overwrite {}? [Y/n] ", path.as_ref().display());
+
+    loop {
+        let mut buffer = String::new();
+        if stdin().read_line(&mut buffer).is_ok() {
+            match buffer.trim() {
+                "" => return true,
+                "y" | "Y" => return true,
+                "n" | "N" => return false,
+                _ => continue
+            }
+        } else {
+            return false
+        }
+    }
 }
