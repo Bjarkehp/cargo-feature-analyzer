@@ -1,0 +1,10 @@
+[package]
+name = "list"
+
+[dependencies]
+tokio = { version = "1.23.1", features = [
+    "v5",
+    "v6",
+    "v7",
+    "v8",
+] }

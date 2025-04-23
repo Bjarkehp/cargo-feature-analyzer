@@ -1,0 +1,10 @@
+[package]
+name = "credit_card"
+
+[dependencies]
+tokio = { version = "1.23.1", features = [
+    "v2",
+    "v4",
+    "v6",
+    "v8",
+] }

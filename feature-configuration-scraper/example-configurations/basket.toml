@@ -1,0 +1,12 @@
+[package]
+name = "basket"
+
+[dependencies]
+tokio = { version = "1.23.1", features = [
+    "v2",
+    "v3",
+    "v4",
+    "v6",
+    "v7",
+    "v8",
+] }

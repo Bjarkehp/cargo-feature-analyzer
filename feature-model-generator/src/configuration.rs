@@ -1,9 +1,50 @@
-use std::{collections::HashSet, hash::Hash};
+use std::{collections::HashSet, path::Path};
 
+use derive_new::new;
 use thiserror::Error;
 use toml::Table;
+use walkdir::WalkDir;
 
 use crate::{dependency::Dependency, directed_graph::DirectedGraph};
+
+#[derive(Debug, new)]
+pub struct Configuration<'a> {
+    name: &'a str,
+    features: Vec<Dependency<'a>>
+}
+
+impl<'a> Configuration<'a> {
+    pub fn name(&self) -> &str {
+        self.name
+    }
+    
+    pub fn features(&self) -> &[Dependency<'a>] {
+        &self.features
+    }
+}
+
+pub fn load_tables(path: impl AsRef<Path>) -> Vec<Table> {
+    WalkDir::new(path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|entry| entry.file_name().to_str().unwrap().ends_with(".toml"))
+        .filter_map(|file| std::fs::read_to_string(file.path()).ok())
+        .filter_map(|toml| toml.as_str().parse().ok())
+        .collect::<Vec<_>>()
+}
+
+pub fn from<'a>(table: &'a Table, feature: &str) -> Option<Configuration<'a>> {
+    let name = name(table)?;
+    let features = extract_features(table, feature).ok()?;
+    Some(Configuration { name, features })
+}
+
+pub fn name(table: &Table) -> Option<&str> {
+    table.get("package")?
+        .as_table()?
+        .get("name")?
+        .as_str()
+}
 
 pub fn extract_all<'a>(root: &'a Table, dependency: &str, dependency_graph: &'a DirectedGraph<Dependency>) -> Result<HashSet<Dependency<'a>>> {
     let features = extract(root, dependency)?;

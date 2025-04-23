@@ -2,7 +2,6 @@
 pub enum Dependency<'a> {
     Feature(&'a str),
     Crate(&'a str),
-    Flag(&'a str, &'a str)
 }
 
 impl<'a> Dependency<'a> {
@@ -10,7 +9,6 @@ impl<'a> Dependency<'a> {
         match self {
             Dependency::Feature(s) => format!("\"{}\"", s),
             Dependency::Crate(s) => format!("\"(Crate) {}\"", s),
-            Dependency::Flag(s, _) => format!("\"{}\"", s)
         }
     }
 
@@ -18,7 +16,6 @@ impl<'a> Dependency<'a> {
         match self {
             Dependency::Feature(s) => s,
             Dependency::Crate(s) => s,
-            Dependency::Flag(s, _) => s
         }
     }
 }
