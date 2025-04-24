@@ -10,7 +10,7 @@ use crate::{dependency::Dependency, directed_graph::DirectedGraph};
 #[derive(Debug, new)]
 pub struct Configuration<'a> {
     name: &'a str,
-    features: Vec<Dependency<'a>>
+    features: Vec<&'a str>
 }
 
 impl<'a> Configuration<'a> {
@@ -18,7 +18,7 @@ impl<'a> Configuration<'a> {
         self.name
     }
     
-    pub fn features(&self) -> &[Dependency<'a>] {
+    pub fn features(&self) -> &[&'a str] {
         &self.features
     }
 }
@@ -35,7 +35,11 @@ pub fn load_tables(path: impl AsRef<Path>) -> Vec<Table> {
 
 pub fn from<'a>(table: &'a Table, feature: &str) -> Option<Configuration<'a>> {
     let name = name(table)?;
-    let features = extract_features(table, feature).ok()?;
+    let features = extract_features(table, feature)
+        .ok()?
+        .into_iter()
+        .map(Dependency::name)
+        .collect();
     Some(Configuration { name, features })
 }
 

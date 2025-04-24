@@ -29,7 +29,7 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    if !args.force && !confirm_overwrite(&args.destination) {
+    if !args.force && fs::exists(&args.destination)? && !confirm_overwrite(&args.destination) {
         return Err("User declined operation.".into());
     }
 
@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let configurations = configuration_tables.iter()
         .filter_map(|table| configuration::from(table, &args.feature))
         .collect::<Vec<_>>();
-    let graph = concept::ac_poset(&configurations);
+    let graph = concept::ac_poset(&configurations[..]);
 
     let graphviz_config = [
         petgraph::dot::Config::EdgeNoLabel,

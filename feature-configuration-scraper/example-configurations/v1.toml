@@ -1,10 +1,9 @@
 [package]
-name = "list"
+name = "v1"
 
 [dependencies]
 tokio = { version = "1.23.1", features = [
-    "v5",
-    "v6",
-    "v7",
-    "v8",
+    "e_commerce",
+    "catalogue",
+    "grid",
 ] }

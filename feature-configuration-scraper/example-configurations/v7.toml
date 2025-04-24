@@ -1,0 +1,12 @@
+[package]
+name = "v7"
+
+[dependencies]
+tokio = { version = "1.23.1", features = [
+    "e_commerce",
+    "catalogue",
+    "list",
+    "payment_method",
+    "check",
+    "basket"
+] }

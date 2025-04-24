@@ -1,75 +1,89 @@
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet};
 
 use derive_new::new;
 use itertools::Itertools;
 use petgraph::{graph::DiGraph, visit::{Dfs, EdgeRef, VisitMap}};
 
-use crate::{configuration::Configuration, dependency::Dependency};
+use crate::configuration::Configuration;
 
 /// A Concept consists of a set of configurations and features,
 /// where the configurations share that same set of features.
 #[derive(PartialEq, Eq, new, Default, Debug)]
 pub struct Concept<'a> {
-    pub configurations: BTreeSet<&'a str>,
     pub features: BTreeSet<&'a str>,
+    pub configurations: BTreeSet<&'a str>,
 }
 
 /// Create an Attribute-Concept partially ordered set from a set of configurations.
 /// 
 /// The function can be split into 5 steps:
-/// 1. Extract all concepts from the configurations by grouping together concepts with the same set of features.
-/// 2. Find all pairs of concepts where one's features are a subset of the other's.
-/// 3. Remove duplicate features from the concepts that are already inherited by parent concepts.
+/// 1. Extract all concepts from the configurations by grouping together features with the same set of configurations.
+/// 2. Find all pairs of concepts where one's configurations are a subset of the other's.
+/// 3. Remove duplicate configurations from the concepts that are already inherited by parent concepts.
 /// 4. Create a graph where the nodes are concepts and the edges represent the partial order of concepts.
 /// 5. Remove all redundant edges that don't effect the partial order.
 pub fn ac_poset<'a>(configurations: &'a [Configuration<'a>]) -> DiGraph<Concept<'a>, ()> {
     let mut concepts = extract_concepts(configurations);
     let edges = subset_edges(&concepts);
-    remove_duplicate_features(&mut concepts, &edges);
+    remove_duplicate_configurations(&mut concepts, &edges);
     let mut graph = create_graph(concepts, &edges);
     transitive_reduction(&mut graph);
     graph
 }
 
-/// Extract all concepts from the configurations by grouping together concepts with the same set of features.
+/// Extract all concepts from the configurations by grouping together features with the same set of set of configurations.
 fn extract_concepts<'a>(configurations: &'a [Configuration<'a>]) -> Vec<Concept<'a>> {
-    configurations.iter()
-        .map(|config| (config.features().iter().cloned().map(Dependency::name).collect::<BTreeSet<_>>(), config.name()))
-        .into_grouping_map().collect::<BTreeSet<&str>>()
+    let configurations_with_feature = |feature: &str| {
+        configurations.iter()
+            .filter(|config| config.features().contains(&feature))
+            .map(|config| config.name())
+            .collect::<BTreeSet<_>>()
+    };
+    
+    let features = configurations.iter()
+        .flat_map(|config| config.features())
+        .cloned()
+        .collect::<Vec<_>>();
+
+    features.into_iter()
+        .map(|feature| (configurations_with_feature(feature), feature))
+        .into_grouping_map()
+        .collect::<BTreeSet<_>>()
         .into_iter()
-        .map(|(features, configurations)| Concept::new(configurations, features))
+        .map(|(configurations, features)| Concept::new(features, configurations))
         .collect()
 }
 
-/// Find all pairs of concepts where one's features are a subset of the other's.
+/// Find all pairs of concepts where one's configurations are a subset of the other's.
 /// 
 /// The result is a Vec of indices of the concepts.
 fn subset_edges(concepts: &[Concept]) -> Vec<(u32, u32)> {
     concepts.iter().enumerate()
         .cartesian_product(concepts.iter().enumerate())
-        .filter(|((_, a), (_, b))| a != b && a.features.is_subset(&b.features))
+        .filter(|((_, a), (_, b))| a != b && a.configurations.is_subset(&b.configurations))
         .map(|((i, _), (j, _))| (i as u32, j as u32))
         .collect()
 }
 
-/// Remove all redundant edges that don't effect the partial order.
-fn remove_duplicate_features(concepts: &mut [Concept], edges: &[(u32, u32)]) {
-    let mut differences: HashMap<u32, BTreeSet<&str>> = HashMap::new();
+/// Remove duplicate configurations from the concepts that are already inherited by parent concepts.
+fn remove_duplicate_configurations(concepts: &mut [Concept], edges: &[(u32, u32)]) {
+    let mut differences: BTreeMap<u32, BTreeSet<&str>> = BTreeMap::new();
     for &(i, j) in edges {
         let a = &concepts[i as usize];
         let b = &concepts[j as usize];
-        let diff = differences.entry(j)
-            .or_insert(b.features.clone())
-            .difference(&a.features)
+
+        let config_diff = differences.entry(j)
+            .or_insert(b.configurations.clone())
+            .difference(&a.configurations)
             .cloned()
             .collect::<BTreeSet<_>>();
         differences.entry(j)
-            .and_modify(|set| *set = set.intersection(&diff).cloned().collect::<BTreeSet<_>>())
-            .or_insert(diff);
+            .and_modify(|set| set.retain(|c| config_diff.contains(c)))
+            .or_insert(config_diff);
     }
 
     for (i, set) in differences {
-        concepts[i as usize].features = set;
+        concepts[i as usize].configurations = set;
     }
 }
 
