@@ -2,7 +2,7 @@
 name = "v3"
 
 [dependencies]
-tokio = { version = "1.23.1", features = [
+example = { version = "1.23.1", features = [
     "e_commerce",
     "catalogue",
     "grid",

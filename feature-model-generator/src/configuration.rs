@@ -33,9 +33,9 @@ pub fn load_tables(path: impl AsRef<Path>) -> Vec<Table> {
         .collect::<Vec<_>>()
 }
 
-pub fn from<'a>(table: &'a Table, feature: &str) -> Option<Configuration<'a>> {
+pub fn from<'a>(table: &'a Table, feature: &str, dependency_graph: &'a DirectedGraph<Dependency>) -> Option<Configuration<'a>> {
     let name = name(table)?;
-    let features = extract_features(table, feature)
+    let features = extract_all(table, feature, dependency_graph)
         .ok()?
         .into_iter()
         .map(Dependency::name)
@@ -51,7 +51,7 @@ pub fn name(table: &Table) -> Option<&str> {
 }
 
 pub fn extract_all<'a>(root: &'a Table, dependency: &str, dependency_graph: &'a DirectedGraph<Dependency>) -> Result<HashSet<Dependency<'a>>> {
-    let features = extract(root, dependency)?;
+    let features = extract_features(root, dependency)?;
     let mut visited = HashSet::new();
 
     for feature in features {

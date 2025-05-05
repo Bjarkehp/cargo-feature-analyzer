@@ -6,7 +6,7 @@ mod max_tree;
 mod configuration;
 mod concept;
 
-use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{stdin, BufWriter, Read, Write}, path::{Path, PathBuf}};
+use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, path::{Path, PathBuf}};
 
 use clap::Parser;
 use dependency::Dependency;
@@ -18,7 +18,7 @@ use walkdir::WalkDir;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    feature: String,
+    cargo_toml: PathBuf,
     source: PathBuf,
     destination: PathBuf,
 
@@ -32,12 +32,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     if !args.force && fs::exists(&args.destination)? && !confirm_overwrite(&args.destination) {
         return Err("User declined operation.".into());
     }
-
+    let timer = std::time::Instant::now();
+    let source_toml = fs::read_to_string(&args.cargo_toml)?;
+    let toml_table = source_toml.parse()?;
+    let feature = configuration::name(&toml_table)
+        .ok_or("Specified cargo file does not have a name")?;
+    let dependency_graph = feature_dependencies::from_cargo_toml(&toml_table)?;
+    println!("{} ms: Created dependency graph", timer.elapsed().as_millis());
     let configuration_tables = configuration::load_tables(args.source);
     let configurations = configuration_tables.iter()
-        .filter_map(|table| configuration::from(table, &args.feature))
+        .filter_map(|table| configuration::from(table, feature, &dependency_graph))
         .collect::<Vec<_>>();
-    let graph = concept::ac_poset(&configurations[..]);
+    println!("{} ms: Parsed configurations", timer.elapsed().as_millis());
+    let ac_poset = concept::ac_poset(&configurations);
+    println!("{} ms: Created ac-poset", timer.elapsed().as_millis());
+    
+    let uvl_file = File::create(args.destination.with_extension("uvl"))?;
+    let mut uvl_writer = BufWriter::new(uvl_file);
+    uvl::write_ac_poset(&mut uvl_writer, &ac_poset)?;
+    uvl_writer.flush()?;
+    println!("{} ms: Wrote feature model", timer.elapsed().as_millis());
 
     let graphviz_config = [
         petgraph::dot::Config::EdgeNoLabel,
@@ -45,13 +59,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     ];
 
     let graphviz = Dot::with_attr_getters(
-        &graph, 
+        &ac_poset, 
         &graphviz_config, 
         &|_, _edge| "".to_string(), 
         &|_, _node| "shape=box".to_string()
     );
 
-    fs::write(args.destination, format!("{:#?}", graphviz))?;
+    fs::write(args.destination.with_extension("acposet.dot"), format!("{:#?}", graphviz))?;
+    println!("{} ms: Wrote graphviz representation of ac-poset", timer.elapsed().as_millis());
 
     Ok(())
 }

@@ -1,0 +1,12 @@
+[package]
+name = "example"
+
+[features]
+e_commerce = []
+catalogue = []
+grid = []
+list = []
+payment_method = []
+credit_card = []
+check = []
+basket = []

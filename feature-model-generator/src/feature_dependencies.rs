@@ -26,7 +26,8 @@ fn feature_dependencies<'a>(graph: &mut DirectedGraph<Dependency<'a>>, root: &'a
 
 fn optional_dependency_features<'a>(graph: &mut DirectedGraph<Dependency<'a>>, root: &'a Table) -> Result<()> {
     let feature_table = get_table(root, "features")?;
-    let dependencies = get_dependency_tables(root)?
+    let dependencies = get_dependency_tables(root)
+        .unwrap_or_default()
         .into_iter()
         .flat_map(|table| table.into_iter());
 

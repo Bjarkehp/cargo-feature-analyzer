@@ -8,7 +8,7 @@ use crate::configuration::Configuration;
 
 /// A Concept consists of a set of configurations and features,
 /// where the configurations share that same set of features.
-#[derive(PartialEq, Eq, new, Default, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, new, Default, Debug)]
 pub struct Concept<'a> {
     pub features: BTreeSet<&'a str>,
     pub configurations: BTreeSet<&'a str>,
