@@ -1,8 +1,9 @@
-use std::{env, error::Error, fs, path::PathBuf};
+use std::{env, error::Error, fs, io::BufWriter, path::PathBuf};
 
 use clap::Parser;
 use colored::Colorize;
 use crates_io_api::{ReverseDependency, SyncClient};
+use std::io::Write;
 
 /// Program for scraping the top dependents of a specified crate from crates.io
 #[derive(Parser, Debug)]
@@ -21,6 +22,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let crates_client = create_client()?;
     let reqwest_client = reqwest::blocking::Client::new();
+
+    let repository = crates_client.get_crate(&args.crate_name)
+        .map(|c| c.crate_data.repository.ok_or(format!("Failed to get repository for {}", c.crate_data.name)))??;
+    let cargo_toml = download_cargo_toml(&reqwest_client, &repository, &args.crate_name)?;
+    let table = cargo_toml.parse()?;
+    let dependency_graph = configuration::feature_dependencies::from_cargo_toml(&table)?;
+
     let dependents = top_dependents(&args.crate_name, &crates_client)
         .map(|d| crates_client.get_crate(&d.crate_version.crate_name).map(|c| c.crate_data));
 
@@ -28,13 +36,33 @@ fn main() -> Result<(), Box<dyn Error>> {
         let c = c?;
         let name = c.name;
         let repository = c.repository.ok_or(format!("Failed to get repository for {}", name))?;
-        let cargo_toml = download_cargo_toml(&reqwest_client, &repository, &name)?;
+        let config_cargo_toml = download_cargo_toml(&reqwest_client, &repository, &name)?;
 
-        let mut destination = PathBuf::new();
-        destination.push(args.destination.as_deref().unwrap_or(&env::current_dir()?));
-        destination.push(format!("{}.toml", name));
+        let config_table = config_cargo_toml.parse()?;
+        let config = configuration::from(&config_table, &args.crate_name, &dependency_graph)
+            .ok_or(format!("Failed to create configuration for {}", name))?;
 
-        fs::write(destination, cargo_toml)?;
+        let mut toml_destination = PathBuf::new();
+        toml_destination.push(args.destination.as_deref().unwrap_or(&env::current_dir()?));
+        toml_destination.push(format!("{}.toml", name));
+
+        fs::write(toml_destination, &config_cargo_toml)?;
+
+        let mut csvconf_destination = PathBuf::new();
+        csvconf_destination.push(args.destination.as_deref().unwrap_or(&env::current_dir()?));
+        csvconf_destination.push(format!("{}.csvconf", name));
+        let csvconf_file = fs::File::create(csvconf_destination)?;
+        let mut csvconf_writer = BufWriter::new(csvconf_file);
+        
+        writeln!(csvconf_writer, "\"{}\",True", args.crate_name)?;
+        for i in 0..config.features().len() {
+            write!(csvconf_writer, "\"{}\",True", &config.features()[i])?;
+            if i < config.features().len() - 1 {
+                writeln!(csvconf_writer)?
+            }
+        }
+
+        csvconf_writer.flush()?;
 
         Result::<String, Box<dyn Error>>::Ok(name)
     });

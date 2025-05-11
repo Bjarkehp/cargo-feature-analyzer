@@ -1,3 +1,7 @@
+pub mod directed_graph;
+pub mod dependency;
+pub mod feature_dependencies;
+
 use std::{collections::HashSet, path::Path};
 
 use derive_new::new;
@@ -51,7 +55,7 @@ pub fn name(table: &Table) -> Option<&str> {
 }
 
 pub fn extract_all<'a>(root: &'a Table, dependency: &str, dependency_graph: &'a DirectedGraph<Dependency>) -> Result<HashSet<Dependency<'a>>> {
-    let features = extract_features(root, dependency)?;
+    let features = extract_dependencies(root, dependency)?;
     let mut visited = HashSet::new();
 
     for feature in features {
@@ -61,11 +65,11 @@ pub fn extract_all<'a>(root: &'a Table, dependency: &str, dependency_graph: &'a 
     Ok(visited)
 }
 
-pub fn extract_features<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
+pub fn extract_dependencies<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
     extract(get_table(root, "dependencies")?, dependency)
 }
 
-pub fn extract_dev_features<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
+pub fn extract_dev_dependencies<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
     extract(get_table(root, "dev-dependencies")?, dependency)
 }
 

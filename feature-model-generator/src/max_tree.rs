@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::directed_graph::DirectedGraph;
+use configuration::directed_graph::DirectedGraph;
 
 pub fn find<'a, T: Eq + std::hash::Hash>(graph: &'a DirectedGraph<T>, root: &'a T, visited: &mut HashSet<&'a T>) -> impl Iterator<Item = (&'a T, &'a T)> {
     let mut parent: HashMap<&T, &T> = HashMap::new();

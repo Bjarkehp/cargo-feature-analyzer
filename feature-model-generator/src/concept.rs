@@ -4,7 +4,7 @@ use derive_new::new;
 use itertools::Itertools;
 use petgraph::{graph::DiGraph, visit::{Dfs, EdgeRef, VisitMap}};
 
-use crate::configuration::Configuration;
+use configuration::Configuration;
 
 /// A Concept consists of a set of configurations and features,
 /// where the configurations share that same set of features.

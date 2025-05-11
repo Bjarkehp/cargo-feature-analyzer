@@ -3,15 +3,18 @@ use std::{collections::{BTreeMap, BTreeSet, HashMap, HashSet}, hash::Hash, io::W
 use itertools::Itertools;
 use petgraph::{graph::{DiGraph, NodeIndex}, visit::Dfs, Direction};
 
-use crate::{concept::Concept, dependency::Dependency, directed_graph::DirectedGraph, max_tree};
+use crate::{concept::Concept, max_tree};
+use configuration::{dependency::Dependency, directed_graph::DirectedGraph};
 
-pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>) -> std::io::Result<()> {
+pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>, root: &str) -> std::io::Result<()> {
     let mut visited = HashSet::new();
     let mut constraints = BTreeMap::new();
 
     writeln!(writer, "features")?;
+    writeln!(writer, "\t\"{}\"", root)?;
+    writeln!(writer, "\t\toptional")?;
     for node in ac_poset.externals(Direction::Outgoing) {
-        visit_ac_poset_node(writer, ac_poset, node, &mut visited, &mut constraints, 0)?;
+        visit_ac_poset_node(writer, ac_poset, node, &mut visited, &mut constraints, 1)?;
     }
     writeln!(writer, "constraints")?;
     for (antecedent, consequent) in constraints {

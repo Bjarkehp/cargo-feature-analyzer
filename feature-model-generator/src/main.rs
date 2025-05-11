@@ -1,15 +1,11 @@
-mod feature_dependencies;
-mod dependency;
 mod uvl;
-mod directed_graph;
 mod max_tree;
-mod configuration;
 mod concept;
 
 use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, path::{Path, PathBuf}};
 
 use clap::Parser;
-use dependency::Dependency;
+use configuration::dependency::Dependency;
 use itertools::Itertools;
 use petgraph::dot::Dot;
 use walkdir::WalkDir;
@@ -37,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let toml_table = source_toml.parse()?;
     let feature = configuration::name(&toml_table)
         .ok_or("Specified cargo file does not have a name")?;
-    let dependency_graph = feature_dependencies::from_cargo_toml(&toml_table)?;
+    let dependency_graph = configuration::feature_dependencies::from_cargo_toml(&toml_table)?;
     println!("{} ms: Created dependency graph", timer.elapsed().as_millis());
     let configuration_tables = configuration::load_tables(args.source);
     let configurations = configuration_tables.iter()
@@ -49,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     
     let uvl_file = File::create(args.destination.with_extension("uvl"))?;
     let mut uvl_writer = BufWriter::new(uvl_file);
-    uvl::write_ac_poset(&mut uvl_writer, &ac_poset)?;
+    uvl::write_ac_poset(&mut uvl_writer, &ac_poset, feature)?;
     uvl_writer.flush()?;
     println!("{} ms: Wrote feature model", timer.elapsed().as_millis());
 
@@ -75,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn feature_model_from_only_cargo_toml() -> Result<(), Box<dyn Error>> {
     let source_toml = include_str!("../examples/toml/tokio.toml");
     let toml_table = source_toml.parse()?;
-    let graph = feature_dependencies::from_cargo_toml(&toml_table)?;
+    let graph = configuration::feature_dependencies::from_cargo_toml(&toml_table)?;
     
     let tokio_uvl = File::create("tokio.uvl")?;
     let mut tokio_uvl_writer = BufWriter::new(tokio_uvl);
@@ -98,13 +94,13 @@ fn map_of_occurrences() -> Result<(), Box<dyn Error>> {
 
     // Normal dependencies
     configurations.iter()
-        .filter_map(|table| configuration::extract_features(table, "tokio").ok())
+        .filter_map(|table| configuration::extract_dependencies(table, "tokio").ok())
         .map(|hset| hset.into_iter().map(Dependency::name).collect::<BTreeSet<_>>())
         .for_each(|set| { map.entry(set).and_modify(|n| *n += 1).or_insert(1); });
 
     // Dev dependencies
     configurations.iter()
-        .filter_map(|table| configuration::extract_dev_features(table, "tokio").ok())
+        .filter_map(|table| configuration::extract_dev_dependencies(table, "tokio").ok())
         .map(|hset| hset.into_iter().map(Dependency::name).collect::<BTreeSet<_>>())
         .for_each(|set| { map.entry(set).and_modify(|n| *n += 1).or_insert(1); });
 

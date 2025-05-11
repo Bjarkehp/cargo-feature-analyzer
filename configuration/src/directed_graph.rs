@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
 
+#[derive(Debug)]
 pub struct DirectedGraph<T: Eq + std::hash::Hash> {
     map: HashMap<T, HashSet<T>>
 }
@@ -41,7 +42,7 @@ impl<T: Eq + std::hash::Hash> DirectedGraph<T> {
         DirectedGraph { map: reversed_graph }
     }
 
-    pub fn depth_first_search<'a>(&'a self, root: T, visited: &mut HashSet<T>) where T: Clone {
+    pub fn depth_first_search(&self, root: T, visited: &mut HashSet<T>) where T: Clone {
         visited.insert(root.clone());
 
         let set = self.map.get(&root);
