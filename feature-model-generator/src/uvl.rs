@@ -1,4 +1,4 @@
-use std::{collections::{BTreeSet, HashMap, HashSet}, hash::Hash, io::Write, iter::from_fn};
+use std::{collections::{BTreeMap, BTreeSet, HashMap, HashSet}, hash::Hash, io::Write, iter::from_fn};
 
 use itertools::Itertools;
 use petgraph::{graph::{DiGraph, NodeIndex}, visit::Dfs, Direction};
@@ -7,14 +7,29 @@ use crate::{concept::Concept, dependency::Dependency, directed_graph::DirectedGr
 
 pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>) -> std::io::Result<()> {
     let mut visited = HashSet::new();
+    let mut constraints = BTreeMap::new();
+
     writeln!(writer, "features")?;
     for node in ac_poset.externals(Direction::Outgoing) {
-        write_ac_poset_tree(writer, ac_poset, node, &mut visited, 0)?;
+        visit_ac_poset_node(writer, ac_poset, node, &mut visited, &mut constraints, 0)?;
+    }
+    writeln!(writer, "constraints")?;
+    for (antecedent, consequent) in constraints {
+        let left = antecedent.iter().map(|s| format!("\"{s}\"")).join(" & ");
+        let right = consequent.iter().map(|s| format!("\"{s}\"")).join(" & ");
+        writeln!(writer, "\t{left} => {right}")?;
     }
     Ok(())
 }
 
-fn write_ac_poset_tree<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, visited: &mut HashSet<NodeIndex>, depth: usize) -> std::io::Result<()> {
+fn visit_ac_poset_node<'a, W: Write>(
+    writer: &mut W, 
+    ac_poset: &'a DiGraph<Concept, ()>, 
+    node: NodeIndex, 
+    visited: &mut HashSet<NodeIndex>,
+    constraints: &mut BTreeMap<BTreeSet<&'a str>, BTreeSet<&'a str>>,
+    depth: usize
+) -> std::io::Result<()> {
     visited.insert(node);
 
     let concept = &ac_poset[node];
@@ -31,16 +46,23 @@ fn write_ac_poset_tree<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>
         }
     }
 
-    let child_concepts = ac_poset.neighbors_directed(node, Direction::Incoming)
-        .filter(|child| !visited.contains(child))
-        .collect::<Vec<_>>();
+    let (visited_children, not_visited_children) = ac_poset.neighbors_directed(node, Direction::Incoming)
+        .partition::<Vec<_>, _>(|child| visited.contains(child));
 
-    if child_concepts.is_empty() {
+    for child in visited_children {
+        let child_concept = &ac_poset[child];
+        let key = child_concept.features.iter().cloned().collect();
+        constraints.entry(key)
+            .and_modify(|set| set.extend(concept.features.iter()))
+            .or_insert(concept.features.clone());
+    }
+
+    if not_visited_children.is_empty() {
         return Ok(());
     }
 
-    let constraint = if concept.configurations.is_empty() && child_concepts.len() > 1 {
-        let histogram = config_histogram(&child_concepts, ac_poset);
+    let constraint = if concept.configurations.is_empty() && not_visited_children.len() > 1 {
+        let histogram = config_histogram(&not_visited_children, ac_poset);
         let min = *histogram.values().min().unwrap();
         let max = *histogram.values().max().unwrap();
         
@@ -56,8 +78,8 @@ fn write_ac_poset_tree<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>
     };
 
     writeln!(writer, "{}{}", "\t".repeat(2 * depth + 2), constraint)?;
-    for child in child_concepts {
-        write_ac_poset_tree(writer, ac_poset, child, visited, depth + 1)?;
+    for child in not_visited_children {
+        visit_ac_poset_node(writer, ac_poset, child, visited, constraints, depth + 1)?;
     }
 
     Ok(())
