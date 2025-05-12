@@ -31,21 +31,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     let timer = std::time::Instant::now();
     let source_toml = fs::read_to_string(&args.cargo_toml)?;
     let toml_table = source_toml.parse()?;
-    let feature = configuration::name(&toml_table)
+    let crate_name = configuration::name(&toml_table)
         .ok_or("Specified cargo file does not have a name")?;
     let dependency_graph = configuration::feature_dependencies::from_cargo_toml(&toml_table)?;
+    let features = dependency_graph.nodes()
+        .filter(|d| matches!(d, Dependency::Feature(_)))
+        .map(|d| d.name())
+        .collect::<Vec<_>>();
     println!("{} ms: Created dependency graph", timer.elapsed().as_millis());
     let configuration_tables = configuration::load_tables(args.source);
     let configurations = configuration_tables.iter()
-        .filter_map(|table| configuration::from(table, feature, &dependency_graph))
+        .filter_map(|table| configuration::from(table, crate_name, &dependency_graph))
         .collect::<Vec<_>>();
     println!("{} ms: Parsed configurations", timer.elapsed().as_millis());
-    let ac_poset = concept::ac_poset(&configurations);
+    let ac_poset = concept::ac_poset(&configurations, &features);
     println!("{} ms: Created ac-poset", timer.elapsed().as_millis());
     
     let uvl_file = File::create(args.destination.with_extension("uvl"))?;
     let mut uvl_writer = BufWriter::new(uvl_file);
-    uvl::write_ac_poset(&mut uvl_writer, &ac_poset, feature)?;
+    uvl::write_ac_poset(&mut uvl_writer, &ac_poset, crate_name)?;
     uvl_writer.flush()?;
     println!("{} ms: Wrote feature model", timer.elapsed().as_millis());
 

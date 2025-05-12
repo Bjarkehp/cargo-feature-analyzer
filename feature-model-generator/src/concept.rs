@@ -22,8 +22,8 @@ pub struct Concept<'a> {
 /// 3. Remove duplicate configurations from the concepts that are already inherited by parent concepts.
 /// 4. Create a graph where the nodes are concepts and the edges represent the partial order of concepts.
 /// 5. Remove all redundant edges that don't effect the partial order.
-pub fn ac_poset<'a>(configurations: &'a [Configuration<'a>]) -> DiGraph<Concept<'a>, ()> {
-    let mut concepts = extract_concepts(configurations);
+pub fn ac_poset<'a>(configurations: &'a [Configuration], features: &'a [&str]) -> DiGraph<Concept<'a>, ()> {
+    let mut concepts = extract_concepts(configurations, features);
     let edges = subset_edges(&concepts);
     remove_duplicate_configurations(&mut concepts, &edges);
     let mut graph = create_graph(concepts, &edges);
@@ -32,18 +32,13 @@ pub fn ac_poset<'a>(configurations: &'a [Configuration<'a>]) -> DiGraph<Concept<
 }
 
 /// Extract all concepts from the configurations by grouping together features with the same set of set of configurations.
-fn extract_concepts<'a>(configurations: &'a [Configuration<'a>]) -> Vec<Concept<'a>> {
+fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str]) -> Vec<Concept<'a>> {
     let configurations_with_feature = |feature: &str| {
         configurations.iter()
             .filter(|config| config.features().contains(&feature))
             .map(|config| config.name())
             .collect::<BTreeSet<_>>()
     };
-    
-    let features = configurations.iter()
-        .flat_map(|config| config.features())
-        .cloned()
-        .collect::<Vec<_>>();
 
     features.into_iter()
         .map(|feature| (configurations_with_feature(feature), feature))

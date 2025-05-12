@@ -1,7 +1,8 @@
-use std::{env, error::Error, fs, io::BufWriter, path::PathBuf};
+use std::{env, error::Error, fmt::write, fs, io::BufWriter, path::PathBuf};
 
 use clap::Parser;
 use colored::Colorize;
+use configuration::dependency::Dependency;
 use crates_io_api::{ReverseDependency, SyncClient};
 use std::io::Write;
 
@@ -28,6 +29,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cargo_toml = download_cargo_toml(&reqwest_client, &repository, &args.crate_name)?;
     let table = cargo_toml.parse()?;
     let dependency_graph = configuration::feature_dependencies::from_cargo_toml(&table)?;
+    let features = dependency_graph.nodes()
+        .filter(|d| matches!(d, Dependency::Feature(_)))
+        .map(|d| d.name())
+        .collect::<Vec<_>>();
 
     let dependents = top_dependents(&args.crate_name, &crates_client)
         .map(|d| crates_client.get_crate(&d.crate_version.crate_name).map(|c| c.crate_data));
@@ -55,10 +60,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut csvconf_writer = BufWriter::new(csvconf_file);
         
         writeln!(csvconf_writer, "\"{}\",True", args.crate_name)?;
-        for i in 0..config.features().len() {
-            write!(csvconf_writer, "\"{}\",True", &config.features()[i])?;
-            if i < config.features().len() - 1 {
-                writeln!(csvconf_writer)?
+        for feature in features.iter() {
+            if config.features().contains(feature) {
+                writeln!(csvconf_writer, "\"{}\",True", feature)?;
+            } else {
+                writeln!(csvconf_writer, "\"{}\",False", feature)?;
             }
         }
 
