@@ -16,6 +16,11 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
     for node in ac_poset.externals(Direction::Outgoing) {
         visit_ac_poset_node(writer, ac_poset, node, &mut visited, &mut constraints, 1)?;
     }
+
+    if constraints.is_empty() {
+        return Ok(());
+    }
+
     writeln!(writer, "constraints")?;
     for (antecedent, consequent) in constraints {
         let left = antecedent.iter().map(|s| format!("\"{s}\"")).join(" & ");
