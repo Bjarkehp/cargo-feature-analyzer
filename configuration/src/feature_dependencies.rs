@@ -16,9 +16,11 @@ fn feature_dependencies<'a>(graph: &mut DirectedGraph<Dependency<'a>>, root: &'a
     let feature_table = get_table(root, "features")?;
 
     for (key, value) in feature_table {
-        let feature = Dependency::Feature(key);
-        let dependencies = dependencies_from_feature_value(value)?;
-        graph.extend(feature, dependencies);
+        if key != "default" {
+            let feature = Dependency::Feature(key);
+            let dependencies = dependencies_from_feature_value(value)?;
+            graph.extend(feature, dependencies);
+        }
     }
 
     Ok(())
