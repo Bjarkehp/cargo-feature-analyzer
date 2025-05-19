@@ -13,6 +13,17 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
     writeln!(writer, "features")?;
     writeln!(writer, "\t\"{}\"", root)?;
     writeln!(writer, "\t\toptional")?;
+
+    for node in ac_poset.externals(Direction::Incoming) {
+        let concept = &ac_poset[node];
+        if concept.configurations.is_empty() {
+            visited.insert(node);
+            for feature in concept.features.iter() {
+                writeln!(writer, "\t\t\t\"{feature}\"")?;
+            }
+        }
+    }
+
     for node in ac_poset.externals(Direction::Outgoing) {
         visit_ac_poset_node(writer, ac_poset, node, &mut visited, &mut constraints, 1)?;
     }
@@ -58,11 +69,13 @@ fn visit_ac_poset_node<'a, W: Write>(
         .partition::<Vec<_>, _>(|child| visited.contains(child));
 
     for child in visited_children {
-        let child_concept = &ac_poset[child];
-        let key = child_concept.features.iter().cloned().collect();
-        constraints.entry(key)
-            .and_modify(|set| set.extend(concept.features.iter()))
-            .or_insert(concept.features.clone());
+        if config_histogram(&[child], ac_poset).len() > 1 {
+            let child_concept = &ac_poset[child];
+            let key = child_concept.features.iter().cloned().collect();
+            constraints.entry(key)
+                .and_modify(|set| set.extend(concept.features.iter()))
+                .or_insert(concept.features.clone());
+        }
     }
 
     if not_visited_children.is_empty() {
