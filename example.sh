@@ -16,7 +16,7 @@ trap cleanup EXIT
 
 echo "Extracting dependents of tokio to $WORK_DIR..."
 cd "$DIR/feature-configuration-scraper"
-cargo run -- tokio -d "$WORK_DIR" -c 10
+cargo run -- tokio -d "$WORK_DIR" -c 20
 
 echo "Generating feature model for tokio..."
 cd "$DIR/feature-model-generator"
