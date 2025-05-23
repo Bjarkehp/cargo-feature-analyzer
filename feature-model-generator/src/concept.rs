@@ -8,10 +8,13 @@ use configuration::Configuration;
 
 /// A Concept consists of a set of configurations and features,
 /// where the configurations share that same set of features.
+/// implied_configurations is a set of all configurations with a set of features that are a superset of this concept's features.
+/// configurations on the other hand, only contains a configuration if it isn't implied by the ordering of other concepts.
 #[derive(PartialEq, Eq, PartialOrd, Ord, new, Default, Debug)]
 pub struct Concept<'a> {
     pub features: BTreeSet<&'a str>,
     pub configurations: BTreeSet<&'a str>,
+    pub implied_configurations: BTreeSet<&'a str>,
 }
 
 /// Create an Attribute-Concept partially ordered set from a set of configurations.
@@ -45,7 +48,7 @@ fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str
         .into_grouping_map()
         .collect::<BTreeSet<_>>()
         .into_iter()
-        .map(|(configurations, features)| Concept::new(features, configurations))
+        .map(|(configurations, features)| Concept::new(features, configurations.clone(), configurations))
         .collect()
 }
 

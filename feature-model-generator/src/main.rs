@@ -1,12 +1,11 @@
 mod uvl;
-mod max_tree;
 mod concept;
 
-use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, path::{Path, PathBuf}};
+use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, os::unix::raw::dev_t, path::{Path, PathBuf}};
 
 use clap::Parser;
 use concept::Concept;
-use configuration::dependency::Dependency;
+use configuration::Configuration;
 use itertools::Itertools;
 use petgraph::{dot::Dot, graph::DiGraph};
 use walkdir::WalkDir;
@@ -34,15 +33,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let toml_table = source_toml.parse()?;
     let crate_name = configuration::name(&toml_table)
         .ok_or("Specified cargo file does not have a name")?;
-    let dependency_graph = configuration::feature_dependencies::from_cargo_toml(&toml_table)?;
-    let features = dependency_graph.nodes()
-        .filter(|d| matches!(d, Dependency::Feature(_)))
-        .map(|d| d.name())
+    let feature_dependencies = configuration::feature_dependencies::from_cargo_toml(&toml_table)?;
+    let features = feature_dependencies.keys()
+        .cloned()
         .collect::<Vec<_>>();
 
     let configuration_tables = configuration::load_tables(args.source);
-    let configurations = configuration_tables.iter()
-        .filter_map(|table| configuration::from(table, crate_name, &dependency_graph))
+    let standard_configurations = configuration_tables.iter()
+        .filter_map(|table| Configuration::new_standard(table, crate_name, &feature_dependencies).ok());
+    let dev_configurations = configuration_tables.iter()
+        .filter_map(|table| Configuration::new_dev(table, crate_name, &feature_dependencies).ok());
+    let configurations = standard_configurations.chain(dev_configurations)
         .collect::<Vec<_>>();
 
     let ac_poset = concept::ac_poset(&configurations, &features);

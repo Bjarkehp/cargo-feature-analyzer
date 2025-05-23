@@ -1,10 +1,11 @@
-use std::{env, error::Error, fmt::write, fs, io::BufWriter, path::PathBuf};
+use std::{env, error::Error, fs, io::BufWriter, path::PathBuf};
 
 use clap::Parser;
 use colored::Colorize;
-use configuration::dependency::Dependency;
 use crates_io_api::{ReverseDependency, SyncClient};
 use std::io::Write;
+
+mod main2;
 
 /// Program for scraping the top dependents of a specified crate from crates.io
 #[derive(Parser, Debug)]
@@ -28,10 +29,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|c| c.crate_data.repository.ok_or(format!("Failed to get repository for {}", c.crate_data.name)))??;
     let cargo_toml = download_cargo_toml(&reqwest_client, &repository, &args.crate_name)?;
     let table = cargo_toml.parse()?;
-    let dependency_graph = configuration::feature_dependencies::from_cargo_toml(&table)?;
-    let features = dependency_graph.nodes()
-        .filter(|d| matches!(d, Dependency::Feature(_)))
-        .map(|d| d.name())
+    let feature_dependencies = configuration::feature_dependencies::from_cargo_toml(&table)?;
+    let features = feature_dependencies.keys()
         .collect::<Vec<_>>();
 
     let dependents = top_dependents(&args.crate_name, &crates_client)
@@ -44,7 +43,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let config_cargo_toml = download_cargo_toml(&reqwest_client, &repository, &name)?;
 
         let config_table = config_cargo_toml.parse()?;
-        let config = configuration::from(&config_table, &args.crate_name, &dependency_graph)
+        let config = configuration::from(&config_table, &args.crate_name, &feature_dependencies)
             .ok_or(format!("Failed to create configuration for {}", name))?;
 
         let mut toml_destination = PathBuf::new();

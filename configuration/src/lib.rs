@@ -1,110 +1,128 @@
-pub mod directed_graph;
-pub mod dependency;
-pub mod feature_dependencies;
+use std::{collections::BTreeSet, path::Path};
 
-use std::{collections::HashSet, path::Path};
-
-use derive_new::new;
 use thiserror::Error;
-use toml::Table;
+use toml_util::get_table;
 use walkdir::WalkDir;
 
-use crate::{dependency::Dependency, directed_graph::DirectedGraph};
+pub mod feature_dependencies;
 
-#[derive(Debug, new)]
-pub struct Configuration<'a> {
-    name: &'a str,
-    features: Vec<&'a str>
+mod toml_util; 
+
+#[derive(Debug)]
+pub enum Configuration<'a> {
+    Standard {
+        name: &'a str,
+        features: BTreeSet<&'a str>
+    },
+    Dev {
+        name: &'a str,
+        features: BTreeSet<&'a str>
+    }
 }
 
 impl<'a> Configuration<'a> {
+    pub fn new_standard(root: &'a toml::Table, feature: &str, feature_dependencies: &'a feature_dependencies::Map) -> Result<Self> {
+        let name = name(root)
+            .ok_or(Error::NoName)?;
+        let dependency_table = get_table(root, "dependencies")
+            .map_err(|_| Error::NoDependencies)?;
+        let features = implied_features(dependency_table, feature, feature_dependencies)?;
+
+        Ok(Self::Standard {
+            name,
+            features
+        })
+    }
+
+    pub fn new_dev(root: &'a toml::Table, feature: &str, feature_dependencies: &'a feature_dependencies::Map) -> Result<Self> {
+        let name = name(root)
+            .ok_or(Error::NoName)?;
+        let dependency_table = get_table(root, "dependencies")
+            .map_err(|_| Error::NoDependencies)?;
+        let features = implied_features(dependency_table, feature, feature_dependencies)?;
+
+        Ok(Self::Dev {
+            name,
+            features
+        })
+    }
+
     pub fn name(&self) -> &str {
-        self.name
+        match self {
+            Self::Standard { name, .. } => name,
+            Self::Dev { name, .. } => name
+        }
     }
     
-    pub fn features(&self) -> &[&'a str] {
-        &self.features
+    pub fn features(&self) -> &BTreeSet<&str> {
+        match self {
+            Self::Standard { features, .. } => features,
+            Self::Dev { features, .. } => features
+        }
     }
 }
 
-pub fn load_tables(path: impl AsRef<Path>) -> Vec<Table> {
+fn implied_features<'a>(
+    dependency_table: &'a toml::Table, 
+    feature: &str, 
+    feature_dependencies: &'a feature_dependencies::Map
+) -> Result<BTreeSet<&'a str>> {
+    let features_value = dependency_table.get(feature)
+        .and_then(|v| v.as_table())
+        .and_then(|t| t.get("features"))
+        .and_then(|v| v.as_array());
+
+    let mut features = if let Some(v) = features_value {
+        v.iter()
+            .map(|v| v.as_str())
+            .collect::<Option<Vec<_>>>()
+            .ok_or(Error::InvalidFeature)?
+    } else {
+        return Ok(BTreeSet::new());
+    };  
+
+    let mut visited_features = BTreeSet::new();
+    while let Some(feature) = features.pop() {
+        if !visited_features.contains(feature) {
+            visited_features.insert(feature);
+            let new_features = feature_dependencies.get(feature)
+                .ok_or(Error::InvalidFeatureDependencies)?;
+            features.extend(new_features);
+        }
+    }
+
+    Ok(visited_features)
+}
+
+pub fn name(root: &toml::Table) -> Option<&str> {
+    root.get("package")
+        .and_then(|v| v.as_table())
+        .and_then(|t| t.get("name"))
+        .and_then(|v| v.as_str())
+}
+
+pub fn load_tables(path: impl AsRef<Path>) -> Vec<toml::Table> {
     WalkDir::new(path)
         .into_iter()
-        .filter_map(|e| e.ok())
+        .filter_map(|result| result.ok())
         .filter(|entry| entry.file_name().to_str().unwrap().ends_with(".toml"))
-        .filter_map(|file| std::fs::read_to_string(file.path()).ok())
-        .filter_map(|toml| toml.as_str().parse().ok())
+        .filter_map(|entry| std::fs::read_to_string(entry.path()).ok())
+        .filter_map(|content| content.as_str().parse().ok())
         .collect::<Vec<_>>()
 }
 
-pub fn from<'a>(table: &'a Table, feature: &str, dependency_graph: &'a DirectedGraph<Dependency>) -> Option<Configuration<'a>> {
-    let name = name(table)?;
-    let features = extract_all(table, feature, dependency_graph)
-        .ok()?
-        .into_iter()
-        .map(Dependency::name)
-        .collect();
-    Some(Configuration { name, features })
-}
-
-pub fn name(table: &Table) -> Option<&str> {
-    table.get("package")?
-        .as_table()?
-        .get("name")?
-        .as_str()
-}
-
-pub fn extract_all<'a>(root: &'a Table, dependency: &str, dependency_graph: &'a DirectedGraph<Dependency>) -> Result<HashSet<Dependency<'a>>> {
-    let features = extract_dependencies(root, dependency)?;
-    let mut visited = HashSet::new();
-
-    for feature in features {
-        dependency_graph.depth_first_search(feature, &mut visited);
-    }
-
-    Ok(visited)
-}
-
-pub fn extract_dependencies<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
-    extract(get_table(root, "dependencies")?, dependency)
-}
-
-pub fn extract_dev_dependencies<'a>(root: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
-    extract(get_table(root, "dev-dependencies")?, dependency)
-}
-
-fn extract<'a>(table: &'a Table, dependency: &str) -> Result<Vec<Dependency<'a>>> {
-    let dependency_node = table.get(dependency)
-        .ok_or(Error::KeyMissing)?;
-
-    let feature_node = dependency_node.get("features")
-        .and_then(|v| v.as_array());
-
-    let features = if let Some(feature_node) = feature_node {
-        feature_node.iter()
-            .map(|f| f.as_str().map(Dependency::Feature))
-            .collect::<Option<Vec<_>>>()
-            .ok_or(Error::WrongType)?
-    } else {
-        Vec::new()
-    };
-
-    Ok(features)
-}
-
-fn get_table<'a>(parent: &'a Table, key: &str) -> Result<&'a Table> {
-    parent.get(key)
-        .ok_or(Error::KeyMissing)?
-        .as_table()
-        .ok_or(Error::WrongType)
-}
+pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Missing key in toml")]
-    KeyMissing,
-    #[error("Wrong type in toml")]
-    WrongType
+    #[error("The passed Cargo.toml has no name")]
+    NoName,
+    #[error("The passed Cargo.toml has no dependencies")]
+    NoDependencies,
+    #[error("The passed Cargo.toml has no dev-dependencies")]
+    NoDevDependencies,
+    #[error("Unable to parse a specific feature in provided Cargo.toml")]
+    InvalidFeature,
+    #[error("The passed feature dependencies are invalid")]
+    InvalidFeatureDependencies,
 }
-
-pub type Result<T> = std::result::Result<T, Error>;

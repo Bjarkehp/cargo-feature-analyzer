@@ -5,6 +5,7 @@ use petgraph::{graph::{DiGraph, NodeIndex}, Direction};
 
 use crate::concept::Concept;
 
+/// Write an ac-poset into a UVL file.
 pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>, root: &str) -> std::io::Result<()> {
     let mut visited = HashSet::new();
     let mut constraints = BTreeMap::new();
@@ -13,7 +14,6 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
     writeln!(writer, "\t\"{}\"", root)?;
     writeln!(writer, "\t\toptional")?;
 
-    write_unused_features(writer, ac_poset, &mut visited)?;
     write_uvl_tree(writer, ac_poset, &mut visited, &mut constraints)?;
 
     if !constraints.is_empty() {
@@ -23,6 +23,18 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
     Ok(())
 }
 
+/// Start traversing the ac-poset, writing unvisited features into the tree. 
+/// Any visited concepts will instead be written into the constraints map.
+fn write_uvl_tree<'a, W: Write>(writer: &mut W, ac_poset: &'a DiGraph<Concept, ()>, visited: &mut HashSet<NodeIndex>, constraints: &mut BTreeMap<BTreeSet<&'a str>, BTreeSet<&'a str>>) -> std::io::Result<()>{
+    write_unused_features(writer, ac_poset, visited)?;
+    for node in ac_poset.externals(Direction::Outgoing) {
+        visit_ac_poset_node(writer, ac_poset, node, visited, constraints, 1)?;
+    }
+
+    Ok(())
+}
+
+/// Find external concepts with no configurations and writes them directly as top-level features
 fn write_unused_features<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>, visited: &mut HashSet<NodeIndex>) -> std::io::Result<()> {
     for node in ac_poset.externals(Direction::Incoming) {
         let concept = &ac_poset[node];
@@ -37,14 +49,7 @@ fn write_unused_features<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, (
     Ok(())
 }
 
-fn write_uvl_tree<'a, W: Write>(writer: &mut W, ac_poset: &'a DiGraph<Concept, ()>, visited: &mut HashSet<NodeIndex>, constraints: &mut BTreeMap<BTreeSet<&'a str>, BTreeSet<&'a str>>) -> std::io::Result<()>{
-    for node in ac_poset.externals(Direction::Outgoing) {
-        visit_ac_poset_node(writer, ac_poset, node, visited, constraints, 1)?;
-    }
-
-    Ok(())
-}
-
+/// Write a set of constraints into a UVL file
 fn write_uvl_constraints<W: Write>(writer: &mut W, constraints: &BTreeMap<BTreeSet<&str>, BTreeSet<&str>>) -> std::io::Result<()> {
     writeln!(writer, "constraints")?;
     for (antecedent, consequent) in constraints {
@@ -56,6 +61,8 @@ fn write_uvl_constraints<W: Write>(writer: &mut W, constraints: &BTreeMap<BTreeS
     Ok(())
 }
 
+/// Recursively traverse from a single node in the ac-poset, writing features into the UVL file if not visited.
+/// Any visited concepts will instead be written into the constraints map.
 fn visit_ac_poset_node<'a, W: Write>(
     writer: &mut W, 
     ac_poset: &'a DiGraph<Concept, ()>, 
@@ -123,22 +130,8 @@ fn visit_ac_poset_node<'a, W: Write>(
 
 fn config_histogram<'a>(nodes: &[NodeIndex], ac_poset: &'a DiGraph<Concept, ()>) -> HashMap<&'a str, usize> {
     nodes.iter()
-        .flat_map(|&child| inheriting_concepts(child, ac_poset).into_iter().flat_map(|c| c.configurations.iter()))
+        .flat_map(|&child| ac_poset[child].implied_configurations.iter())
         .map(|&x| (x, ()))
         .into_grouping_map()
         .aggregate(|acc, _key, _val| Some(acc.unwrap_or(0) + 1))
-}
-
-fn inheriting_concepts<'a>(node: NodeIndex, ac_poset: &'a DiGraph<Concept, ()>) -> BTreeSet<&'a Concept<'a>> {
-    let mut concepts = BTreeSet::new();
-    let mut stack = vec![node];
-    while let Some(node) = stack.pop() {
-        if !concepts.contains(&ac_poset[node]) {
-            concepts.insert(&ac_poset[node]);
-            for neighbor in ac_poset.neighbors_directed(node, Direction::Incoming) {
-                stack.push(neighbor);
-            }
-        }
-    }
-    concepts
 }
