@@ -40,7 +40,7 @@ fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str
             .collect::<BTreeSet<_>>()
     };
 
-    features.into_iter()
+    features.iter()
         .map(|feature| (configurations_with_feature(feature), feature))
         .into_grouping_map()
         .collect::<BTreeSet<_>>()
