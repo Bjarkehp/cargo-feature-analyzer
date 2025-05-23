@@ -23,5 +23,6 @@ for conf in "$CSVCONF_DIR"/*.csvconf; do
         echo -e "${GREEN}$conf${NO_COLOR}"
     else
         echo -e "${RED}$conf${NO_COLOR}"
+        echo "$result"
     fi
 done
