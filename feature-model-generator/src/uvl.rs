@@ -25,7 +25,7 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
 
 /// Start traversing the ac-poset, writing unvisited features into the tree. 
 /// Any visited concepts will instead be written into the constraints map.
-fn write_uvl_tree<'a, W: Write>(writer: &mut W, ac_poset: &'a DiGraph<Concept, ()>, visited: &mut HashSet<NodeIndex>, constraints: &mut BTreeMap<BTreeSet<&'a str>, BTreeSet<&'a str>>) -> std::io::Result<()>{
+fn write_uvl_tree<'a, W: Write>(writer: &mut W, ac_poset: &'a DiGraph<Concept, ()>, visited: &mut HashSet<NodeIndex>, constraints: &mut BTreeMap<&'a str, BTreeSet<&'a str>>) -> std::io::Result<()>{
     write_unused_features(writer, ac_poset, visited)?;
     for node in ac_poset.externals(Direction::Outgoing) {
         visit_ac_poset_node(writer, ac_poset, node, visited, constraints, 1)?;
@@ -50,10 +50,10 @@ fn write_unused_features<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, (
 }
 
 /// Write a set of constraints into a UVL file
-fn write_uvl_constraints<W: Write>(writer: &mut W, constraints: &BTreeMap<BTreeSet<&str>, BTreeSet<&str>>) -> std::io::Result<()> {
+fn write_uvl_constraints<W: Write>(writer: &mut W, constraints: &BTreeMap<&str, BTreeSet<&str>>) -> std::io::Result<()> {
     writeln!(writer, "constraints")?;
     for (antecedent, consequent) in constraints {
-        let left = antecedent.iter().map(|s| format!("\"{s}\"")).join(" & ");
+        let left = format!("\"{}\"", antecedent);
         let right = consequent.iter().map(|s| format!("\"{s}\"")).join(" & ");
         writeln!(writer, "\t{left} => {right}")?;
     }
@@ -68,7 +68,7 @@ fn visit_ac_poset_node<'a, W: Write>(
     ac_poset: &'a DiGraph<Concept, ()>, 
     node: NodeIndex, 
     visited: &mut HashSet<NodeIndex>,
-    constraints: &mut BTreeMap<BTreeSet<&'a str>, BTreeSet<&'a str>>,
+    constraints: &mut BTreeMap<&'a str, BTreeSet<&'a str>>,
     depth: usize
 ) -> std::io::Result<()> {
     visited.insert(node);
@@ -93,10 +93,11 @@ fn visit_ac_poset_node<'a, W: Write>(
     for child in visited_children {
         if config_histogram(&[child], ac_poset).len() > 1 {
             let child_concept = &ac_poset[child];
-            let key = child_concept.features.iter().cloned().collect();
-            constraints.entry(key)
-                .and_modify(|set| set.extend(concept.features.iter()))
-                .or_insert(concept.features.clone());
+            if let Some(key) = child_concept.features.first() {
+                constraints.entry(key)
+                    .and_modify(|set| set.extend(concept.features.iter()))
+                    .or_insert(concept.features.clone());
+            }
         }
     }
 

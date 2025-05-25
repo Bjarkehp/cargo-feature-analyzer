@@ -1,0 +1,43 @@
+features
+	"tokio"
+		optional
+			"tracing"
+			"rt"
+				optional
+					"test-util"
+					"rt-multi-thread"
+						optional
+							"fs"
+								optional
+									"full"
+										mandatory
+											"process"
+					"signal"
+						mandatory
+							"signal-hook-registry"
+						optional
+							"parking_lot"
+			"sync"
+			"libc"
+				mandatory
+					"mio"
+					"windows-sys"
+				optional
+					"net"
+						mandatory
+							"socket2"
+			"time"
+			"macros"
+				mandatory
+					"tokio-macros"
+				optional
+					"io-std"
+			"bytes"
+				mandatory
+					"io-util"
+constraints
+	"fs" => "macros" & "tokio-macros"
+	"full" => "bytes" & "io-std" & "io-util" & "parking_lot"
+	"parking_lot" => "net" & "socket2"
+	"signal" => "libc" & "mio" & "sync" & "time" & "windows-sys"
+	"test-util" => "macros" & "sync" & "time" & "tokio-macros"

@@ -7,7 +7,7 @@ pub type Map<'a> = BTreeMap<&'a str, Vec<&'a str>>;
 
 pub fn from_cargo_toml(root: &toml::Table) -> Result<Map> {
     let feature_table = get_table(root, "features")?;
-    let dependency_tables = get_dependency_tables(root)?;
+    let dependency_tables = get_dependency_tables(root);
 
     let mut feature_dependencies = explicit_feature_dependencies(feature_table)?;
     let optional_dependencies = dependency_tables.into_iter()
@@ -33,7 +33,9 @@ fn explicit_feature_dependencies(table: &toml::Table) -> Result<Map> {
                 .iter()
                 .enumerate()
                 .map(|(i, d)| d.as_str()
-                    .ok_or(Error::UnexpectedType(format!("{}[{}]", key, i), "str")))
+                    .map(|s| s.split_once('/').map(|(l, _r)| l).unwrap_or(s))
+                    .ok_or(Error::UnexpectedType(format!("{}[{}]", key, i), "str"))
+                )
                 .collect::<Result<Vec<&str>>>()?;
 
             map.insert(feature, dependencies);
@@ -49,22 +51,43 @@ fn optional_dependencies(table: &toml::Table) -> impl Iterator<Item = &str> {
         .map(|(k, _v)| k.as_str())
 }
 
-fn get_dependency_tables(root: &toml::Table) -> Result<Vec<&toml::Table>> {
-    let default_table = get_table(root, "dependencies")?;
+pub fn get_dependency_tables(root: &toml::Table) -> Vec<&toml::Table> {
+    let default_table = get_table(root, "dependencies").ok();
+    let dev_table = get_table(root, "dev-dependencies").ok();
     let target_table = root.get("target")
         .and_then(|v| v.as_table());
 
-    if let Some(t) = target_table {
-        let mut tables = t.values()
+    let target_dependency_tables = if let Some(target) = target_table {
+        target.values()
             .filter_map(|v| v.as_table())
             .filter_map(|t| get_table(t, "dependencies").ok())
-            .collect::<Vec<_>>();
-
-        tables.push(default_table);
-        Ok(tables)
+            .collect::<Vec<_>>()
     } else {
-        Ok(vec![default_table])
+        vec![]
+    };
+
+    let target_dev_dependency_tables = if let Some(target) = target_table {
+        target.values()
+            .filter_map(|v| v.as_table())
+            .filter_map(|t| get_table(t, "dev-dependencies").ok())
+            .collect::<Vec<_>>()
+    } else {
+        vec![]
+    };
+
+    let mut tables = vec![];
+    
+    if let Some(table) = default_table {
+        tables.push(table);
     }
+    if let Some(table) = dev_table {
+        tables.push(table);
+    }
+
+    tables.extend(target_dependency_tables);
+    tables.extend(target_dev_dependency_tables);
+
+    tables
 }
 
 fn dependency_is_optional(dependency: &toml::Value) -> bool {

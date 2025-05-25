@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::{collections::{BTreeMap, BTreeSet}, fmt::Debug};
 
 use derive_new::new;
 use itertools::Itertools;
@@ -10,11 +10,20 @@ use configuration::Configuration;
 /// where the configurations share that same set of features.
 /// implied_configurations is a set of all configurations with a set of features that are a superset of this concept's features.
 /// configurations on the other hand, only contains a configuration if it isn't implied by the ordering of other concepts.
-#[derive(PartialEq, Eq, PartialOrd, Ord, new, Default, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, new, Default)]
 pub struct Concept<'a> {
     pub features: BTreeSet<&'a str>,
     pub configurations: BTreeSet<&'a str>,
     pub implied_configurations: BTreeSet<&'a str>,
+}
+
+impl Debug for Concept<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Concept")
+            .field("features", &self.features)
+            .field("configurations", &self.configurations)
+            .finish()
+    }
 }
 
 /// Create an Attribute-Concept partially ordered set from a set of configurations.
@@ -48,6 +57,7 @@ fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str
         .into_grouping_map()
         .collect::<BTreeSet<_>>()
         .into_iter()
+        .sorted_by(|(c1, _), (c2, _)| c1.cmp(c2))
         .map(|(configurations, features)| Concept::new(features, configurations.clone(), configurations))
         .collect()
 }

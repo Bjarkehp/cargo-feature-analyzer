@@ -1,7 +1,7 @@
 mod uvl;
 mod concept;
 
-use std::{collections::{BTreeSet, HashMap}, error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, os::unix::raw::dev_t, path::{Path, PathBuf}};
+use std::{error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, path::{Path, PathBuf}};
 
 use clap::Parser;
 use concept::Concept;
@@ -19,7 +19,9 @@ struct Args {
     destination: PathBuf,
 
     #[arg(short, long, default_value_t = false)]
-    force: bool
+    force: bool,
+    #[arg(short, long, default_value = None)]
+    ac_poset: Option<PathBuf>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -38,12 +40,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         .cloned()
         .collect::<Vec<_>>();
 
-    let configuration_tables = configuration::load_tables(args.source);
-    let standard_configurations = configuration_tables.iter()
-        .filter_map(|table| Configuration::new_standard(table, crate_name, &feature_dependencies).ok());
-    let dev_configurations = configuration_tables.iter()
-        .filter_map(|table| Configuration::new_dev(table, crate_name, &feature_dependencies).ok());
-    let configurations = standard_configurations.chain(dev_configurations)
+    let configurations_files = WalkDir::new(args.source)
+        .into_iter()
+        .filter_map(|result| result.ok())
+        .filter(|e| e.file_name().to_str().unwrap().ends_with(".csvconf"))
+        .filter_map(|e| Some((
+            e.file_name().to_str()?.to_string(), 
+            fs::read_to_string(e.path()).ok()?
+        )))
+        .sorted()
+        .collect::<Vec<_>>();
+
+    let configurations = configurations_files.iter()
+        .map(|(name, content)| Configuration::from_csvconf(name.clone(), content))
         .collect::<Vec<_>>();
 
     let ac_poset = concept::ac_poset(&configurations, &features);
@@ -52,6 +61,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut uvl_writer = BufWriter::new(uvl_file);
     uvl::write_ac_poset(&mut uvl_writer, &ac_poset, crate_name)?;
     uvl_writer.flush()?;
+
+    if let Some(path) = args.ac_poset {
+        write_ac_poset(&ac_poset, path)?;
+    }
 
     Ok(())
 }

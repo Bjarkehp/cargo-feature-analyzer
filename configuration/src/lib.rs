@@ -1,74 +1,46 @@
 use std::{collections::BTreeSet, path::Path};
 
+use derive_new::new;
 use thiserror::Error;
-use toml_util::get_table;
 use walkdir::WalkDir;
 
 pub mod feature_dependencies;
 
 mod toml_util; 
 
-#[derive(Debug)]
-pub enum Configuration<'a> {
-    Standard {
-        name: &'a str,
-        features: BTreeSet<&'a str>
-    },
-    Dev {
-        name: &'a str,
-        features: BTreeSet<&'a str>
-    }
+#[derive(Debug, new)]
+pub struct Configuration<'a> {
+    name: String,
+    features: BTreeSet<&'a str>
 }
 
 impl<'a> Configuration<'a> {
-    pub fn new_standard(root: &'a toml::Table, feature: &str, feature_dependencies: &'a feature_dependencies::Map) -> Result<Self> {
-        let name = name(root)
-            .ok_or(Error::NoName)?;
-        let dependency_table = get_table(root, "dependencies")
-            .map_err(|_| Error::NoDependencies)?;
-        let features = implied_features(dependency_table, feature, feature_dependencies)?;
-
-        Ok(Self::Standard {
-            name,
-            features
-        })
-    }
-
-    pub fn new_dev(root: &'a toml::Table, feature: &str, feature_dependencies: &'a feature_dependencies::Map) -> Result<Self> {
-        let name = name(root)
-            .ok_or(Error::NoName)?;
-        let dependency_table = get_table(root, "dependencies")
-            .map_err(|_| Error::NoDependencies)?;
-        let features = implied_features(dependency_table, feature, feature_dependencies)?;
-
-        Ok(Self::Dev {
-            name,
-            features
-        })
-    }
-
     pub fn name(&self) -> &str {
-        match self {
-            Self::Standard { name, .. } => name,
-            Self::Dev { name, .. } => name
-        }
+        &self.name
     }
     
     pub fn features(&self) -> &BTreeSet<&str> {
-        match self {
-            Self::Standard { features, .. } => features,
-            Self::Dev { features, .. } => features
-        }
+        &self.features
+    }
+
+    pub fn from_csvconf(name: String, content: &'a str) -> Self {
+        let features = content.lines()
+            .filter_map(|l| l.split_once(','))
+            .filter(|&(_l, r)| r == "True")
+            .map(|(l, _r)| &l[1..l.len() - 1]) // Assume quotation marks
+            .collect();
+        Configuration::new(name, features)
     }
 }
 
-fn implied_features<'a>(
+pub fn implied_features<'a>(
     dependency_table: &'a toml::Table, 
-    feature: &str, 
+    dependency: &str, 
     feature_dependencies: &'a feature_dependencies::Map
 ) -> Result<BTreeSet<&'a str>> {
-    let features_value = dependency_table.get(feature)
-        .and_then(|v| v.as_table())
+    let features_value = dependency_table.get(dependency)
+        .ok_or(Error::DependencyNotFound(dependency.to_string()))?
+        .as_table()
         .and_then(|t| t.get("features"))
         .and_then(|v| v.as_array());
 
@@ -86,7 +58,9 @@ fn implied_features<'a>(
         if !visited_features.contains(feature) {
             visited_features.insert(feature);
             let new_features = feature_dependencies.get(feature)
-                .ok_or(Error::InvalidFeatureDependencies)?;
+                .ok_or(Error::InvalidFeatureDependencies(feature.to_string()))?
+                .iter()
+                .filter(|&f| feature_dependencies.contains_key(f));
             features.extend(new_features);
         }
     }
@@ -121,8 +95,10 @@ pub enum Error {
     NoDependencies,
     #[error("The passed Cargo.toml has no dev-dependencies")]
     NoDevDependencies,
+    #[error("{0} is not in dependency table")]
+    DependencyNotFound(String),
     #[error("Unable to parse a specific feature in provided Cargo.toml")]
     InvalidFeature,
-    #[error("The passed feature dependencies are invalid")]
-    InvalidFeatureDependencies,
+    #[error("The passed feature dependencies doesn't contain {0}")]
+    InvalidFeatureDependencies(String),
 }
