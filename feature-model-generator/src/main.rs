@@ -14,7 +14,6 @@ use walkdir::WalkDir;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    cargo_toml: PathBuf,
     source: PathBuf,
     destination: PathBuf,
 
@@ -31,14 +30,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("User declined operation.".into());
     }
 
-    let source_toml = fs::read_to_string(&args.cargo_toml)?;
-    let toml_table = source_toml.parse()?;
-    let crate_name = configuration::name(&toml_table)
-        .ok_or("Specified cargo file does not have a name")?;
-    let feature_dependencies = configuration::feature_dependencies::from_cargo_toml(&toml_table)?;
-    let features = feature_dependencies.keys()
-        .cloned()
-        .collect::<Vec<_>>();
+    if let Some(path) = &args.ac_poset {
+        if !args.force && fs::exists(path)? && !confirm_overwrite(path) {
+            return Err("User declined operation.".into());
+        }
+    }
 
     let configurations_files = WalkDir::new(args.source)
         .into_iter()
@@ -51,18 +47,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         .sorted()
         .collect::<Vec<_>>();
 
+    let features = configuration::all_features(&configurations_files[0].1)
+        .ok_or(format!("Failed to parse features from {}", configurations_files[0].0))?;
+
     let configurations = configurations_files.iter()
-        .map(|(name, content)| Configuration::from_csvconf(name.clone(), content))
-        .collect::<Vec<_>>();
+        .map(|(name, content)| Configuration::from_csvconf(name.clone(), content)
+            .ok_or(format!("Failed to parse configuration from {}", name)))
+        .collect::<Result<Vec<_>, _>>()?;
 
     let ac_poset = concept::ac_poset(&configurations, &features);
-    
+
     let uvl_file = File::create(args.destination)?;
     let mut uvl_writer = BufWriter::new(uvl_file);
-    uvl::write_ac_poset(&mut uvl_writer, &ac_poset, crate_name)?;
+    uvl::write_ac_poset(&mut uvl_writer, &ac_poset, &features)?;
     uvl_writer.flush()?;
 
-    if let Some(path) = args.ac_poset {
+    if let Some(path) = &args.ac_poset {
         write_ac_poset(&ac_poset, path)?;
     }
 
@@ -87,7 +87,6 @@ fn confirm_overwrite(path: impl AsRef<Path>) -> bool {
     }
 }
 
-#[allow(dead_code)]
 fn write_ac_poset(ac_poset: &DiGraph<Concept, ()>, destination: impl AsRef<Path>) -> std::io::Result<()> {
     let graphviz_config = [
         petgraph::dot::Config::EdgeNoLabel,

@@ -1,0 +1,41 @@
+[package]
+name = "dotenvy"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+categories.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+repository.workspace = true
+authors = [
+  "Noemi Lapresta <noemi.lapresta@gmail.com>",
+  "Craig Hills <chills@gmail.com>",
+  "Mike Piccolo <mfpiccolo@gmail.com>",
+  "Alice Maz <alice@alicemaz.com>",
+  "Sean Griffin <sean@seantheprogrammer.com>",
+  "Adam Sharp <adam@sharplet.me>",
+  "Arpad Borsos <arpad.borsos@googlemail.com>",
+  "Allan Zhang <allanzhang7@gmail.com>",
+]
+description = "A well-maintained fork of the dotenv crate"
+readme = true
+
+[[bin]]
+name = "dotenvy"
+required-features = ["cli"]
+
+[dependencies]
+clap = { version = "4.5.16", features = ["derive"], optional = true }
+dotenvy-macros = { path = "../dotenvy-macros", optional = true }
+
+[dev-dependencies]
+temp-env = "0.3.6"
+
+[features]
+default = []
+cli = ["dep:clap"]
+macros = ["dep:dotenvy-macros"]
+
+[lints]
+workspace = true

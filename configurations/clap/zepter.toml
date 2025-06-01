@@ -1,0 +1,71 @@
+[package]
+name = "zepter"
+version = "1.78.2"
+edition = "2021"
+authors = [ "Oliver Tale-Yazdi" ]
+description = "Analyze, Fix and Format features in your Rust workspace."
+license = "GPL-3.0-only"
+repository = "https://github.com/ggwpez/zepter"
+# Update the README if you change this:
+rust-version = "1.78"
+keywords = ["features", "linting", "formatting"]
+categories = ["development-tools"]
+
+[[bin]]
+name = "zepter"
+
+[[bench]]
+name = "dag"
+harness = false
+required-features = [ "benchmarking" ]
+
+[dependencies]
+anyhow = { version = "1.0.98", optional = true }
+assert_cmd = { version = "2.0.17", optional = true }
+camino = "1.1.9"
+cargo_metadata = "0.19.2"
+clap = { version = "4.5.37", features = ["derive", "cargo"] }
+colour = { version = "2.1.0", optional = true }
+criterion = { version = "0.5", optional = true }
+env_logger = { version = "0.11.8", features = [ "auto-color", "humantime" ], optional = true }
+histo = { version = "1.0.0", optional = true }
+itertools = "0.14.0"
+log = { version = "0.4.27", optional = true }
+regex = "1.11.1"
+semver = "1"
+serde = "1.0.219"
+serde_json = { version = "1.0.140", optional = true }
+serde_yaml_ng = "0.10.0"
+tempfile = { version = "3.19.1", optional = true }
+toml_edit = "0.22.26"
+tracing = { version = "0.1.41", optional = true }
+
+[dev-dependencies]
+glob = "0.3.2"
+lazy_static = "1.5.0"
+pretty_assertions = "1.4.1"
+rand = "0.9.1"
+rstest = "0.25.0"
+serde = "1.0.219"
+zepter = { path = ".", features = ["testing"] }
+
+[features]
+default = [ "logging" ]
+logging = [ "dep:env_logger", "dep:log" ]
+benchmarking = [ "dep:criterion", "dep:serde_json" ]
+testing = [ "dep:anyhow", "dep:assert_cmd", "dep:colour", "dep:tempfile", "dep:serde_json" ]
+debugging = [ "dep:histo" ]
+
+[profile.dev]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+debug = true
+
+# Improves speed of the DAG logic by 4-20%. Normally `cargo metadata` is magnitudes slower, so we
+# dont sacrifice (human) compile time for this negligible speedup.
+[profile.optimized]
+inherits = "release"
+lto = true
+codegen-units = 1

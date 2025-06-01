@@ -8,6 +8,7 @@ pub mod feature_dependencies;
 
 mod toml_util; 
 
+/// Stores the name of a configuration and a set of its enabled features.
 #[derive(Debug, new)]
 pub struct Configuration<'a> {
     name: String,
@@ -23,21 +24,49 @@ impl<'a> Configuration<'a> {
         &self.features
     }
 
-    pub fn from_csvconf(name: String, content: &'a str) -> Self {
+    /// Create a new configuration from the contents of a .csvconf file.
+    pub fn from_csvconf(name: String, content: &'a str) -> Option<Self> {
         let features = content.lines()
-            .filter_map(|l| l.split_once(','))
+            .map(|l| l.split_once(','))
+            .collect::<Option<Vec<_>>>()?
+            .into_iter()
             .filter(|&(_l, r)| r == "True")
-            .map(|(l, _r)| &l[1..l.len() - 1]) // Assume quotation marks
+            .map(|(l, _r)| l.trim_matches('"'))
             .collect();
-        Configuration::new(name, features)
+        Some(Configuration::new(name, features))
     }
 }
 
+/// Return a list of all features in a .csvconf file.
+pub fn all_features(content: &str) -> Option<Vec<&str>> {
+    let features = content.lines()
+        .map(|l| l.split_once(','))
+        .collect::<Option<Vec<_>>>()?
+        .into_iter()
+        .map(|(l, _r)| l.trim_matches('"'))
+        .collect();
+    Some(features)
+}
+
+/// Return the full set of features enabled by a dependency using its toml value.
+/// The features listed in the dependency's 'features' field are included.
+/// 
+/// The features field does not list all features enabled by the dependency.
+/// There are default features that are enabled by default,
+/// and features might also enable other features, if they depend on them.
+/// Therefore, it is necessary to recursively resolve the full set of features enabled by the dependency.
 pub fn implied_features<'a>(
     dependency_table: &'a toml::Table, 
     dependency: &str, 
     feature_dependencies: &'a feature_dependencies::Map
 ) -> Result<BTreeSet<&'a str>> {
+    let default_features = dependency_table.get(dependency)
+        .ok_or(Error::DependencyNotFound(dependency.to_string()))?
+        .as_table()
+        .and_then(|t| t.get("default-features"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(true);
+
     let features_value = dependency_table.get(dependency)
         .ok_or(Error::DependencyNotFound(dependency.to_string()))?
         .as_table()
@@ -50,8 +79,12 @@ pub fn implied_features<'a>(
             .collect::<Option<Vec<_>>>()
             .ok_or(Error::InvalidFeature)?
     } else {
-        return Ok(BTreeSet::new());
+        Vec::new()
     };  
+
+    if default_features {
+        features.push("default");
+    }
 
     let mut visited_features = BTreeSet::new();
     while let Some(feature) = features.pop() {
@@ -68,6 +101,7 @@ pub fn implied_features<'a>(
     Ok(visited_features)
 }
 
+/// Return the name of a Cargo.toml
 pub fn name(root: &toml::Table) -> Option<&str> {
     root.get("package")
         .and_then(|v| v.as_table())
@@ -75,6 +109,7 @@ pub fn name(root: &toml::Table) -> Option<&str> {
         .and_then(|v| v.as_str())
 }
 
+/// Return all Cargo.toml files in a directory
 pub fn load_tables(path: impl AsRef<Path>) -> Vec<toml::Table> {
     WalkDir::new(path)
         .into_iter()

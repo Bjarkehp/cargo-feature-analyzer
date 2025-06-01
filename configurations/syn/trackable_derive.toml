@@ -1,0 +1,23 @@
+[package]
+name = "trackable_derive"
+version = "1.0.0"
+authors = ["Takeru Ohta <phjgt308@gmail.com>"]
+description = "Custom derive for `trackable` crate"
+homepage = "https://github.com/sile/trackable_derive"
+repository = "https://github.com/sile/trackable_derive"
+readme = "README.md"
+keywords = ["trackable", "custom-derive"]
+license = "MIT"
+
+[badges]
+travis-ci = {repository = "sile/trackable_derive"}
+
+[dependencies]
+quote = "1"
+syn = "1"
+
+[dev-dependencies]
+trackable = "1"
+
+[lib]
+proc-macro = true

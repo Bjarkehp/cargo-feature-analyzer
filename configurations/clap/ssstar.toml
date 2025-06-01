@@ -1,0 +1,76 @@
+[package]
+authors = { workspace = true }
+categories = { workspace = true }
+description = """
+Library crate that creates and restores archives to and from S3 or S3-compatible storage.
+ssstar is specifically designed to stream both input and output data so memory usage is minimal, while
+aggressive concurrency is used to maximize network throughput.
+
+If you're looking for the command line (CLI), see `ssstar-cli`
+"""
+documentation = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+name = "ssstar"
+readme = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+[features]
+# Make the `config` struct a valid `clap` `Parser` impl so the config can be populated from the command line
+# This obvviously requires taking a dependency on `clap` so it should only be enabled in a CLI that is using clap
+clap = ["dep:clap"]
+
+# Enable the (still experimental) new storage API to allow callers to define
+# their own archive formats to store objects read from object storage
+storage = []
+
+[package.metadata.release]
+# All crates share the same version and should be incremented together
+shared-version = true
+
+[dependencies]
+async-trait              = { workspace = true }
+aws-config               = { workspace = true }
+aws-credential-types     = { workspace = true }
+aws-sdk-s3               = { workspace = true }
+aws-sdk-sts              = { workspace = true }
+aws-smithy-async         = { workspace = true }
+aws-smithy-http          = { workspace = true }
+aws-smithy-runtime-api   = { workspace = true }
+aws-smithy-types         = { workspace = true }
+aws-smithy-types-convert = { workspace = true }
+aws-types                = { workspace = true }
+byte-unit                = { workspace = true }
+bytes                    = { workspace = true }
+chrono                   = { workspace = true }
+clap                     = { workspace = true, optional = true }
+dyn-clone                = { workspace = true }
+futures                  = { workspace = true }
+glob                     = { workspace = true }
+http                     = { workspace = true }
+itertools                = { workspace = true }
+serde_json               = { workspace = true, optional = true }
+snafu                    = { workspace = true }
+tar                      = { workspace = true }
+tokio                    = { workspace = true }
+tokio-stream             = { workspace = true }
+tokio-util               = { workspace = true }
+tracing                  = { workspace = true }
+url                      = { workspace = true }
+
+[dev-dependencies]
+assert_matches = { workspace = true }
+color-eyre     = { workspace = true }
+dotenv         = { workspace = true }
+dotenv_codegen = { workspace = true }
+more-asserts   = { workspace = true }
+rand           = { workspace = true }
+ssstar-testing = { version = "0.7.3", path = "../ssstar-testing" }
+strum          = { workspace = true }
+tempfile       = { workspace = true }

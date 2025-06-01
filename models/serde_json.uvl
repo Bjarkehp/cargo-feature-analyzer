@@ -1,0 +1,20 @@
+features
+	"serde_json"
+		optional
+			"alloc"
+				optional
+					"arbitrary_precision"
+			"std"
+				optional
+					"default"
+						optional
+							"indexmap"
+								mandatory
+									"preserve_order"
+		optional // Unused features
+			"float_roundtrip"
+			"raw_value"
+			"unbounded_depth"
+constraints
+	"arbitrary_precision" => !"indexmap"
+	"indexmap" => !"arbitrary_precision"

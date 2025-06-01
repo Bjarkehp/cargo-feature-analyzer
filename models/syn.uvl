@@ -1,0 +1,27 @@
+features
+	"syn"
+		optional
+			"visit"
+			"extra-traits"
+			"full"
+				optional
+					"fold"
+			"parsing"
+				or
+					"proc-macro"
+						optional
+							"default"
+					"printing"
+						mandatory
+							"quote"
+						optional
+							"clone-impls"
+								optional
+									"visit-mut"
+									"derive"
+		optional // Unused features
+			"test"
+constraints
+	"default" => "derive"
+	"fold" => !"visit-mut"
+	"visit-mut" => !"fold"

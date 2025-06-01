@@ -1,0 +1,81 @@
+[package]
+authors = ["Peltoche <dev@halium.fr>"]
+build = "build.rs"
+categories = ["command-line-utilities"]
+description = "An ls command with a lot of pretty colors and some other stuff."
+keywords = ["ls"]
+license = "Apache-2.0"
+name = "lsd"
+readme = "./README.md"
+repository = "https://github.com/lsd-rs/lsd"
+version = "1.1.5"
+edition = "2021"
+rust-version = "1.74"
+
+[[bin]]
+name = "lsd"
+path = "src/main.rs"
+
+[build-dependencies]
+clap = { version = "4.3.*", features = ["derive"] }
+clap_complete = "4.3"
+version_check = "0.9.*"
+
+[dependencies]
+crossterm = { version = "0.27.0", features = ["serde"] }
+dirs = "5"
+libc = "0.2.*"
+human-sort = "0.2.2"
+# should stick to 0.1, the 0.2 needs some adaptation
+# check https://github.com/lsd-rs/lsd/issues/1014
+term_grid = "0.1"
+terminal_size = "0.3"
+thiserror = "1.0"
+sys-locale = "0.3"
+once_cell = "1.17.1"
+chrono = { version = "0.4.19", features = ["unstable-locales"] }
+chrono-humanize = "0.2"
+# incompatible with v0.1.11
+unicode-width = "0.1.13"
+lscolors = "0.16.0"
+wild = "2.0"
+globset = "0.4.*"
+yaml-rust = "0.4.*"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+url = "2.5.4"
+vsort = "0.2"
+xdg = "2.5"
+
+[target."cfg(not(all(windows, target_arch = \"x86\", target_env = \"gnu\")))".dependencies]
+# if ssl feature is enabled compilation will fail on arm-unknown-linux-gnueabihf and i686-pc-windows-gnu
+git2 = { version = "0.18", optional = true, default-features = false }
+
+[target.'cfg(unix)'.dependencies]
+users = { version = "0.11.3", package = "uzers" }
+xattr = "1"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.43.0", features = ["Win32_Foundation", "Win32_Security_Authorization", "Win32_Storage_FileSystem", "Win32_System_Memory"] }
+
+[dependencies.clap]
+features = ["derive", "wrap_help"]
+version = "4.3.*"
+
+[dev-dependencies]
+assert_cmd = "2"
+assert_fs = "1"
+predicates = "3"
+tempfile = "3"
+serial_test = "2.0"
+
+[features]
+default = ["git2"]
+sudo = []
+no-git = [] # force disabling git even if available by default
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+debug = false

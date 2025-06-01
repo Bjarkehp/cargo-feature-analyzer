@@ -1,0 +1,62 @@
+[workspace]
+members = [
+    "impl"
+]
+default-members = ["", "impl"]
+resolver = "2"
+
+[workspace.package]
+authors = ["Robin Freyler <robinfreyler@web.de>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false # Use `release.sh`
+documentation = "https://docs.rs/modular-bitfield"
+repository = "https://github.com/modular-bitfield/modular-bitfield"
+rust-version = "1.70.0"
+version = "0.13.0-pre"
+
+[package]
+name = "modular-bitfield"
+description = "Easily define bitfield types with modular building blocks."
+categories = ["data-structures", "no-std"]
+keywords = ["bitfield", "bit", "bitfields"]
+readme = "README.md"
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+modular-bitfield-impl = { path = "impl", version = "0.13.0-pre" }
+static_assertions = "1.1"
+
+[dev-dependencies]
+bitfield = "0.19"
+tiny-bench = "0.4"
+trybuild = "1.0"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage)'] }
+
+[[bench]]
+name = "benchmarks"
+harness = false
+
+[[bench]]
+name = "cmp_handwritten"
+harness = false
+
+[[bench]]
+name = "cmp_bitfield_crate"
+harness = false
+
+[[test]]
+name = "benches_handwritten"
+path = "benches/utils/handwritten.rs"
+
+[profile.bench]
+codegen-units = 1

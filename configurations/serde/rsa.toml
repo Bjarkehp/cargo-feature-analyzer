@@ -1,0 +1,106 @@
+[package]
+name = "rsa"
+version = "0.10.0-pre.4"
+authors = ["RustCrypto Developers", "dignifiedquire <dignifiedquire@gmail.com>"]
+edition = "2021"
+description = "Pure Rust RSA implementation"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/rsa"
+repository = "https://github.com/RustCrypto/RSA"
+keywords = ["rsa", "encryption", "security", "crypto"]
+categories = ["cryptography"]
+readme = "README.md"
+rust-version = "1.83"
+
+[dependencies]
+rand_core = { version = "0.9.0", default-features = false }
+const-oid = { version = "0.10.0", default-features = false }
+subtle = { version = "2.6.1", default-features = false }
+digest = { version = "=0.11.0-pre.10", default-features = false, features = ["alloc", "oid"] }
+pkcs1 = { version = "0.8.0-rc.1", default-features = false, features = ["alloc", "pkcs8"] }
+pkcs8 = { version = "0.11.0-rc.3", default-features = false, features = ["alloc"] }
+signature = { version = "=3.0.0-pre", default-features = false, features = ["alloc", "digest", "rand_core"] }
+spki = { version = "0.8.0-rc.1", default-features = false, features = ["alloc"] }
+zeroize = { version = "1.5", features = ["alloc"] }
+crypto-bigint = { version = "0.7.0-pre.3", default-features = false, features = ["zeroize", "alloc"] }
+crypto-primes = { version = "0.7.0-dev", default-features = false }
+
+# optional dependencies
+sha1 = { version = "=0.11.0-pre.5", optional = true, default-features = false, features = ["oid"] }
+serdect = { version = "0.3.0", optional = true }
+sha2 = { version = "=0.11.0-pre.5", optional = true, default-features = false, features = ["oid"] }
+serde = { version = "1.0.184", optional = true, default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+base64ct = { version = "1", features = ["alloc"] }
+hex-literal = "1"
+proptest = "1"
+serde_test = "1.0.89"
+rand_xorshift = "0.4"
+rand_chacha = "0.9"
+rand = "0.9"
+rand_core = { version = "0.9.1", default-features = false }
+sha1 = { version = "=0.11.0-pre.5", default-features = false, features = ["oid"] }
+sha2 = { version = "=0.11.0-pre.5", default-features = false, features = ["oid"] }
+sha3 = { version = "=0.11.0-pre.5", default-features = false, features = ["oid"] }
+hex = { version = "0.4.3", features = ["serde"] }
+serde_json = "1.0.138"
+serde = { version = "1.0.184", features = ["derive"] }
+
+[[bench]]
+name = "key"
+
+[features]
+default = ["std", "pem"]
+hazmat = []
+os_rng = ["rand_core/os_rng", "crypto-bigint/rand_core"]
+serde = ["dep:serde", "dep:serdect", "crypto-bigint/serde"]
+pem = ["pkcs1/pem", "pkcs8/pem"]
+pkcs5 = ["pkcs8/encryption"]
+std = ["pkcs1/std", "pkcs8/std", "rand_core/std", "crypto-bigint/rand"]
+
+
+[package.metadata.docs.rs]
+features = ["std", "pem", "serde", "hazmat", "sha2"]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[profile.dev]
+opt-level = 2
+
+[profile.bench]
+debug = true
+
+[patch.crates-io]
+# https://github.com/entropyxyz/crypto-primes/pull/74
+crypto-primes = { git = "https://github.com/entropyxyz/crypto-primes.git" }
+
+aead          = { git = "https://github.com/RustCrypto/traits.git" }
+crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
+digest        = { git = "https://github.com/RustCrypto/traits.git" }
+signature     = { git = "https://github.com/RustCrypto/traits.git" }
+
+der   = { git = "https://github.com/RustCrypto/formats.git" }
+pkcs1 = { git = "https://github.com/RustCrypto/formats.git" }
+# https://github.com/RustCrypto/formats/pull/1844
+pkcs5 = { git = "https://github.com/RustCrypto/formats.git" }
+pkcs8 = { git = "https://github.com/RustCrypto/formats.git" }
+
+sha1   = { git = "https://github.com/RustCrypto/hashes.git" }
+sha2   = { git = "https://github.com/RustCrypto/hashes.git" }
+sha3   = { git = "https://github.com/RustCrypto/hashes.git" }
+
+# https://github.com/RustCrypto/password-hashes/pull/577
+# https://github.com/RustCrypto/password-hashes/pull/578
+# https://github.com/RustCrypto/password-hashes/pull/592
+pbkdf2 = { git = "https://github.com/RustCrypto/password-hashes.git" }
+scrypt = { git = "https://github.com/RustCrypto/password-hashes.git" }
+
+hmac = { git = "https://github.com/RustCrypto/MACs.git" }
+
+# https://github.com/RustCrypto/crypto-bigint/pull/824
+crypto-bigint = { git = "https://github.com/RustCrypto/crypto-bigint.git" }
+
+cbc = { git = "https://github.com/RustCrypto/block-modes.git" }
+ctr = { git = "https://github.com/RustCrypto/block-modes.git" }
+aes-gcm = { git = "https://github.com/RustCrypto/AEADs.git" }
+salsa20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }

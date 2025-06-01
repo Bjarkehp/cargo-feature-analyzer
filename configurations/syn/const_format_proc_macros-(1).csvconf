@@ -1,0 +1,14 @@
+"syn",True
+"clone-impls",False
+"default",False
+"derive",False
+"extra-traits",False
+"fold",False
+"full",False
+"parsing",True
+"printing",False
+"proc-macro",True
+"quote",False
+"test",False
+"visit",False
+"visit-mut",False

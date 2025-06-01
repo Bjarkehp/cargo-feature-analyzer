@@ -1,10 +1,13 @@
 
 use std::collections::BTreeMap;
 
+use itertools::Itertools;
+
 use crate::{toml_util::{get_table,Error, Result}};
 
 pub type Map<'a> = BTreeMap<&'a str, Vec<&'a str>>;
 
+/// Create a map between features and their dependencies from a toml table.
 pub fn from_cargo_toml(root: &toml::Table) -> Result<Map> {
     let feature_table = get_table(root, "features")?;
     let dependency_tables = get_dependency_tables(root);
@@ -22,35 +25,37 @@ pub fn from_cargo_toml(root: &toml::Table) -> Result<Map> {
     Ok(feature_dependencies)
 }
 
+/// Find all features and their dependencies that are explicitly listed in the feature table.
 fn explicit_feature_dependencies(table: &toml::Table) -> Result<Map> {
     let mut map = Map::new();
 
     for (key, value) in table {
-        if key != "default" {
-            let feature = key.as_str();
-            let dependencies = value.as_array()
-                .ok_or(Error::UnexpectedType(key.to_string(), "array"))?
-                .iter()
-                .enumerate()
-                .map(|(i, d)| d.as_str()
-                    .map(|s| s.split_once('/').map(|(l, _r)| l).unwrap_or(s))
-                    .ok_or(Error::UnexpectedType(format!("{}[{}]", key, i), "str"))
-                )
-                .collect::<Result<Vec<&str>>>()?;
+        let feature = key.as_str();
+        let dependencies = value.as_array()
+            .ok_or(Error::UnexpectedType(key.to_string(), "array"))?
+            .iter()
+            .enumerate()
+            .map(|(i, d)| d.as_str()
+                .map(trim_feature)
+                .ok_or(Error::UnexpectedType(format!("{}[{}]", key, i), "str"))
+            )
+            .filter_ok(|d| !d.ends_with('?'))
+            .collect::<Result<Vec<&str>>>()?;
 
-            map.insert(feature, dependencies);
-        }
+        map.insert(feature, dependencies);
     }
 
     Ok(map)
 }
 
+/// Find all dependencies marked as optional
 fn optional_dependencies(table: &toml::Table) -> impl Iterator<Item = &str> {
     table.iter()
         .filter(|&(_k, v)| dependency_is_optional(v))
         .map(|(k, _v)| k.as_str())
 }
 
+/// Find all tables with dependencies or dev-dependencies
 pub fn get_dependency_tables(root: &toml::Table) -> Vec<&toml::Table> {
     let default_table = get_table(root, "dependencies").ok();
     let dev_table = get_table(root, "dev-dependencies").ok();
@@ -90,9 +95,21 @@ pub fn get_dependency_tables(root: &toml::Table) -> Vec<&toml::Table> {
     tables
 }
 
+// Determine if a dependency's toml value indicates it is optional.
 fn dependency_is_optional(dependency: &toml::Value) -> bool {
     dependency.as_table()
         .and_then(|t| t.get("optional"))
         .and_then(|v| v.as_bool())
         .unwrap_or(false)
+}
+
+/// Trims off the optional 'dep:' prefix and the '/<feature>' suffix.
+fn trim_feature(mut s: &str) -> &str {
+    s = s.split_once("dep:")
+        .map(|(_l, r)| r)
+        .unwrap_or(s);
+    s = s.split_once('/')
+        .map(|(l, _r)| l)
+        .unwrap_or(s);
+    s
 }

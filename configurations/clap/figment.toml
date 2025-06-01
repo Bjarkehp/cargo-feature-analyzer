@@ -1,0 +1,47 @@
+[package]
+name = "figment"
+version = "0.10.19"
+authors = ["Sergio Benitez <sb@sergio.bz>"]
+edition = "2018"
+documentation = "https://docs.rs/figment/0.10"
+description = "A configuration library so con-free, it's unreal."
+repository = "https://github.com/SergioBenitez/Figment"
+readme = "README.md"
+keywords = ["config", "configuration", "toml", "json", "yaml"]
+license = "MIT OR Apache-2.0"
+categories = ["config"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(nightly)'] }
+
+[features]
+default = ["env"]
+json = ["serde_json"]
+test = ["tempfile", "parking_lot"]
+toml = ["toml_edit"]
+yaml = ["serde_yaml"]
+env = [] # does nothing; here for backwards compat
+
+[dependencies]
+serde = "1.0"
+uncased = "0.9.3"
+toml_edit = { version = "0.22", optional = true, default-features = false, features = ["parse", "serde"] }
+serde_json = { version = "1.0", optional = true }
+serde_yaml = { version = "0.9", optional = true }
+tempfile = { version = "3", optional = true }
+parking_lot = { version = "0.12", optional = true }
+
+[target.'cfg(any(target_pointer_width = "8", target_pointer_width = "16", target_pointer_width = "32"))'.dependencies]
+atomic = "0.6.0"
+
+[dev-dependencies]
+tempfile = "3"
+parking_lot = "0.12"
+serde = { version = "1.0", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
+
+[build-dependencies]
+version_check = "0.9"
+
+[package.metadata.docs.rs]
+all-features = true

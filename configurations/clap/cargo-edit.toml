@@ -1,0 +1,113 @@
+[package]
+authors = [
+    "Without Boats <lee@libertad.ucsd.edu>",
+    "Pascal Hertleif <killercup@gmail.com>",
+    "Sebastian Garrido <sebasgarcep@gmail.com>",
+    "Jonas Platte <mail@jonasplatte.de>",
+    "Benjamin Gill <git@bgill.eu>",
+    "Andronik Ordian <write@reusable.software>",
+]
+categories = [
+    "development-tools",
+    "development-tools::cargo-plugins",
+]
+description = "Cargo commands for modifying a `Cargo.toml` file.."
+documentation = "https://github.com/killercup/cargo-edit/blob/master/README.md#available-subcommands"
+homepage = "https://github.com/killercup/cargo-edit"
+keywords = [
+    "cargo",
+    "cargo-subcommand",
+    "cli",
+    "dependencies",
+    "crates",
+]
+license = "Apache-2.0 OR MIT"
+name = "cargo-edit"
+readme = "README.md"
+repository = "https://github.com/killercup/cargo-edit"
+version = "0.13.6"
+edition = "2024"
+
+[package.metadata.release]
+pre-release-replacements = [
+  {file="CHANGELOG.md", search="Unreleased", replace="{{version}}", min=1},
+  {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}", min=1},
+  {file="CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n## Unreleased - ReleaseDate\n", exactly=1},
+]
+
+[[bin]]
+name = "cargo-add"
+path = "src/bin/add/main.rs"
+required-features = ["add"]
+
+[[bin]]
+name = "cargo-rm"
+path = "src/bin/rm/main.rs"
+required-features = ["rm"]
+
+[[bin]]
+name = "cargo-upgrade"
+path = "src/bin/upgrade/main.rs"
+required-features = ["upgrade"]
+
+[[bin]]
+name = "cargo-set-version"
+path = "src/bin/set-version/main.rs"
+required-features = ["set-version"]
+
+[dependencies]
+concolor-control = { version = "0.0.7", default-features = false }
+cargo_metadata = "0.19.1"
+# Use this with default-features set to "true" (implicitly) so that reqwest,
+# a transitive dependency, is compiled with support for both webpki
+# certificates AND native certificates. We want support for both to be
+# present, and then to let the user _select_ through configuration which
+# one they want to be used.
+tame-index = { version = "0.17", features = ["sparse", "native-certs", "local"] }
+dunce = "1.0"
+anyhow = "1.0"
+hex = "0.4.3"
+home = "0.5.11"
+serde = "1.0.217"
+serde_derive = "1.0.217"
+clap = { version = "4.5.27", features = ["derive", "wrap_help"], optional = true }
+clap-cargo = "0.15.2"
+termcolor = "1.4.1"
+toml = "0.8.19"
+toml_edit = "0.22.22"
+indexmap = "2"
+url = "2.5.4"
+pathdiff = "0.2"
+env_logger = "0.11.8"
+clap-verbosity-flag = "3.0.2"
+log = "0.4.27"
+
+[dependencies.semver]
+features = ["serde"]
+version = "1.0.25"
+
+[dev-dependencies]
+trycmd = "0.15.8"
+snapbox = { version = "0.6.21", features = ["cmd", "path"] }
+cargo-test-macro = "0.3"
+cargo-test-support = "0.6"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+
+[features]
+default = [
+    "add",
+    "rm",
+    "upgrade",
+    "set-version",
+]
+add = ["cli"]
+rm = ["cli"]
+upgrade = ["cli"]
+set-version = ["cli"]
+cli = ["color", "clap"]
+color = ["concolor-control/auto"]
+test-external-apis = []

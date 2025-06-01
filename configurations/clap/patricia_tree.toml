@@ -1,0 +1,29 @@
+[package]
+name = "patricia_tree"
+version = "0.9.0"
+authors = ["Takeru Ohta <phjgt308@gmail.com>"]
+description = "Memory-efficient data structures based on patricia tree"
+homepage = "https://github.com/sile/patricia_tree"
+repository = "https://github.com/sile/patricia_tree"
+readme = "README.md"
+keywords = ["patricia", "radix", "trie"]
+categories = ["data-structures"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.82.0"
+
+[dependencies]
+bitflags = "2"
+serde = { version = "1", optional = true }
+
+[dev-dependencies]
+clap = { version = "4", features = ["derive"] }
+rand = "0.8"
+serde_json = { version = "1" }
+
+[package.metadata.docs.rs]
+all-features = true
+
+[[example]]
+name = "insert_lines"
+path = "examples/insert_lines.rs"

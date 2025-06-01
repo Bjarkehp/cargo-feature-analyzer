@@ -1,0 +1,41 @@
+[package]
+authors = ["Eirik Albrigtsen <sszynrae@gmail.com>",
+           "Christopher Field <cfield2@gmail.com>"]
+description = "A simple log implementation that logs to stdout and stderr with colors"
+documentation = "https://docs.rs/loggerv"
+keywords = ["log", "logger", "stdio", "cli"]
+categories = ["command-line-utilities"]
+license = "MIT"
+name = "loggerv"
+repository = "https://github.com/clux/loggerv"
+version = "0.7.2"
+readme = "README.md"
+
+[dependencies]
+atty = "0.2"
+ansi_term = "0.12.0"
+log = { version = "0.4", features = ["std"] }
+
+[dev-dependencies]
+clap = "2.1.2"
+
+[[example]]
+name = "quick"
+path = "examples/quick.rs"
+
+[[example]]
+name = "run-time-config"
+path = "examples/run_time_config.rs"
+
+[[example]]
+name = "compile-time-config"
+path = "examples/compile_time_config.rs"
+
+[[example]]
+name = "cfg-config"
+path = "examples/cfg_config.rs"
+
+[[example]]
+name = "output-config"
+path = "examples/output_config.rs"
+

@@ -1,0 +1,10 @@
+"serde_json",True
+"alloc",False
+"arbitrary_precision",False
+"default",True
+"float_roundtrip",False
+"indexmap",False
+"preserve_order",False
+"raw_value",False
+"std",True
+"unbounded_depth",False

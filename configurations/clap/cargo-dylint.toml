@@ -1,0 +1,51 @@
+[package]
+name = "cargo-dylint"
+version = "4.1.0"
+authors = ["Samuel E. Moelius III <sam@moeli.us>"]
+description = "A tool for running Rust lints from dynamic libraries"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/trailofbits/dylint"
+
+[[test]]
+name = "ci"
+required-features = ["__ci"]
+
+[dependencies]
+anyhow = { workspace = true, features = ["backtrace"] }
+clap = { workspace = true, features = ["cargo", "derive", "wrap_help"] }
+env_logger = { workspace = true }
+
+dylint = { version = "=4.1.0", path = "../dylint", features = [
+    "package_options",
+] }
+dylint_internal = { version = "=4.1.0", path = "../internal" }
+
+[dev-dependencies]
+assert_cmd = { workspace = true }
+cargo_metadata = { workspace = true }
+ctor = { workspace = true }
+glob = { workspace = true }
+log = { workspace = true }
+predicates = { workspace = true }
+regex = { workspace = true }
+semver = { workspace = true }
+serde_json = { workspace = true }
+similar-asserts = { workspace = true }
+tempfile = { workspace = true }
+walkdir = { workspace = true }
+
+dylint_internal = { version = "=4.1.0", path = "../internal", features = [
+    "examples",
+    "testing",
+] }
+
+[features]
+default = ["cargo-cli", "__ci"]
+cargo-cli = ["dylint/__cargo_cli"]
+cargo-lib = ["dylint/__cargo_lib"]
+__ci = []
+__clap_headings = []
+
+[lints]
+workspace = true

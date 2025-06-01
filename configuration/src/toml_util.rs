@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+/// Return the toml table with the given key
 pub fn get_table<'a>(parent: &'a toml::Table, key: &str) -> Result<&'a toml::Table> {
     parent.get(key)
         .ok_or(Error::KeyMissing(key.to_string()))?

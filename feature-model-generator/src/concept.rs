@@ -14,7 +14,7 @@ use configuration::Configuration;
 pub struct Concept<'a> {
     pub features: BTreeSet<&'a str>,
     pub configurations: BTreeSet<&'a str>,
-    pub implied_configurations: BTreeSet<&'a str>,
+    pub inherited_configurations: BTreeSet<&'a str>,
 }
 
 impl Debug for Concept<'_> {
@@ -30,21 +30,36 @@ impl Debug for Concept<'_> {
 /// 
 /// The function can be split into 5 steps:
 /// 1. Extract all concepts from the configurations by grouping together features with the same set of configurations.
-/// 2. Find all pairs of concepts where one's configurations are a subset of the other's.
+/// 2. Find all pairs of concepts where the first's configurations are a subset of the second's.
 /// 3. Remove duplicate configurations from the concepts that are already inherited by parent concepts.
 /// 4. Create a graph where the nodes are concepts and the edges represent the partial order of concepts.
 /// 5. Remove all redundant edges that don't effect the partial order.
 pub fn ac_poset<'a>(configurations: &'a [Configuration], features: &'a [&str]) -> DiGraph<Concept<'a>, ()> {
+    #[cfg(feature = "log")]
+    println!("Extracting concepts");
     let mut concepts = extract_concepts(configurations, features);
+
+    #[cfg(feature = "log")]
+    println!("Finding edges");
     let edges = subset_edges(&concepts);
+
+    #[cfg(feature = "log")]
+    println!("Removing duplicate configurations");
     remove_duplicate_configurations(&mut concepts, &edges);
+
+    #[cfg(feature = "log")]
+    println!("Creating graph");
     let mut graph = create_graph(concepts, &edges);
+
+    #[cfg(feature = "log")]
+    println!("Transitive reduction");
     transitive_reduction(&mut graph);
+    
     graph
 }
 
 /// Extract all concepts from the configurations by grouping together features with the same set of set of configurations.
-fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str]) -> Vec<Concept<'a>> {
+fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str], ) -> Vec<Concept<'a>> {
     let configurations_with_feature = |feature: &str| {
         configurations.iter()
             .filter(|config| config.features().contains(&feature))
@@ -57,8 +72,9 @@ fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str
         .into_grouping_map()
         .collect::<BTreeSet<_>>()
         .into_iter()
-        .sorted_by(|(c1, _), (c2, _)| c1.cmp(c2))
         .map(|(configurations, features)| Concept::new(features, configurations.clone(), configurations))
+        .filter(|c| !c.configurations.is_empty())
+        .sorted_by(|a, b| a.configurations.cmp(&b.configurations))
         .collect()
 }
 

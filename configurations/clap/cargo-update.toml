@@ -1,0 +1,94 @@
+[package]
+name = "cargo-update"
+description = "A cargo subcommand for checking and applying updates to installed executables"
+repository = "https://github.com/nabijaczleweli/cargo-update"
+readme = "README.md"
+keywords = ["cargo", "update", "plugin", "subcommand"]
+categories = ["development-tools::cargo-plugins"]
+license = "MIT"
+build = "build.rs"
+# Remember to also update in appveyor.yml
+version = "16.3.0"
+# Remember to also update in man/*.md
+authors = ["наб <nabijaczleweli@nabijaczleweli.xyz>",
+           "Yann Simon <yann.simon.fr@gmail.com>",
+           "ven <vendethiel@hotmail.fr>",
+           "Cat Plus Plus <piotrlegnica@piotrl.pl>",
+           "Liigo <liigo@qq.com>",
+           "azyobuzin <azyobuzin@users.sourceforge.jp>",
+           "Tatsuyuki Ishi <ishitatsuyuki@gmail.com>",
+           "Tom Prince <tom.prince@twistedmatrix.com>",
+           "Mateusz Mikuła <mati865@gmail.com>",
+           "sinkuu <sinkuupump@gmail.com>",
+           "Alex Burka <aburka@seas.upenn.edu>",
+           "Matthias Krüger <matthias.krueger@famsik.de>",
+           "Daniel Holbert <dholbert@cs.stanford.edu>",
+           "Jonas Bushart <jonas@bushart.org>",
+           "Harrison Metzger <harrisonmetz@gmail.com>",
+           "Benjamin Bannier <bbannier@gmail.com>",
+           "Dimitris Apostolou <dimitris.apostolou@icloud.com>",
+           "Corbin Uselton <corbinu@decimal.io>",
+           "QuarticCat <QuarticCat@protonmail.com>",
+           "Artur Sinila <freesoftware@logarithmus.dev>",
+           "qthree <qthree3@gmail.com>",
+           "tranzystorekk <tranzystorek.io@protonmail.com>",
+           "Paul Barker <paul@pbarker.dev>",
+           "Benoît CORTIER <bcortier@proton.me>",
+           "Biswapriyo Nath <nathbappai@gmail.com>",
+           "Shiraz <smcclennon@protonmail.com>",
+           "Victor Song <vms2@rice.edu>",
+           "chrisalcantara <chris@chrisalcantara.com>",
+           "Utkarsh Gupta <utkarshgupta137@gmail.com>",
+           "nevsal",
+           "Rui Chen <https://chenrui.dev>",
+           "Lynnesbian <https://fedi.lynnesbian.space/@lynnesbian>"]
+exclude = ["*.enc"]
+edition = '2015'
+rust-version = "1.71.1"
+
+
+[dependencies]
+json-deserializer = "0.4"
+serde_derive = "1.0"
+array_tool = "1.0"
+tabwriter = "1.2"
+whoami = "1.5"
+serde = "1.0"
+git2 = "0.20"
+home = "=0.5.9"
+toml = "0.8"
+hex = "0.4"
+url = "2.3"
+
+[dependencies.semver]
+version = "1.0"
+features = ["serde"]
+
+[dependencies.clap]
+version = "3.2"
+features = ["cargo", "env", "wrap_help"]
+
+[dependencies.curl]
+version = "0.4"
+features = ["http2"]
+
+[build-dependencies]
+embed-resource = "2.4"
+
+[features]
+default = []
+vendored-openssl = ["git2/vendored-openssl", "curl/static-ssl"]
+vendored-libgit2 = ["git2/vendored-libgit2"]
+vendored-libcurl = ["curl/static-curl"]
+
+[[bin]]
+name = "cargo-install-update"
+path = "src/main.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "cargo-install-update-config"
+path = "src/main-config.rs"
+test = false
+doc = false

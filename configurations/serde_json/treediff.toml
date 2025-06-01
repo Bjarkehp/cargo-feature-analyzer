@@ -1,0 +1,28 @@
+[package]
+authors = ["Sebastian Thiel <byronimo@gmail.com>"]
+description = "Find the difference between arbitrary data structures"
+documentation = "https://docs.rs/treediff"
+keywords = ["diff", "structure", "tree", "arbitrary", "general"]
+categories = ["algorithms"]
+license = "MIT/Apache-2.0"
+name = "treediff"
+readme = "README.md"
+repository = "https://github.com/Byron/treediff-rs"
+edition = "2018"
+version = "5.0.0"
+include = ["src/**/*", "LICENSE-*", "README.md", "CHANGELOG.md"]
+
+[dependencies]
+rustc-serialize = {version = "0.3.24", optional = true}
+serde_json = {version = "1.0.45", optional = true}
+serde_yaml = {version = "0.9", optional = true}
+yaml-rust = {package = "yaml-rust2", version = "0.8", optional = true}
+
+[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+
+[features]
+with-rustc-serialize = ["rustc-serialize"]
+with-serde-json = ["serde_json"]
+with-serde-yaml = ["serde_yaml"]
+with-yaml-rust = ["yaml-rust"]

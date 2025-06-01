@@ -1,12 +1,13 @@
 use std::{error::Error, fs, io::BufWriter, path::{Path, PathBuf}};
 
 use clap::Parser;
-use colored::Colorize;
 use configuration::{feature_dependencies, Configuration};
 use crates_io_api::{ReverseDependency, SyncClient};
+use itertools::Itertools;
 use std::io::Write;
 
-/// Program for scraping the top dependents of a specified crate from crates.io
+/// Program for scraping the top dependents of a specified crate from crates.io, 
+/// and converting them to feature configurations in .csvconf format.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -36,7 +37,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .cloned()
         .collect::<Vec<_>>();
 
-    let mut dependents = top_dependents(&args.crate_name, &crates_client)
+    let mut dependents = top_dependents(&args.crate_name, 1, &crates_client)
+        .inspect(|result| if let Err(e) = result {
+            eprintln!("Failed to get dependents: {}", e);
+        })
+        .flatten()
         .map(|d| crates_client.get_crate(&d.crate_version.crate_name).map(|c| c.crate_data));
 
     let mut configuration_count = 0;
@@ -44,7 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let c = match dependents.next() {
             Some(Ok(c)) => c,
             Some(Err(e)) => {
-                eprintln!("{}", format!("Failed to get crate: {}", e).red());
+                eprintln!("Failed to get crate: {}", e);
                 continue;
             },
             None => break,
@@ -56,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let repository = if let Some(r) = c.repository {
             r
         } else {
-            eprintln!("{}", format!("Crate {} has no reposity", c.name).red());
+            eprintln!("Crate {} has no reposity", c.name);
             continue;
         };
 
@@ -95,6 +100,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Write a configuration to a .csvconf file
 fn write_configuration(
     config: &Configuration, 
     destination: impl AsRef<Path>,
@@ -115,6 +121,29 @@ fn write_configuration(
     Ok(())
 }
 
+/// Get dependents of a crate, sorted by popularity.
+fn top_dependents(crate_name: &str, start_page: u64, client: &SyncClient) -> impl Iterator<Item = Result<ReverseDependency, crates_io_api::Error>> {
+    // crates.io sometimes fails to return a page.
+    // After 3 failed attempts, stop fetching more pages.
+    let mut attempts = 3;
+    (start_page..).map(|i| client.crate_reverse_dependencies_page(crate_name, i).map(|page| page.dependencies.into_iter()))
+        .flatten_ok()
+        .take_while_inclusive(move |result| {
+            if result.is_err() {
+                attempts -= 1;
+            }
+            attempts > 0
+        })
+}
+
+/// Attempts to download a file from a GitHub repository
+fn download_github_file(client: &reqwest::blocking::Client, repository: &str, path: &str) -> Result<String, Box<dyn Error>> {
+    let url = github_path(repository, path)
+        .ok_or("Invalid repository or path")?;
+    Ok(client.get(url).send()?.error_for_status()?.text()?)
+}
+
+/// Attempts to download a crates Cargo.toml file from a given GitHub repository
 fn download_cargo_toml(client: &reqwest::blocking::Client, repository: &str, crate_name: &str) -> Result<String, Box<dyn Error>> {
     download_github_file(client, repository, "Cargo.toml").ok()
         .filter(|content| content.contains("[package]"))
@@ -122,18 +151,7 @@ fn download_cargo_toml(client: &reqwest::blocking::Client, repository: &str, cra
         .ok_or(format!("Failed to download Cargo.toml from {}", repository).into())
 }
 
-fn top_dependents(crate_name: &str, client: &SyncClient) -> impl Iterator<Item = ReverseDependency> {
-    (1..).map(|i| client.crate_reverse_dependencies_page(crate_name, i).map(|page| page.dependencies.into_iter()))
-        .scan((), |_, page| page.ok())
-        .flatten()
-}
-
-fn download_github_file(client: &reqwest::blocking::Client, repository: &str, path: &str) -> Result<String, Box<dyn Error>> {
-    let url = github_path(repository, path)
-        .ok_or("Invalid repository or path")?;
-    Ok(client.get(url).send()?.error_for_status()?.text()?)
-}
-
+/// Create an url for a specific repository and path that directly downloads a file from GitHub.
 fn github_path(repository_url: &str, path: &str) -> Option<String> {
     repository_url.strip_prefix("https://github.com/")
         .map(|repository| format!("https://raw.githubusercontent.com/{}/refs/heads/master/{}", repository, path))

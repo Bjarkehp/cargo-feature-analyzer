@@ -1,0 +1,38 @@
+[package]
+name = "slog-json"
+version = "2.6.1"
+edition = "2018"
+authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
+description = "JSON drain for slog-rs"
+keywords = ["slog", "logging", "json"]
+license = "MPL-2.0 OR MIT OR Apache-2.0"
+documentation = "https://docs.rs/slog-json"
+homepage = "https://github.com/slog-rs/slog"
+repository = "https://github.com/slog-rs/json"
+readme = "README.md"
+# This is our Minimum Supported Rust Version (MSRV)
+#
+# Please do not bump this unnecessarily.
+# Changing this should bump the minor version for semver (2.x for semver).
+#
+# The first version of Cargo that supports this field was in Rust 1.56.0.
+# In older releases, the field will be ignored, and Cargo will display a warning.
+rust-version = "1.53"
+
+[features]
+nested-values = ["erased-serde", "slog/nested-values"]
+dynamic-keys = ["slog/dynamic-keys"]
+default = []
+
+[dependencies]
+slog = { version = "2.1.1" }
+serde_json = "1"
+serde = "1"
+erased-serde = {version = "0.3", optional = true }
+time = { version = "0.3.6", features = ["formatting"] }
+
+[dev-dependencies]
+slog-async = "2"
+
+[package.metadata.docs.rs]
+features = ["nested-values", "dynamic-keys"]
