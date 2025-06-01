@@ -15,10 +15,10 @@ To compile the tools, you need to have the rust toolchain installed. For analyzi
 ## Usage
 To get started quickly, use the shell scripts.
 ```bash
-scrape.sh \<name of the crate\>
-generate.sh \<name of the crate\>
-validate.sh \<feature model\> \<csvconf directory\>
-analyze.sh \<feature model\>
+scrape.sh <name of the crate>
+generate.sh <name of the crate>
+validate.sh <feature model> <csvconf directory>
+analyze.sh <feature model>
 ```
 
 For detailed usage, read the contents of the scripts, or pass --help to either feature-configuration-scraper or feature-model-generator.
