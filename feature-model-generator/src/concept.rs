@@ -35,26 +35,11 @@ impl Debug for Concept<'_> {
 /// 4. Create a graph where the nodes are concepts and the edges represent the partial order of concepts.
 /// 5. Remove all redundant edges that don't effect the partial order.
 pub fn ac_poset<'a>(configurations: &'a [Configuration], features: &'a [&str]) -> DiGraph<Concept<'a>, ()> {
-    #[cfg(feature = "log")]
-    println!("Extracting concepts");
     let mut concepts = extract_concepts(configurations, features);
-
-    #[cfg(feature = "log")]
-    println!("Finding edges");
     let edges = subset_edges(&concepts);
-
-    #[cfg(feature = "log")]
-    println!("Removing duplicate configurations");
     remove_duplicate_configurations(&mut concepts, &edges);
-
-    #[cfg(feature = "log")]
-    println!("Creating graph");
     let mut graph = create_graph(concepts, &edges);
-
-    #[cfg(feature = "log")]
-    println!("Transitive reduction");
     transitive_reduction(&mut graph);
-    
     graph
 }
 
