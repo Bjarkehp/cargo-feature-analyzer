@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.34", features = ["derive"] }
-configuration = { version = "0.1.0", path = "../configuration" }
+configuration = { version = "1.0.0", path = "../configuration" }
 crates_io_api = "0.11.0"
 itertools = "0.14.0"
 reqwest = "0.12.15"
