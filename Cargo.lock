@@ -206,7 +206,7 @@ checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
 name = "configuration"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "derive-new",
  "itertools",
@@ -309,7 +309,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "feature-configuration-scraper"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "clap",
  "configuration",
@@ -321,7 +321,7 @@ dependencies = [
 
 [[package]]
 name = "feature-model-generator"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "anyhow",
  "clap",
