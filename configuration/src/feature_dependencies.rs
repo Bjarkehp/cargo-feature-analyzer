@@ -8,7 +8,7 @@ use crate::{toml_util::{get_table,Error, Result}};
 pub type Map<'a> = BTreeMap<&'a str, Vec<&'a str>>;
 
 /// Create a map between features and their dependencies from a toml table.
-pub fn from_cargo_toml(root: &toml::Table) -> Result<Map> {
+pub fn from_cargo_toml(root: &toml::Table) -> Result<Map<'_>> {
     let feature_table = get_table(root, "features")?;
     let dependency_tables = get_dependency_tables(root);
 
@@ -26,7 +26,7 @@ pub fn from_cargo_toml(root: &toml::Table) -> Result<Map> {
 }
 
 /// Find all features and their dependencies that are explicitly listed in the feature table.
-fn explicit_feature_dependencies(table: &toml::Table) -> Result<Map> {
+fn explicit_feature_dependencies(table: &toml::Table) -> Result<Map<'_>> {
     let mut map = Map::new();
 
     for (key, value) in table {
