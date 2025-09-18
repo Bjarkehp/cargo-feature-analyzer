@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 derive-new = "0.7.0"
 itertools = "0.14.0"
+petgraph = "0.8.2"
 thiserror = "2.0.12"
 toml = "0.8.22"
 walkdir = "2.5.0"

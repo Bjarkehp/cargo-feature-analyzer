@@ -1,6 +1,7 @@
 use std::{collections::BTreeSet, path::Path};
 
 use derive_new::new;
+use petgraph::Direction;
 use thiserror::Error;
 use walkdir::WalkDir;
 
@@ -58,7 +59,7 @@ pub fn all_features(content: &str) -> Option<Vec<&str>> {
 pub fn implied_features<'a>(
     dependency_table: &'a toml::Table, 
     dependency: &str, 
-    feature_dependencies: &'a feature_dependencies::Map
+    feature_dependencies: &'a feature_dependencies::Graph
 ) -> Result<BTreeSet<&'a str>> {
     let default_features = dependency_table.get(dependency)
         .ok_or(Error::DependencyNotFound(dependency.to_string()))?
@@ -90,10 +91,8 @@ pub fn implied_features<'a>(
     while let Some(feature) = features.pop() {
         if !visited_features.contains(feature) {
             visited_features.insert(feature);
-            let new_features = feature_dependencies.get(feature)
-                .ok_or(Error::InvalidFeatureDependencies(feature.to_string()))?
-                .iter()
-                .filter(|&f| feature_dependencies.contains_key(f));
+            let new_features = feature_dependencies.neighbors_directed(feature, Direction::Outgoing)
+                .filter(|&f| feature_dependencies.contains_node(f));
             features.extend(new_features);
         }
     }

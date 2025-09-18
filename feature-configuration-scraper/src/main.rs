@@ -33,8 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     std::fs::write(args.cargo_destination, &cargo_toml)?;
     let table = cargo_toml.parse()?;
     let feature_dependencies = configuration::feature_dependencies::from_cargo_toml(&table)?;
-    let features = feature_dependencies.keys()
-        .cloned()
+    let features = feature_dependencies.nodes()
         .collect::<Vec<_>>();
 
     let mut dependents = top_dependents(&args.crate_name, 1, &crates_client)
