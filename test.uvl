@@ -1,0 +1,40 @@
+features
+    "crate"
+        optional
+            "tracing"
+            "test-util"
+            "signal-hook-registry"
+                optional
+                    "signal"
+                        optional
+                            "full"
+                    "process"
+            "windows-sys"
+                optional
+                    "net"
+            "socket2"
+            "mio"
+            "libc"
+            "tokio-macros"
+                optional
+                    "macros"
+            "bytes"
+                optional
+                    "io-util"
+            "time"
+            "sync"
+            "rt-multi-thread"
+            "rt"
+            "parking_lot"
+            "io-std"
+            "fs"
+            "default"
+constraints
+    "signal" => "windows-sys" & "mio" & "libc" & "crate"
+    "rt-multi-thread" => "rt"
+    "test-util" => "time" & "sync" & "rt"
+    "process" => "windows-sys" & "mio" & "libc" & "bytes" & "crate"
+    "io-util" => "crate"
+    "macros" => "crate"
+    "full" => "process" & "net" & "macros" & "io-util" & "time" & "sync" & "rt-multi-thread" & "rt" & "parking_lot" & "io-std" & "crate" & "fs"
+    "net" => "socket2" & "mio" & "libc" & "crate"

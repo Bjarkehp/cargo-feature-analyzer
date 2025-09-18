@@ -1,0 +1,11 @@
+[package]
+name = "flat-feature-model"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.47", features = ["derive"] }
+configuration = { version = "1.0.1", path = "../configuration" }
+itertools = "0.14.0"
+petgraph = "0.8.2"
+toml = "0.9.6"
