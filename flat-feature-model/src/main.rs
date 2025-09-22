@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, error::Error, fmt::Debug, fs::File, hash::Hash, io::{BufWriter, Write}, path::PathBuf};
+use std::{collections::{HashMap, HashSet}, error::Error, fs::File, hash::Hash, io::{BufWriter, Write}, path::PathBuf};
 
 use clap::Parser;
 use configuration::feature_dependencies;
@@ -20,15 +20,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     let table = cargo_toml_content.parse::<toml::Table>()?;
     let mut feature_dependencies = feature_dependencies::from_cargo_toml(&table)?;
 
-    feature_dependencies.add_node("crate");
+    let name = table.get("package")
+        .and_then(|v| v.as_table())
+        .and_then(|t| t.get("name"))
+        .and_then(|v| v.as_str())
+        .ok_or("Failed to get crate name")?;
+
+    feature_dependencies.add_node(name);
     for feature in feature_dependencies.nodes().collect::<Vec<_>>() {
-        if feature != "crate" {
-            feature_dependencies.add_edge(feature, "crate", ());
+        if feature != name {
+            feature_dependencies.add_edge(feature, name, ());
         }
     }
 
     let (tree_constraints, cross_tree_constraints) = 
-        dependency_graph_constraints(&feature_dependencies, "crate");
+        dependency_graph_constraints(&feature_dependencies, name);
 
     println!("{:?}", tree_constraints);
     
@@ -38,9 +44,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|(a, b)| (b, a))
         .into_group_map();
 
-    let file = File::create("test.uvl")?;
+    let file = File::create(args.destination)?;
     let mut writer = BufWriter::new(file);
-    write_uvl(&mut writer, &tree_constraints_grouped, &cross_tree_constraints_grouped)?;
+    write_uvl(&mut writer, name, &tree_constraints_grouped, &cross_tree_constraints_grouped)?;
 
     Ok(())
 }
@@ -68,10 +74,10 @@ fn dependency_graph_constraints<N: Hash + Eq + Copy + Ord, E>(graph: &DiGraphMap
     (tree_edges, cross_tree_edges)
 }
 
-fn write_uvl<W: Write>(writer: &mut W, tree_constraints: &HashMap<&str, Vec<&str>>, cross_tree_constraints: &HashMap<&str, Vec<&str>>) -> std::io::Result<()> {
+fn write_uvl<W: Write>(writer: &mut W, root: &str, tree_constraints: &HashMap<&str, Vec<&str>>, cross_tree_constraints: &HashMap<&str, Vec<&str>>) -> std::io::Result<()> {
     writeln!(writer, "features")?;
     let mut visited_features = HashSet::new();
-    write_tree_constraints(writer, "crate", tree_constraints, &mut visited_features, 1)?;
+    write_tree_constraints(writer, root, tree_constraints, &mut visited_features, 1)?;
     write_cross_tree_constraints(writer, cross_tree_constraints)?;
     Ok(())
 }
