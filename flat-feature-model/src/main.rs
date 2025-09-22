@@ -35,9 +35,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let (tree_constraints, cross_tree_constraints) = 
         dependency_graph_constraints(&feature_dependencies, name);
-
-    println!("{:?}", tree_constraints);
-    
     let tree_constraints_grouped = tree_constraints.into_iter()
         .into_group_map();
     let cross_tree_constraints_grouped = cross_tree_constraints.into_iter()
