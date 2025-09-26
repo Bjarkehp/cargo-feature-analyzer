@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let configurations = feature_dependencies::get_dependency_tables(&config_table)
             .into_iter()
-            .filter_map(|table| configuration::implied_features(table, &args.crate_name, &feature_dependencies).ok())
+            .filter_map(|table| configuration::implied_features_from_table(table, &args.crate_name, &feature_dependencies).ok())
             .enumerate()
             .map(|(i, features)| Configuration::new(format!("{}-({})", c.name, i + 1), features))
             .take((args.count - configuration_count) as usize)

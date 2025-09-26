@@ -56,7 +56,7 @@ pub fn all_features(content: &str) -> Option<Vec<&str>> {
 /// There are default features that are enabled by default,
 /// and features might also enable other features, if they depend on them.
 /// Therefore, it is necessary to recursively resolve the full set of features enabled by the dependency.
-pub fn implied_features<'a>(
+pub fn implied_features_from_table<'a>(
     dependency_table: &'a toml::Table, 
     dependency: &str, 
     feature_dependencies: &'a feature_dependencies::Graph
@@ -87,13 +87,21 @@ pub fn implied_features<'a>(
         features.push("default");
     }
 
+    implied_features(features.into_iter(), feature_dependencies)
+}
+
+pub fn implied_features<'a>(
+    explicit_features: impl Iterator<Item = &'a str>,
+    feature_dependencies: &'a feature_dependencies::Graph
+) -> Result<BTreeSet<&'a str>> {
+    let mut stack = explicit_features.collect::<Vec<_>>();
     let mut visited_features = BTreeSet::new();
-    while let Some(feature) = features.pop() {
+    while let Some(feature) = stack.pop() {
         if !visited_features.contains(feature) {
             visited_features.insert(feature);
             let new_features = feature_dependencies.neighbors_directed(feature, Direction::Outgoing)
                 .filter(|&f| feature_dependencies.contains_node(f));
-            features.extend(new_features);
+            stack.extend(new_features);
         }
     }
 
