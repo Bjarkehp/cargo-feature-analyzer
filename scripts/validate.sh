@@ -16,13 +16,21 @@ if [[ ! -d "$CSVCONF_DIR" ]]; then
     exit 1
 fi
 
+valid_count=0
+total_count=0
+
 for conf in "$CSVCONF_DIR"/*.csvconf; do
+    ((total_count++))
     result=$(flamapy satisfiable_configuration "$UVL_FILE" "$conf")
     
     if [[ "$result" == "True" ]]; then
         echo -e "${GREEN}$conf${NO_COLOR}"
+        ((valid_count++))
     else
         echo -e "${RED}$conf${NO_COLOR}"
         echo "$result"
     fi
 done
+
+echo
+echo "Valid configurations: $valid_count/$total_count"
