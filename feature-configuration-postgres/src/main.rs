@@ -31,6 +31,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let features = feature_dependencies.nodes()
         .collect::<Vec<_>>();
 
+    std::fs::create_dir_all(&args.config_destination)?;
+
     // let url = "postgresql://postgres@localhost:5432/cratesio";
     let mut client = Client::connect(&args.database_str, NoTls)?;
     let query = include_str!("query.sql");
