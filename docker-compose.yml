@@ -1,0 +1,16 @@
+services:
+    db:
+        build: ./docker
+        container_name: crates_pg
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: crates
+            POSTGRES_PASSWORD: crates
+            POSTGRES_DB: crates_db
+        volumes:
+            - db_data:/var/lib/postgresql/data
+            - ./docker/import.sh:/docker-entrypoint-initdb.d/import.sh
+            - ./docker/import.sql:/import.sql
+volumes:
+    db_data:
