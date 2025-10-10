@@ -22,6 +22,10 @@ pub fn natural<K>(_k: &K) -> VariableDefinition {
     variable().integer().min(0)
 }
 
-pub fn float<K>(_k: &K) -> VariableDefinition {
+pub fn continous<K>(_k: &K) -> VariableDefinition {
     variable()
+}
+
+pub fn n_choose_k(n: u64, k: u64) -> u64 {
+    (1..=k).map(|i| (n - k + i) / i).product::<u64>()
 }
