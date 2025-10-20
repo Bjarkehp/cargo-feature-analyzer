@@ -55,42 +55,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .solve()
         .expect("Failed to solve MILP");
 
-    for feature_index in 1..milp.columns {
-        let group = (0..milp.columns).find(|&g| solution.value(milp.feature_group_relation[&(feature_index, g)]) >= 0.5)
-            .expect("Every feature should be in exactly one group");
-        let parent_index = (0..milp.columns).find(|&p| solution.value(milp.feature_parent_relation[&(feature_index, p)]) >= 0.5)
-            .expect("Every non-root feature should have exactly one parent");
-        let feature = features[feature_index];
-        let parent = features[parent_index];
-        println!("{feature} is in group {group} with parent {parent}");
-    }
-
-    for group in 0..milp.columns {
-        let cardinality_min = solution.value(milp.cardinality_min[&group]).round() as i32;
-        let cardinality_max = solution.value(milp.cardinality_max[&group]).round() as i32;
-        let is_used = solution.value(milp.group_not_empty[&group]) >= 0.5;
-        let is_mandatory = solution.value(milp.is_mandatory[&group]) >= 0.5;
-        let is_alternative = solution.value(milp.is_alternative[&group]) >= 0.5;
-        let is_or = solution.value(milp.is_or[&group]) >= 0.5;
-        let is_optional = solution.value(milp.is_optional[&group]) >= 0.5;
-        
-        if is_used {
-            print!("{group}: {cardinality_min}..{cardinality_max} ");
-
-            if is_mandatory {
-                println!("Mandatory");
-            } else if is_alternative {
-                println!("Alternative");
-            } else if is_or {
-                println!("Or");
-            } else if is_optional {
-                println!("Optional");
-            } else {
-                println!();
-            }
-        }
-    }
-
     let mut graph = DiGraph::new();
     let feature_vertices = features.iter()
         .map(|f| graph.add_node(Vertex::Feature(f)))
