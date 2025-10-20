@@ -3,14 +3,9 @@ use std::collections::{HashMap, HashSet};
 use configuration::Configuration;
 use good_lp::{constraint, variable, Constraint, Expression, IntoAffineExpression, ProblemVariables, Variable};
 
-use crate::util::{binary, continous, make_variables, n_choose_k, natural, VariableMap};
+use crate::util::{binary, make_variables, n_choose_k, natural, VariableMap};
 
 use itertools::{chain, iproduct as p};
-
-const MANDATORY_BASE: f64 = 8.0;
-const ALTERNATIVE_BASE: f64 = 4.0;
-const OR_BASE: f64 = 2.0;
-const GROUP_COUNT_BASE: f64 = 1.0;
 
 pub struct FeatureModelMilp {
     pub problem: ProblemVariables,
@@ -23,29 +18,21 @@ pub struct FeatureModelMilp {
     pub context: HashSet<(usize, usize)>,
     pub log_choice_table: HashMap<(usize, usize, usize), f64>,
 
-    pub cardinality_min: VariableMap<usize>,
-    pub cardinality_max: VariableMap<usize>,
-
-    pub cardinality_min_binary: VariableMap<(usize, usize)>,
-    pub cardinality_max_binary: VariableMap<(usize, usize)>,
-
     pub feature_group_relation: VariableMap<(usize, usize)>,
     pub config_group_count: VariableMap<(usize, usize)>,
 
+    pub cardinality_min: VariableMap<usize>,
+    pub cardinality_max: VariableMap<usize>,
     pub group_size: VariableMap<usize>,
+
+    pub cardinality_min_binary: VariableMap<(usize, usize)>,
+    pub cardinality_max_binary: VariableMap<(usize, usize)>,
     pub group_size_binary: VariableMap<(usize, usize)>,
-    pub group_not_empty: VariableMap<usize>,
+
+    pub group_has_feature: VariableMap<usize>,
     pub group_count: Variable,
 
     pub is_mandatory: VariableMap<usize>,
-    pub mandatory_rewards: VariableMap<usize>,
-
-    pub is_alternative: VariableMap<usize>,
-    pub alternative_rewards: VariableMap<usize>,
-
-    pub is_or: VariableMap<usize>,
-    pub or_rewards: VariableMap<usize>,
-
     pub is_optional: VariableMap<usize>,
 
     pub feature_parent_relation: VariableMap<(usize, usize)>,
@@ -54,7 +41,6 @@ pub struct FeatureModelMilp {
     pub flow: VariableMap<(usize, usize)>,
 
     pub group_min_max_size: VariableMap<(usize, usize, usize, usize)>,
-    pub group_log_choice: VariableMap<usize>,
 }
 
 pub fn create_problem(features: &[&str], configurations: &[Configuration]) -> FeatureModelMilp {
@@ -97,27 +83,21 @@ pub fn create_problem(features: &[&str], configurations: &[Configuration]) -> Fe
         config_group_count: make_variables(&mut problem, p!(0..rows, 0..columns), natural),
         group_size: make_variables(&mut problem, 0..columns, natural),
         group_size_binary: make_variables(&mut problem, p!(0..columns, 0..columns), binary),
-        group_not_empty: make_variables(&mut problem, 0..columns, binary), 
+        group_has_feature: make_variables(&mut problem, 0..columns, binary), 
         group_count: problem.add(variable().integer().min(1)), 
         is_mandatory: make_variables(&mut problem, 0..columns, binary),
-        mandatory_rewards: make_variables(&mut problem, 0..columns, continous),
-        is_alternative: make_variables(&mut problem, 0..columns, binary),
-        alternative_rewards: make_variables(&mut problem, 0..columns, continous),
-        is_or: make_variables(&mut problem, 0..columns, binary),
-        or_rewards: make_variables(&mut problem, 0..columns, continous),
         is_optional: make_variables(&mut problem, 0..columns, binary),
         feature_parent_relation: make_variables(&mut problem, p!(1..columns, 0..columns), binary),
         group_parent_relation: make_variables(&mut problem, p!(1..columns, 0..columns), binary),
         config_group_relation: make_variables(&mut problem, p!(0..rows, 0..columns), binary),
         flow: make_variables(&mut problem, p!(0..columns, 0..columns), |_| variable().min(0)),
         group_min_max_size: make_variables(&mut problem, p!(0..columns, 0..columns, 0..columns, 0..columns), binary),
-        group_log_choice: make_variables(&mut problem, 0..columns, |_| variable()), 
         problem, 
     }
 }
 
 pub fn create_objective(milp: &FeatureModelMilp) -> Expression {
-    group_types_objective(milp)
+    group_choice_objective(milp)
 }
 
 pub fn create_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
@@ -126,23 +106,14 @@ pub fn create_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Const
         config_group_count_constraints(milp),
         cardinality_min_constraints(milp),
         cardinality_max_constraints(milp),
-        cardinality_root_constraints(milp),
-        cardinality_min_max_constraints(milp),
+        std::iter::once(root_in_group_0_constraint(milp)),
+        std::iter::once(root_group_size_constraints(milp)),
         group_size_constraints(milp),
         group_not_empty_constraints(milp),
-        group_not_empty_symmetry_constraints(milp),
         std::iter::once(group_count_constraint(milp)),
         is_mandatory_constraints(milp),
-        mandatory_rewards_constraints(milp),
-        is_alternative_constraints(milp),
-        alternative_rewards_constraints(milp),
-        is_or_constraints(milp),
-        or_rewards_constraints(milp),
         is_optional_constraints(milp),
-        group_types_constraints(milp),
         config_parent_relation_constraints(milp),
-        std::iter::once(root_in_group_0_constraint(milp)),
-        std::iter::once(group_0_size_1_constraint(milp)),
         feature_parent_same_as_group_constraints(milp),
         feature_depends_on_parent_constraints(milp),
         std::iter::once(root_flow_constraint(milp)),
@@ -150,8 +121,6 @@ pub fn create_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Const
         flow_constraints(milp),
         one_parent_per_feature_constraints(milp),
         one_parent_per_group_constraints(milp),
-        parent_of_self_constraints(milp),
-        std::iter::once(feature_parent_relation_count_constraint(milp)),
         group_symmetry_constraints(milp),
 
         cardinality_min_binary_constraints(milp),
@@ -162,7 +131,6 @@ pub fn create_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Const
         group_size_binary_constraints(milp),
         group_size_binary_select_1_constraints(milp),
         group_min_max_size_constraints(milp),
-        group_log_choice_constraints(milp),
 
         group_dependency_constraints(milp),
         multiple_mandatory_groups_constraints(milp),
@@ -171,30 +139,11 @@ pub fn create_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Const
     )
 }
 
-fn group_types_objective(milp: &FeatureModelMilp) -> Expression {
-    let mandatory_rewards = (0..milp.columns)
-        .map(|group| milp.mandatory_rewards[&group])
-        .sum::<Expression>();
-    let alternative_rewards = (0..milp.columns)
-        .map(|group| milp.alternative_rewards[&group])
-        .sum::<Expression>();
-    let or_rewards = (0..milp.columns)
-        .map(|group| milp.or_rewards[&group])
-        .sum::<Expression>();
-    let cardinality_cost = (0..milp.columns)
-        .map(|group| milp.cardinality_max[&group] - milp.cardinality_min[&group])
-        .sum::<Expression>();
-    let group_count_cost = GROUP_COUNT_BASE * milp.group_count;
-
-    mandatory_rewards + 
-    alternative_rewards + 
-    or_rewards - 
-    cardinality_cost -
-    group_count_cost
-}
-
 fn group_choice_objective(milp: &FeatureModelMilp) -> Expression {
-    let choice_cost = (0..milp.columns).map(|group| milp.group_log_choice[&group]).sum::<Expression>();
+    let choice_cost = p!(0..milp.columns, 0..milp.columns, 0..milp.columns, 0..milp.columns)
+        .filter(|&(_group, min, max, size)| min <= max && max <= size)
+        .map(|(group, min, max, size)| milp.log_choice_table[&(min, max, size)] * milp.group_min_max_size[&(group, min, max, size)])
+        .sum::<Expression>();
     let mandatory_reward = (0..milp.columns)
         .map(|group| milp.is_mandatory[&group])
         .sum::<Expression>();
@@ -213,32 +162,34 @@ fn feature_group_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Co
 
 fn config_group_count_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     p!(0..milp.rows, 0..milp.columns).map(|(config, group)| {
-        let sum = (0..milp.columns).map(|feature| {
-            if milp.context.contains(&(config, feature)) {
-                milp.feature_group_relation[&(feature, group)].into_expression()
-            } else {
-                0.into_expression()
-            }
-        }).sum::<Expression>();
+        let sum = (0..milp.columns)
+            .filter(|&feature| milp.context.contains(&(config, feature)))
+            .map(|feature| milp.feature_group_relation[&(feature, group)])
+            .sum::<Expression>();
         constraint!(milp.config_group_count[&(config, group)] == sum)
     })
 }
 
 fn cardinality_min_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    p!(0..milp.rows, 0..milp.columns)
-        .map(|(config, group)| constraint!(milp.cardinality_min[&group] <= milp.config_group_count[&(config, group)] + milp.columns_f * (1 - milp.config_group_relation[&(config, group)])))
+    p!(0..milp.rows, 0..milp.columns).map(|(config, group)| {
+        let min = milp.cardinality_min[&group];
+        let count = milp.config_group_count[&(config, group)];
+        let parent_enabled = milp.config_group_relation[&(config, group)];
+        constraint!(min <= count + milp.columns_f * (1 - parent_enabled))
+    })
 }
 
 fn cardinality_max_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    p!(0..milp.rows, 0..milp.columns)
-        .map(|(config, group)| constraint!(milp.cardinality_max[&group] >= milp.config_group_count[&(config, group)] - milp.columns_f * (1 - milp.config_group_relation[&(config, group)])))
+    p!(0..milp.rows, 0..milp.columns).map(|(config, group)| {
+        let max = milp.cardinality_max[&group];
+        let count = milp.config_group_count[&(config, group)];
+        let parent_enabled = milp.config_group_relation[&(config, group)];
+        constraint!(max >= count - milp.columns_f * (1 - parent_enabled))
+    })
 }
 
-fn cardinality_root_constraints(milp: &FeatureModelMilp) -> [Constraint; 2] {
-    [
-        constraint!(milp.cardinality_min[&0] == 1),
-        constraint!(milp.cardinality_max[&0] == 1),
-    ]
+fn root_group_size_constraints(milp: &FeatureModelMilp) -> Constraint {
+    constraint!(milp.group_size[&0] == 1)
 }
 
 fn cardinality_min_max_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
@@ -256,89 +207,54 @@ fn group_size_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Const
 
 fn group_not_empty_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     (0..milp.columns).flat_map(|group| [
-        constraint!(milp.group_not_empty[&group] <= milp.group_size[&group]),
-        constraint!(milp.group_not_empty[&group] * milp.columns_f >= milp.group_size[&group]),
+        constraint!(milp.group_has_feature[&group] <= milp.group_size[&group]),
+        constraint!(milp.group_has_feature[&group] * milp.columns_f >= milp.group_size[&group]),
     ])
 }
 
 fn group_not_empty_symmetry_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     (1..milp.columns)
-        .map(|group| constraint!(milp.group_not_empty[&(group - 1)] >= milp.group_not_empty[&group]))
+        .map(|group| constraint!(milp.group_has_feature[&(group - 1)] >= milp.group_has_feature[&group]))
 }
 
 fn group_count_constraint(milp: &FeatureModelMilp) -> Constraint {
     let sum = (0..milp.columns)
-        .map(|group| milp.group_not_empty[&group])
+        .map(|group| milp.group_has_feature[&group])
         .sum::<Expression>();
     constraint!(milp.group_count == sum)
 }
 
 fn is_mandatory_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     (0..milp.columns).flat_map(|group| [
-        // cardinality_min[k] == cardinality_max[k]
-        constraint!(milp.cardinality_max[&group] - milp.cardinality_min[&group] <= milp.columns_f * (1 - milp.is_mandatory[&group])),
+        // group_size[k] == cardinality_min[k]
+        constraint!(milp.group_size[&group] - milp.cardinality_min[&group] <= milp.columns_f * (1 - milp.is_mandatory[&group])),
         // group_size[k] == cardinality_max[k]
         constraint!(milp.group_size[&group] - milp.cardinality_max[&group] <= milp.columns_f * (1 - milp.is_mandatory[&group])),
         // A group is not mandatory if it is empty
-        constraint!(milp.group_not_empty[&group] >= milp.is_mandatory[&group]),
-    ])
-}
-
-fn mandatory_rewards_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns).flat_map(|group| [
-        constraint!(milp.mandatory_rewards[&group] <= MANDATORY_BASE * milp.columns_f * milp.is_mandatory[&group]),
-        constraint!(milp.mandatory_rewards[&group] <= MANDATORY_BASE * milp.group_size[&group]),
-    ])
-}
-
-fn is_alternative_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns).flat_map(|group| [
-        constraint!(milp.cardinality_min[&group] >= 1 - milp.columns_f * (1 - milp.is_alternative[&group])),
-        constraint!(milp.cardinality_min[&group] <= 1 + milp.columns_f * (1 - milp.is_alternative[&group])),
-        constraint!(milp.cardinality_max[&group] >= 1 - milp.columns_f * (1 - milp.is_alternative[&group])),
-        constraint!(milp.cardinality_max[&group] <= 1 + milp.columns_f * (1 - milp.is_alternative[&group])),
-    ])
-}
-
-fn alternative_rewards_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns).flat_map(|group| [
-        constraint!(milp.alternative_rewards[&group] <= ALTERNATIVE_BASE * milp.columns_f * milp.is_alternative[&group]),
-        constraint!(milp.alternative_rewards[&group] <= ALTERNATIVE_BASE * milp.group_size[&group]),
-    ])
-}
-
-fn is_or_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns).flat_map(|group| [
-        constraint!(milp.cardinality_min[&group] >= 1 - milp.columns_f * (1 - milp.is_or[&group])),
-        constraint!(milp.cardinality_min[&group] <= 1 + milp.columns_f * (1 - milp.is_or[&group])),
-    ])
-}
-
-fn or_rewards_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns).flat_map(|group| [
-        constraint!(milp.or_rewards[&group] <= OR_BASE * milp.columns_f * milp.is_or[&group]),
-        constraint!(milp.or_rewards[&group] <= OR_BASE * milp.group_size[&group]),
+        constraint!(milp.group_has_feature[&group] >= milp.is_mandatory[&group]),
+        // If all conditions hold, it must be mandatory
+        constraint!(milp.group_size[&group] - milp.cardinality_min[&group] + milp.group_size[&group] - milp.cardinality_max[&group] - milp.group_has_feature[&group] >= -milp.is_mandatory[&group])
     ])
 }
 
 fn is_optional_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     (0..milp.columns).flat_map(|group| [
-        constraint!(milp.cardinality_min[&group] >= -milp.columns_f * (1 - milp.is_optional[&group])),
         constraint!(milp.cardinality_min[&group] <=  milp.columns_f * (1 - milp.is_optional[&group])),
         constraint!(milp.group_size[&group] - milp.cardinality_max[&group] <= milp.columns_f * (1 - milp.is_optional[&group])),
-        constraint!(milp.group_size[&group] - milp.cardinality_max[&group] + milp.cardinality_min[&group] >= milp.group_not_empty[&group] - milp.is_optional[&group]),
+        constraint!(milp.group_size[&group] - milp.cardinality_max[&group] + milp.cardinality_min[&group] - milp.group_has_feature[&group] >= -milp.is_optional[&group]),
     ])
 }
 
 fn group_types_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     (0..milp.columns)
-        .map(|group| constraint!(milp.is_mandatory[&group] + milp.is_alternative[&group] + milp.is_or[&group] + milp.is_optional[&group] + (1 - milp.group_not_empty[&group]) <= 1))
+        .map(|group| constraint!(milp.is_mandatory[&group] + milp.is_optional[&group] + (1 - milp.group_has_feature[&group]) <= 1))
 }
 
 fn config_parent_relation_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     p!(0..milp.rows, 1..milp.columns).map(|(config, group)| {
         let sum = (0..milp.columns)
-            .map(|parent| if milp.context.contains(&(config, parent)) { 1 } else { 0 } * milp.group_parent_relation[&(group, parent)])
+            .filter(|&parent| milp.context.contains(&(config, parent)))
+            .map(|parent| milp.group_parent_relation[&(group, parent)])
             .sum::<Expression>();
         constraint!(milp.config_group_relation[&(config, group)] == sum)
     })
@@ -346,10 +262,6 @@ fn config_parent_relation_constraints(milp: &FeatureModelMilp) -> impl Iterator<
 
 fn root_in_group_0_constraint(milp: &FeatureModelMilp) -> Constraint {
     constraint!(milp.feature_group_relation[&(0, 0)] == 1)
-}
-
-fn group_0_size_1_constraint(milp: &FeatureModelMilp) -> Constraint {
-    constraint!(milp.group_size[&0] == 1)
 }
 
 fn feature_parent_same_as_group_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
@@ -425,10 +337,10 @@ fn feature_parent_relation_count_constraint(milp: &FeatureModelMilp) -> Constrai
 
 fn group_symmetry_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     p!(0..milp.columns, 1..milp.columns).map(|(feature, group)| {
-        let sum = (0..feature)
+        let features_in_previous_group = (0..feature)
             .map(|feature_before| milp.feature_group_relation[&(feature_before, group - 1)])
             .sum::<Expression>();
-        constraint!(milp.feature_group_relation[&(feature, group)] + (1 - sum) <= 1)
+        constraint!(features_in_previous_group - milp.feature_group_relation[&(feature, group)] >= 0)
     })
 }
 
@@ -500,17 +412,6 @@ fn group_min_max_size_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item
         constraint!(milp.group_min_max_size[&(group, min, max, n)] >= milp.cardinality_min_binary[&(group, min)] + milp.cardinality_max_binary[&(group, max)] + milp.group_size_binary[&(group, n)] - 2),
     ])
 }  
-
-fn group_log_choice_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns).map(|group| {
-        let sum = p!(0..milp.columns, 0..milp.columns, 0..milp.columns)
-            .filter(|&(min, max, size)| min <= max && max <= size)
-            .map(|(min, max, size)| milp.log_choice_table[&(min, max, size)] * milp.group_min_max_size[&(group, min, max, size)])
-            .sum::<Expression>();
-        
-        constraint!(milp.group_log_choice[&group] == sum)
-    })
-}
 
 fn group_dependency_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     let dependencies = p!(0..milp.columns, 0..milp.columns)
