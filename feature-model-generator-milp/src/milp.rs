@@ -77,9 +77,8 @@ pub fn create_problem(features: &[&str], configurations: &[Configuration]) -> Fe
             let sum = (min..=max)
                 .map(|k| n_choose_k_table[&(n, k)])
                 .sum::<f64>();
-            let s = sum / n as f64;
-            let log_s = s.ln();
-            (key, log_s)
+            let log_sum = sum.ln();
+            (key, log_sum)
         })
         .collect::<HashMap<_, _>>();
 
@@ -112,13 +111,13 @@ pub fn create_problem(features: &[&str], configurations: &[Configuration]) -> Fe
         config_group_relation: make_variables(&mut problem, p!(0..rows, 0..columns), binary),
         flow: make_variables(&mut problem, p!(0..columns, 0..columns), |_| variable().min(0)),
         group_min_max_size: make_variables(&mut problem, p!(0..columns, 0..columns, 0..columns, 0..columns), binary),
-        group_log_choice: make_variables(&mut problem, 0..columns, continous), 
+        group_log_choice: make_variables(&mut problem, 0..columns, |_| variable()), 
         problem, 
     }
 }
 
 pub fn create_objective(milp: &FeatureModelMilp) -> Expression {
-    group_choice_objective(milp)
+    group_types_objective(milp)
 }
 
 pub fn create_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
@@ -508,6 +507,7 @@ fn group_log_choice_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item =
             .filter(|&(min, max, size)| min <= max && max <= size)
             .map(|(min, max, size)| milp.log_choice_table[&(min, max, size)] * milp.group_min_max_size[&(group, min, max, size)])
             .sum::<Expression>();
+        
         constraint!(milp.group_log_choice[&group] == sum)
     })
 }
