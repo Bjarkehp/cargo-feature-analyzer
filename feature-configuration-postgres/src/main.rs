@@ -3,6 +3,7 @@ use std::{error::Error, io::BufWriter, path::{Path, PathBuf}};
 use clap::Parser;
 use configuration::Configuration;
 use postgres::{types::ToSql, Client, NoTls};
+use semver::{Version, VersionReq};
 use std::io::Write;
 
 #[derive(Parser, Debug)]
@@ -24,9 +25,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .expect("Failed to read Cargo.toml");
     let table: toml::Table = cargo_toml_content.parse()?;
     let crate_name = table.get("package")
-        .and_then(|pkg| pkg.get("name"))
+        .and_then(|package| package.get("name"))
         .and_then(|name| name.as_str())
         .ok_or("Failed to get crate name from Cargo.toml")?;
+    let crate_version_str = table.get("package")
+        .and_then(|package| package.get("version"))
+        .and_then(|version| version.as_str())
+        .ok_or("Failed to get crate version from Cargo.toml")?;
+    let crate_version: Version = crate_version_str.parse()
+        .expect("Failed to parse crate version from Cargo.toml");
     let feature_dependencies = configuration::feature_dependencies::from_cargo_toml(&table)?;
     let features = feature_dependencies.nodes()
         .collect::<Vec<_>>();
@@ -36,10 +43,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let url = "postgresql://postgres@localhost:5432/cratesio";
     let mut client = Client::connect(&args.database_str, NoTls)?;
     let query = include_str!("query.sql");
-    let params: &[&(dyn ToSql + Sync)] = &[&crate_name, &args.limit, &args.offset];
+    let params: &[&(dyn ToSql + Sync)] = &[
+        &crate_name, 
+        &args.limit, 
+        &args.offset
+    ];
     let rows = client.query(query, params)?;
     for row in rows {
         let dependent_name: String = row.get("dependent_crate");
+        let dependency_requirement_str: String = row.get("dependency_requirement");
+        let dependency_requirement = VersionReq::parse(&dependency_requirement_str)
+            .unwrap_or_else(|_| panic!("Failed to parse version requirement for dependency {}", dependent_name));
+
+        if !dependency_requirement.matches(&crate_version) {
+            continue;
+        }
+
         let version: String = row.get("dependent_version");
         let mut explicit_features: Vec<String> = row.get("features");
         let default_features: bool = row.get("default_features");
