@@ -9,14 +9,26 @@ use petgraph::{prelude::DiGraphMap, Direction};
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    cargo_toml: PathBuf,
     destination: PathBuf,
+
+    #[arg(short, long, default_value = None)]
+    name: Option<String>,
+    #[arg(short, long, default_value = None)]
+    path: Option<PathBuf>,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let cargo_toml_content = std::fs::read_to_string(&args.cargo_toml)?;
+    let cargo_toml_content = if let Some(name) = args.name {
+        cargo_toml_scraper::download(&name).await?
+    } else if let Some(path) = args.path {
+        std::fs::read_to_string(path)?
+    } else {
+        panic!("Either --name or --path needs to be specified");
+    };
+
     let table = cargo_toml_content.parse::<toml::Table>()?;
     let mut feature_dependencies = feature_dependencies::from_cargo_toml(&table)?;
 

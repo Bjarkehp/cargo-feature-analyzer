@@ -1,3 +1,3 @@
 [workspace]
 resolver = "2"
-members = [ "configuration", "feature-configuration-scraper", "feature-configuration-postgres","feature-model-generator", "flat-feature-model"]
+members = [ "configuration", "feature-configuration-scraper", "feature-configuration-postgres","feature-model-generator", "flat-feature-model", "cargo-toml-scraper"]
