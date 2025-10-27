@@ -2,14 +2,14 @@ use std::{error::Error, io::BufWriter, path::{Path, PathBuf}};
 
 use clap::Parser;
 use configuration::Configuration;
-use postgres::{types::ToSql, Client, NoTls};
 use semver::{Version, VersionReq};
+use tokio_postgres::{NoTls, types::ToSql};
 use std::io::Write;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    cargo_toml_path: PathBuf,
+    crate_name: String,
     database_str: String,
     config_destination: PathBuf,
 
@@ -19,9 +19,10 @@ struct Args {
     limit: i64,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    let cargo_toml_content = std::fs::read_to_string(&args.cargo_toml_path)
+    let cargo_toml_content = cargo_toml_scraper::download(&args.crate_name).await
         .expect("Failed to read Cargo.toml");
     let table: toml::Table = cargo_toml_content.parse()?;
     let crate_name = table.get("package")
@@ -41,14 +42,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     std::fs::create_dir_all(&args.config_destination)?;
 
     // let url = "postgresql://postgres@localhost:5432/cratesio";
-    let mut client = Client::connect(&args.database_str, NoTls)?;
+    let (client, connection) = tokio_postgres::connect(&args.database_str, NoTls).await?;
+    tokio::spawn(connection);
+
     let query = include_str!("query.sql");
     let params: &[&(dyn ToSql + Sync)] = &[
         &crate_name, 
         &args.limit, 
         &args.offset
     ];
-    let rows = client.query(query, params)?;
+
+
+    let rows = client.query(query, params).await?;
     for row in rows {
         let dependent_name: String = row.get("dependent_crate");
         let dependency_requirement_str: String = row.get("dependency_requirement");

@@ -24,14 +24,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 crate="${POSITIONAL_ARGS[0]}"
-toml="${POSITIONAL_ARGS[1]}"
-destination="${POSITIONAL_ARGS[2]}"
+destination="${POSITIONAL_ARGS[1]}"
 
 set -- "${POSITIONAL_ARGS[@]}"
 
 connection_string="postgresql://crates:crates@localhost:5432/crates_db"
 
-cargo run --bin feature-configuration-postgres "$toml" "$connection_string" "$destination"/synthesize --limit "$synthesize"
-cargo run --bin feature-configuration-postgres "$toml" "$connection_string" "$destination"/test --offset "$synthesize" --limit "$test"
+cargo run --bin feature-configuration-postgres "$crate" "$connection_string" "$destination"/synthesize --limit "$synthesize"
+cargo run --bin feature-configuration-postgres "$crate" "$connection_string" "$destination"/test --offset "$synthesize" --limit "$test"
 cargo run --bin feature-model-generator "$destination"/synthesize models/"$crate".uvl
 scripts/validate.sh models/"$crate".uvl "$destination"/test
