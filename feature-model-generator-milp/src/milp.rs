@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use configuration::Configuration;
-use good_lp::{constraint, variable, Constraint, Expression, IntoAffineExpression, ProblemVariables, Variable};
+use good_lp::{constraint, variable, Constraint, Expression, ProblemVariables, Variable};
 
 use crate::util::{binary, make_variables, n_choose_k, natural, VariableMap};
 
@@ -192,10 +192,6 @@ fn root_group_size_constraints(milp: &FeatureModelMilp) -> Constraint {
     constraint!(milp.group_size[&0] == 1)
 }
 
-fn cardinality_min_max_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns).map(|group| constraint!(milp.cardinality_min[&group] <= milp.cardinality_max[&group]))
-}
-
 fn group_size_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
     (0..milp.columns).map(|group| {
         let sum = (0..milp.columns)
@@ -210,11 +206,6 @@ fn group_not_empty_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = 
         constraint!(milp.group_has_feature[&group] <= milp.group_size[&group]),
         constraint!(milp.group_has_feature[&group] * milp.columns_f >= milp.group_size[&group]),
     ])
-}
-
-fn group_not_empty_symmetry_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (1..milp.columns)
-        .map(|group| constraint!(milp.group_has_feature[&(group - 1)] >= milp.group_has_feature[&group]))
 }
 
 fn group_count_constraint(milp: &FeatureModelMilp) -> Constraint {
@@ -243,11 +234,6 @@ fn is_optional_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Cons
         constraint!(milp.group_size[&group] - milp.cardinality_max[&group] <= milp.columns_f * (1 - milp.is_optional[&group])),
         constraint!(milp.group_size[&group] - milp.cardinality_max[&group] + milp.cardinality_min[&group] - milp.group_has_feature[&group] >= -milp.is_optional[&group]),
     ])
-}
-
-fn group_types_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (0..milp.columns)
-        .map(|group| constraint!(milp.is_mandatory[&group] + milp.is_optional[&group] + (1 - milp.group_has_feature[&group]) <= 1))
 }
 
 fn config_parent_relation_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
@@ -320,19 +306,6 @@ fn one_parent_per_group_constraints(milp: &FeatureModelMilp) -> impl Iterator<It
             .sum::<Expression>();
         constraint!(sum == 1)
     })
-}
-
-fn parent_of_self_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
-    (1..milp.columns).map(|group| {
-        constraint!(milp.feature_parent_relation[&(group, group)] == 0)
-    })
-}
-
-fn feature_parent_relation_count_constraint(milp: &FeatureModelMilp) -> Constraint {
-    let sum = p!(1..milp.columns, 0..milp.columns)
-        .map(|(feature, parent)| milp.feature_parent_relation[&(feature, parent)])
-        .sum::<Expression>();
-    constraint!(sum == milp.columns_f - 1.0)
 }
 
 fn group_symmetry_constraints(milp: &FeatureModelMilp) -> impl Iterator<Item = Constraint> {
