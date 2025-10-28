@@ -7,8 +7,9 @@ for crate in $(cat "$1"); do
     fi
     cargo run --bin feature-configuration-postgres "$crate" "$connection_string" configurations/"$crate" --limit 1000
     cargo run --bin feature-model-generator configurations/"$crate" models/"$crate".uvl 
-    echo "$crate (flat)"
+done
+
+for crate in $(cat "$1"); do
     scripts/analyze.sh models/"$crate"-flat.uvl
-    echo "$crate (FCA)"
     scripts/analyze.sh models/"$crate".uvl
 done

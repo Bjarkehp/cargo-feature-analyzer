@@ -26,3 +26,7 @@ echo
 echo "Estimated number of configurations in $model:"
 flamapy estimated_number_of_configurations "$model"
 echo
+
+echo "Exact number of configurations in $model:"
+flamapy configurations_number "$model"
+echo

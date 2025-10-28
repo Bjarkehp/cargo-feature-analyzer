@@ -1,0 +1,13 @@
+features
+    "nom"
+        optional
+            "memchr"
+                optional
+                    "std"
+                        optional
+                            "default"
+            "docsrs"
+            "alloc"
+constraints
+    "std" => "nom" & "alloc"
+    "default" => "nom"

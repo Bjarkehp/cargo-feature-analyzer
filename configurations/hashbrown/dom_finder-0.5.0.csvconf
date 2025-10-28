@@ -1,0 +1,16 @@
+"hashbrown",True
+"default",False
+"default-hasher",True
+"inline-more",True
+"allocator-api2",True
+"equivalent",False
+"raw-entry",False
+"foldhash",True
+"nightly",False
+"bumpalo",False
+"rustc-dep-of-std",False
+"core",False
+"alloc",False
+"rustc-internal-api",False
+"rayon",False
+"serde",True

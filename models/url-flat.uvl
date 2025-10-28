@@ -1,0 +1,16 @@
+features
+    "url"
+        optional
+            "serde"
+                optional
+                    "std"
+                        optional
+                            "default"
+            "form_urlencoded"
+            "percent-encoding"
+            "idna"
+            "expose_internals"
+            "debugger_visualizer"
+constraints
+    "std" => "form_urlencoded" & "percent-encoding" & "idna" & "url"
+    "default" => "url"

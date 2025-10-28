@@ -1,0 +1,5 @@
+"wasi",True
+"bitflags",False
+"wasip2",True
+"default",True
+"std",False

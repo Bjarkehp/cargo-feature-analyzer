@@ -1,0 +1,6 @@
+"nom",True
+"alloc",True
+"default",False
+"std",True
+"docsrs",False
+"memchr",True

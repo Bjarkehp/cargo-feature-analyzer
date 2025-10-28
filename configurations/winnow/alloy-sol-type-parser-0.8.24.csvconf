@@ -1,0 +1,13 @@
+"winnow",True
+"alloc",True
+"debug",False
+"std",False
+"anstream",False
+"anstyle",False
+"is_terminal_polyfill",False
+"terminal_size",False
+"default",False
+"simd",False
+"memchr",False
+"unstable-doc",False
+"unstable-recover",False

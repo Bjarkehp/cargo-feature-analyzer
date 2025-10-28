@@ -1,5 +1,6 @@
 winnow
 url
 nom
-csv
-xml-rs
+wasi
+hashbrown
+hyper

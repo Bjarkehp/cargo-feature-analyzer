@@ -1,0 +1,24 @@
+features
+    "winnow"
+        optional
+            "unstable-recover"
+                optional
+                    "unstable-doc"
+            "memchr"
+                optional
+                    "simd"
+            "default"
+            "terminal_size"
+                optional
+                    "debug"
+            "is_terminal_polyfill"
+            "anstyle"
+            "anstream"
+            "std"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "unstable-doc" => "winnow" & "simd" & "std" & "alloc"
+    "default" => "std"
+    "simd" => "winnow"
+    "debug" => "is_terminal_polyfill" & "anstyle" & "anstream" & "std" & "winnow"
