@@ -7,7 +7,7 @@ use walkdir::WalkDir;
 
 pub mod feature_dependencies;
 
-mod toml_util; 
+pub mod toml_util; 
 
 /// Stores the name of a configuration and a set of its enabled features.
 #[derive(Debug, new)]

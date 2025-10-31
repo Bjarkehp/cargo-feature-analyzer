@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-cargo-toml-scraper = { version = "0.1.0", path = "../cargo-toml-scraper" }
+cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
 clap = { version = "4.5.47", features = ["derive"] }
 configuration = { version = "1.0.1", path = "../configuration" }
 itertools = "0.14.0"

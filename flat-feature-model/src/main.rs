@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let cargo_toml_content = if let Some(name) = args.name {
-        cargo_toml_scraper::download(&name).await?
+        cargo_toml::download(&name)?
     } else if let Some(path) = args.path {
         std::fs::read_to_string(path)?
     } else {
