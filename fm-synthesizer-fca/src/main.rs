@@ -1,11 +1,9 @@
-mod uvl;
-mod concept;
-
 use std::{error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, path::{Path, PathBuf}};
 
 use clap::Parser;
 use concept::Concept;
 use configuration::Configuration;
+use fm_synthesizer_fca::{concept, uvl};
 use itertools::Itertools;
 use petgraph::{dot::Dot, graph::DiGraph};
 use walkdir::WalkDir;

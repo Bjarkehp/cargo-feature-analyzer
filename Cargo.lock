@@ -514,21 +514,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
-name = "feature-model-generator"
-version = "1.0.1"
-dependencies = [
- "anyhow",
- "clap",
- "configuration",
- "derive-new",
- "itertools 0.14.0",
- "petgraph",
- "thiserror",
- "toml 0.8.23",
- "walkdir",
-]
-
-[[package]]
 name = "feature-model-generator-milp"
 version = "0.1.0"
 dependencies = [
@@ -565,19 +550,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
-name = "flat-feature-model"
-version = "0.1.0"
-dependencies = [
- "cargo-toml",
- "clap",
- "configuration",
- "itertools 0.14.0",
- "petgraph",
- "tokio",
- "toml 0.9.8",
-]
-
-[[package]]
 name = "flate2"
 version = "1.0.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -585,6 +557,36 @@ checksum = "c936bfdafb507ebbf50b8074c54fa31c5be9a1e7e5f467dd659697041407d07c"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
+]
+
+[[package]]
+name = "fm-synthesizer-fca"
+version = "1.0.1"
+dependencies = [
+ "anyhow",
+ "clap",
+ "configuration",
+ "configuration-scraper",
+ "derive-new",
+ "itertools 0.14.0",
+ "petgraph",
+ "thiserror",
+ "toml 0.8.23",
+ "walkdir",
+]
+
+[[package]]
+name = "fm-synthesizer-flat"
+version = "0.1.0"
+dependencies = [
+ "cargo-toml",
+ "clap",
+ "configuration",
+ "itertools 0.14.0",
+ "petgraph",
+ "thiserror",
+ "tokio",
+ "toml 0.9.8",
 ]
 
 [[package]]

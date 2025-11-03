@@ -1,12 +1,21 @@
 [package]
-name = "feature-model-generator"
+name = "fm-synthesizer-fca"
 version = "1.0.1"
 edition = "2021"
+
+[lib]
+name = "fm_synthesizer_fca"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fm_synthesizer_fca_bin"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = { version = "1.0.98", features = ["backtrace"] }
 clap = { version = "4.5.37", features = ["derive"] }
 configuration = { version = "1.0.0", path = "../configuration" }
+configuration-scraper = { version = "0.1.0", path = "../configuration-scraper" }
 derive-new = "0.7.0"
 itertools = "0.14.0"
 petgraph = "0.8.1"
