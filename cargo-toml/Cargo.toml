@@ -3,6 +3,14 @@ name = "cargo-toml"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "cargo_toml"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cargo_toml_bin"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4.5.50", features = ["derive"] }
 crates_io_api = "0.12.0"
