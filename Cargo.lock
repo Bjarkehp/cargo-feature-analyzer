@@ -189,25 +189,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
-name = "cargo-features"
-version = "0.1.0"
-dependencies = [
- "clap",
- "crates_io_api",
- "crates_tools 0.20.0",
- "itertools 0.14.0",
- "semver",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "cargo-toml"
 version = "0.1.0"
 dependencies = [
  "clap",
  "crates_io_api",
- "crates_tools 0.19.0",
+ "crates_tools",
  "itertools 0.14.0",
  "petgraph",
  "semver",
@@ -410,17 +397,6 @@ name = "crates_tools"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30f4c72a279ca281ffb71585e29570d316eeeb09b848d345f5f9767d2328f923"
-dependencies = [
- "flate2",
- "tar",
- "ureq",
-]
-
-[[package]]
-name = "crates_tools"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "019da5789bbcbc7027f84a21f2da68698c31e9cb48619bcd16edcee53a4d64a9"
 dependencies = [
  "flate2",
  "tar",
