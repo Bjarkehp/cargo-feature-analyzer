@@ -1,0 +1,19 @@
+features
+	"serde"
+		optional
+			"serde_derive"
+				optional
+					"derive"
+			"serde_core"
+				or
+					"rc"
+					"alloc"
+					"default"
+						mandatory
+							"std"
+		optional // Unused features
+			"unstable"
+constraints
+	"alloc" => !"default" & !"rc"
+	"default" => !"alloc"
+	"rc" => !"alloc"

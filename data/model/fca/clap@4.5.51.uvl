@@ -1,0 +1,45 @@
+features
+	"clap"
+		optional
+			"clap_builder"
+				mandatory
+					"std"
+				optional
+					"env"
+						optional
+							"unstable-styles"
+					"clap_derive"
+						mandatory
+							"derive"
+						optional
+							"unstable-markdown"
+							"deprecated"
+							"unicode"
+					"help"
+						optional
+							"suggestions"
+								optional
+									"default"
+										optional
+											"string"
+							"usage"
+								or
+									"color"
+									"error-context"
+										optional
+											"wrap_help"
+											"cargo"
+		optional // Unused features
+			"debug"
+			"unstable-derive-ui-tests"
+			"unstable-doc"
+			"unstable-ext"
+			"unstable-v5"
+constraints
+	"cargo" => !"unstable-markdown" & !"unstable-styles"
+	"default" => "color" & "error-context"
+	"deprecated" => !"unstable-markdown" & !"unstable-styles" & "default"
+	"string" => !"unstable-markdown" & !"unstable-styles"
+	"unicode" => !"unstable-styles" & "error-context" & "suggestions"
+	"unstable-markdown" => !"cargo" & !"deprecated" & !"string" & !"unstable-styles" & "default" & "wrap_help"
+	"unstable-styles" => !"cargo" & !"deprecated" & !"string" & !"unicode" & !"unstable-markdown" & "clap_derive" & "default" & "derive" & "wrap_help"

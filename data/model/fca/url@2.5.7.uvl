@@ -1,0 +1,15 @@
+features
+	"url"
+		optional
+			"serde"
+				optional
+					"default"
+						mandatory
+							"form_urlencoded"
+							"idna"
+							"percent-encoding"
+							"std"
+						optional
+							"expose_internals"
+		optional // Unused features
+			"debugger_visualizer"

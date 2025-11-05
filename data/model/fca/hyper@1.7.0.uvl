@@ -1,0 +1,38 @@
+features
+	"hyper"
+		optional
+			"futures-channel"
+				mandatory
+					"futures-core"
+				or
+					"h2"
+						mandatory
+							"http2"
+						optional
+							"full"
+					"atomic-waker"
+						mandatory
+							"http1"
+							"httparse"
+							"itoa"
+							"pin-utils"
+			"pin-project-lite"
+				mandatory
+					"smallvec"
+				or
+					"client"
+						mandatory
+							"want"
+					"httpdate"
+						mandatory
+							"server"
+			"default"
+		optional // Unused features
+			"capi"
+			"ffi"
+			"futures-util"
+			"http-body-util"
+			"nightly"
+			"tracing"
+constraints
+	"full" => "atomic-waker" & "client" & "default" & "http1" & "httparse" & "httpdate" & "itoa" & "pin-utils" & "server" & "want"

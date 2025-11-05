@@ -1,8 +1,9 @@
 use std::{error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, path::{Path, PathBuf}};
 
+use cargo_toml::crate_id;
 use clap::Parser;
 use concept::Concept;
-use configuration::Configuration;
+use configuration_scraper::configuration::Configuration;
 use fm_synthesizer_fca::{concept, uvl};
 use itertools::Itertools;
 use petgraph::{dot::Dot, graph::DiGraph};
@@ -12,6 +13,7 @@ use walkdir::WalkDir;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
+    root: String,
     source: PathBuf,
     destination: PathBuf,
 
@@ -39,21 +41,26 @@ fn main() -> Result<(), Box<dyn Error>> {
         .filter_map(|result| result.ok())
         .filter(|e| e.file_name().to_str().unwrap().ends_with(".csvconf"))
         .filter_map(|e| Some((
-            e.file_name().to_str()?.to_string(), 
+            e.file_name().to_str()?.trim_end_matches(".csvconf").to_string(), 
             fs::read_to_string(e.path()).ok()?
         )))
         .sorted()
         .collect::<Vec<_>>();
 
-    let features = configuration::all_features(&configurations_files[0].1)
-        .ok_or(format!("Failed to parse features from {}", configurations_files[0].0))?;
-
     let configurations = configurations_files.iter()
-        .map(|(name, content)| Configuration::from_csvconf(name.clone(), content)
-            .ok_or(format!("Failed to parse configuration from {}", name)))
-        .collect::<Result<Vec<_>, _>>()?;
+        .map(|(name, content)| Ok((crate_id::parse(name.as_str())?, content)))
+        .map_ok(|(id, content)| Configuration::from_csv(id.name.to_string(), id.version.clone(), content)
+            .ok_or(format!("Failed to parse configuration from {}", id)))
+        .collect::<Result<Result<Vec<_>, _>, crate_id::Error>>()??;
 
-    let ac_poset = concept::ac_poset(&configurations, &features);
+    let mut features = configurations.first()
+        .ok_or("Crate has no features")?
+        .features.keys()
+        .map(|k| k.as_ref())
+        .collect::<Vec<_>>();
+    features.push(&args.root);
+
+    let ac_poset = concept::ac_poset(&configurations, &features, &args.root);
 
     let uvl_file = File::create(args.destination)?;
     let mut uvl_writer = BufWriter::new(uvl_file);

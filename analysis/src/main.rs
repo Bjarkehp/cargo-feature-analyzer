@@ -1,11 +1,10 @@
-use std::{fs::File, io::BufWriter, path::PathBuf};
+use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
 
 use anyhow::Context;
-use cargo_toml::feature_dependencies;
+use cargo_toml::{crate_id, feature_dependencies};
 use clap::Parser;
-use configuration_scraper::postgres;
-
-pub mod crates;
+use configuration_scraper::{configuration::Configuration, postgres};
+use fm_synthesizer_fca::{concept, uvl};
 
 #[derive(Parser)]
 struct Args {
@@ -18,7 +17,7 @@ fn main() -> anyhow::Result<()> {
     let crates_content = std::fs::read_to_string("crates.txt")
         .context("Could not find crates.txt, try running analysis from root directory")?;
     let crates = crates_content.lines()
-        .map(crates::parse)
+        .map(crate_id::parse)
         .collect::<Result<Vec<_>, _>>()?;
 
     for c in crates.iter() {
@@ -73,6 +72,41 @@ fn main() -> anyhow::Result<()> {
             let mut writer = BufWriter::new(file);
 
             fm_synthesizer_flat::write_uvl(&mut writer, c.name, &constraints)?;
+        }
+    }
+
+    for c in crates.iter() {
+        let path = PathBuf::from(format!("data/model/fca/{}.uvl", c));
+        if !std::fs::exists(&path)? {
+            let config_path = PathBuf::from(format!("data/configuration/{}", c));
+            let mut configurations = vec![];
+
+            for entry in std::fs::read_dir(&config_path)? {
+                let entry = entry?;
+                let filename = entry.file_name();
+                let name = filename.to_str()
+                    .context("File name was not valid utf-8")?
+                    .trim_end_matches(".csvconf");
+                let crate_id = crate_id::parse(name)?;
+                let content = std::fs::read_to_string(format!("data/configuration/{}/{}", c, filename.display()))?;
+                let configuration = Configuration::from_csv_owned(crate_id.name.to_string(), crate_id.version.clone(), &content)
+                    .with_context(|| format!("Configuration {}/{} could not be parsed", c, filename.display()))?;
+                configurations.push(configuration);
+            }
+
+            let mut features = configurations.first()
+                .with_context(|| format!("Crate {} has no configurations", c))?
+                .features.keys()
+                .map(|k| k.as_ref())
+                .collect::<Vec<_>>();
+            features.push(c.name);
+
+            let ac_poset = concept::ac_poset(&configurations, &features, c.name);
+
+            let uvl_file = File::create(&path)?;
+            let mut uvl_writer = BufWriter::new(uvl_file);
+            uvl::write_ac_poset(&mut uvl_writer, &ac_poset, &features)?;
+            uvl_writer.flush()?;
         }
     }
 

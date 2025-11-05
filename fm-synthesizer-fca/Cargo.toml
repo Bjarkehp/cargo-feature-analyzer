@@ -13,8 +13,8 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = { version = "1.0.98", features = ["backtrace"] }
+cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
 clap = { version = "4.5.37", features = ["derive"] }
-configuration = { version = "1.0.0", path = "../configuration" }
 configuration-scraper = { version = "0.1.0", path = "../configuration-scraper" }
 derive-new = "0.7.0"
 itertools = "0.14.0"

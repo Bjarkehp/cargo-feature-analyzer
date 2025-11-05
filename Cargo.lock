@@ -34,7 +34,9 @@ dependencies = [
  "cargo-toml",
  "clap",
  "configuration-scraper",
+ "fm-synthesizer-fca",
  "fm-synthesizer-flat",
+ "itertools 0.14.0",
  "semver",
  "thiserror",
  "toml 0.9.8",
@@ -554,8 +556,8 @@ name = "fm-synthesizer-fca"
 version = "1.0.1"
 dependencies = [
  "anyhow",
+ "cargo-toml",
  "clap",
- "configuration",
  "configuration-scraper",
  "derive-new",
  "itertools 0.14.0",

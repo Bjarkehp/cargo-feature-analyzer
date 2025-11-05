@@ -2,18 +2,18 @@ use std::fmt::Display;
 
 use semver::Version;
 
-pub struct Crate<'a> {
+pub struct CrateId<'a> {
     pub name: &'a str,
     pub version: Version,
 }
 
-impl<'a> Crate<'a> {
+impl<'a> CrateId<'a> {
     pub fn new(name: &'a str, version: Version) -> Self {
         Self { name, version }
     }
 }
 
-impl Display for Crate<'_> {
+impl Display for CrateId<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}@{}", self.name, self.version)
     }
@@ -27,10 +27,10 @@ pub enum Error {
     MissingVersion(String)
 }
 
-pub fn parse(s: &str) -> Result<Crate, Error> {
+pub fn parse(s: &str) -> Result<CrateId<'_>, Error> {
     let (crate_name, version_str) = s.split_once('@')
         .ok_or_else(|| Error::MissingVersion(s.to_string()))?;
     let version = version_str.parse()
         .map_err(|e| Error::Semver(s.to_string(), e))?;
-    Ok(Crate::new(crate_name, version))
+    Ok(CrateId::new(crate_name, version))
 } 

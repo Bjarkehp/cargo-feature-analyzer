@@ -1,10 +1,9 @@
 use std::{collections::{BTreeMap, BTreeSet}, fmt::Debug};
 
+use configuration_scraper::configuration::Configuration;
 use derive_new::new;
 use itertools::Itertools;
 use petgraph::{graph::DiGraph, visit::{Dfs, EdgeRef, VisitMap}};
-
-use configuration::Configuration;
 
 /// A Concept consists of a set of configurations and features,
 /// where the configurations share that same set of features.
@@ -34,8 +33,8 @@ impl Debug for Concept<'_> {
 /// 3. Remove duplicate configurations from the concepts that are already inherited by parent concepts.
 /// 4. Create a graph where the nodes are concepts and the edges represent the partial order of concepts.
 /// 5. Remove all redundant edges that don't effect the partial order.
-pub fn ac_poset<'a>(configurations: &'a [Configuration], features: &'a [&str]) -> DiGraph<Concept<'a>, ()> {
-    let mut concepts = extract_concepts(configurations, features);
+pub fn ac_poset<'a>(configurations: &'a [Configuration], features: &'a [&str], root: &str) -> DiGraph<Concept<'a>, ()> {
+    let mut concepts = extract_concepts(configurations, features, root);
     let edges = subset_edges(&concepts);
     remove_duplicate_configurations(&mut concepts, &edges);
     let mut graph = create_graph(concepts, &edges);
@@ -44,11 +43,11 @@ pub fn ac_poset<'a>(configurations: &'a [Configuration], features: &'a [&str]) -
 }
 
 /// Extract all concepts from the configurations by grouping together features with the same set of set of configurations.
-fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str], ) -> Vec<Concept<'a>> {
+fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str], root: &str) -> Vec<Concept<'a>> {
     let configurations_with_feature = |feature: &str| {
         configurations.iter()
-            .filter(|config| config.features().contains(&feature))
-            .map(|config| config.name())
+            .filter(|config| config.is_enabled(feature) || feature == root)
+            .map(|config| config.name.as_str())
             .collect::<BTreeSet<_>>()
     };
 

@@ -1,6 +1,7 @@
 pub mod feature_dependencies;
 pub mod implied_features;
 pub mod toml_util;
+pub mod crate_id;
 
 use crates_io_api::SyncClient as CratesIoClient;
 use crates_tools::CrateArchive;

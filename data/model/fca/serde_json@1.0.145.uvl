@@ -1,0 +1,26 @@
+features
+	"serde_json"
+		optional
+			"serde_core"
+				or
+					"float_roundtrip"
+					"alloc"
+					"memchr"
+						mandatory
+							"std"
+						optional
+							"indexmap"
+								optional
+									"preserve_order"
+							"default"
+								optional
+									"unbounded_depth"
+									"raw_value"
+									"arbitrary_precision"
+constraints
+	"alloc" => !"arbitrary_precision" & !"raw_value" & !"unbounded_depth"
+	"arbitrary_precision" => !"alloc" & !"float_roundtrip" & !"preserve_order" & !"unbounded_depth"
+	"float_roundtrip" => !"arbitrary_precision" & !"preserve_order" & !"unbounded_depth"
+	"preserve_order" => !"arbitrary_precision" & !"float_roundtrip" & !"unbounded_depth"
+	"raw_value" => !"alloc" & !"unbounded_depth"
+	"unbounded_depth" => !"alloc" & !"arbitrary_precision" & !"float_roundtrip" & !"preserve_order" & !"raw_value"
