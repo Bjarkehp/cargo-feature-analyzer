@@ -1,10 +1,12 @@
-use std::{borrow::Cow, collections::BTreeSet};
+use std::{borrow::Cow, collections::{BTreeMap, BTreeSet}};
 
 use cargo_toml::{feature_dependencies, implied_features};
 use postgres::{Row, types::ToSql};
 use semver::{Version, VersionReq};
 
 use crate::configuration::Configuration;
+
+pub use postgres;
 
 pub mod configuration;
 
@@ -63,18 +65,20 @@ fn row_to_config<'a>(
     let enabled_features = implied_features::from_dependency_graph(explicit_features.iter().map(|f| f.as_str()), feature_dependencies)
         .into_iter()
         .map(|f| Cow::Owned(f.to_string()))
-        .collect::<BTreeSet<_>>();
-    let disabled_features = features.iter()
+        .collect::<BTreeSet<Cow<str>>>();
+    let features = features.iter()
         .cloned()
         .map(Cow::Borrowed)
-        .filter(|f| !enabled_features.contains(f))
-        .collect::<BTreeSet<_>>();
+        .map(|s| {
+            let is_enabled = enabled_features.contains(&s);
+            (s, is_enabled)
+        })
+        .collect::<BTreeMap<_, _>>();
 
     let configuration = Configuration::new(
         dependent_name,
         version,
-        enabled_features,
-        disabled_features,
+        features
     );
 
     Some(configuration)

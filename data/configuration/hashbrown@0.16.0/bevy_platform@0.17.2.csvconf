@@ -1,0 +1,15 @@
+"alloc",False
+"allocator-api2",False
+"bumpalo",False
+"core",False
+"default",False
+"default-hasher",False
+"equivalent",True
+"foldhash",False
+"inline-more",False
+"nightly",False
+"raw-entry",True
+"rayon",False
+"rustc-dep-of-std",False
+"rustc-internal-api",False
+"serde",False

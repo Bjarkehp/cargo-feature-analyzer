@@ -1,0 +1,28 @@
+features
+    "syn"
+        optional
+            "visit-mut"
+            "visit"
+            "syn-test-suite"
+                optional
+                    "test"
+            "proc-macro2"
+                optional
+                    "proc-macro"
+                        optional
+                            "default"
+            "quote"
+                optional
+                    "printing"
+            "full"
+            "fold"
+            "extra-traits"
+            "parsing"
+            "derive"
+            "clone-impls"
+constraints
+    "derive" => "default"
+    "printing" => "default"
+    "syn" => "test" & "proc-macro" & "printing" & "default"
+    "clone-impls" => "default"
+    "parsing" => "default"

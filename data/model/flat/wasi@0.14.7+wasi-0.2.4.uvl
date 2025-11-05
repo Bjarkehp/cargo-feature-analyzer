@@ -1,0 +1,11 @@
+features
+    "wasi"
+        optional
+            "std"
+            "default"
+            "wasip2"
+                optional
+                    "bitflags"
+constraints
+    "wasi" => "bitflags"
+    "wasip2" => "std" & "default"

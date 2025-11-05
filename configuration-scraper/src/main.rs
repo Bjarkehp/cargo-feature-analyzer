@@ -72,8 +72,8 @@ fn write_configuration(
     let file = std::fs::File::create(destination)?;
     let mut writer = BufWriter::new(file);
     writeln!(writer, "\"{}\",True", crate_name)?;
-    for feature in features {
-        if config.is_enabled(feature) {
+    for &feature in features {
+        if config.features[feature] {
             writeln!(writer, "\"{}\",True", feature)?;
         } else {
             writeln!(writer, "\"{}\",False", feature)?;

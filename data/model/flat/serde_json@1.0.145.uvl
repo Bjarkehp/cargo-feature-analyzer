@@ -1,0 +1,21 @@
+features
+    "serde_json"
+        optional
+            "unbounded_depth"
+            "memchr"
+                optional
+                    "std"
+                        optional
+                            "preserve_order"
+                            "default"
+            "raw_value"
+            "indexmap"
+            "float_roundtrip"
+            "arbitrary_precision"
+            "serde_core"
+                optional
+                    "alloc"
+constraints
+    "indexmap" => "preserve_order"
+    "serde_json" => "preserve_order" & "std" & "default" & "alloc"
+    "serde_core" => "std"

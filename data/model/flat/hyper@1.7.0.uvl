@@ -1,0 +1,47 @@
+features
+    "hyper"
+        optional
+            "tracing"
+            "httpdate"
+                optional
+                    "server"
+                        optional
+                            "full"
+            "nightly"
+            "h2"
+                optional
+                    "http2"
+            "pin-utils"
+                optional
+                    "http1"
+            "itoa"
+            "httparse"
+            "futures-core"
+            "futures-channel"
+            "atomic-waker"
+            "futures-util"
+                optional
+                    "ffi"
+            "http-body-util"
+            "default"
+            "smallvec"
+                optional
+                    "client"
+            "pin-project-lite"
+            "want"
+            "capi"
+constraints
+    "pin-project-lite" => "server" & "client"
+    "http2" => "full"
+    "want" => "client"
+    "httparse" => "http1"
+    "futures-core" => "http2" & "http1"
+    "itoa" => "http1"
+    "http1" => "full"
+    "tracing" => "tracing"
+    "atomic-waker" => "http1"
+    "hyper" => "server" & "http2" & "http1" & "full" & "ffi" & "client"
+    "http-body-util" => "ffi"
+    "futures-channel" => "http2" & "http1"
+    "smallvec" => "server"
+    "client" => "full"

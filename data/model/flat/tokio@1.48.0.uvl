@@ -1,0 +1,56 @@
+features
+    "tokio"
+        optional
+            "tracing"
+            "test-util"
+            "backtrace"
+                optional
+                    "taskdump"
+            "signal-hook-registry"
+                optional
+                    "signal"
+                        optional
+                            "full"
+                    "process"
+            "windows-sys"
+                optional
+                    "net"
+            "socket2"
+            "tokio-macros"
+                optional
+                    "macros"
+            "bytes"
+                optional
+                    "io-util"
+            "slab"
+                optional
+                    "io-uring"
+            "mio"
+            "libc"
+            "time"
+            "sync"
+            "rt-multi-thread"
+            "rt"
+            "parking_lot"
+            "io-std"
+            "fs"
+            "default"
+constraints
+    "socket2" => "net"
+    "io-uring" => "io-uring"
+    "macros" => "full"
+    "mio" => "signal" & "process" & "net" & "io-uring"
+    "libc" => "signal" & "process" & "net" & "io-uring"
+    "time" => "test-util" & "full"
+    "io-std" => "full"
+    "windows-sys" => "signal" & "process"
+    "bytes" => "process"
+    "parking_lot" => "full"
+    "fs" => "full"
+    "tokio" => "taskdump" & "io-uring" & "signal" & "process" & "net" & "macros" & "io-util" & "full"
+    "rt-multi-thread" => "full"
+    "rt" => "test-util" & "rt-multi-thread" & "full"
+    "io-util" => "full"
+    "sync" => "test-util" & "full"
+    "process" => "full"
+    "net" => "full"

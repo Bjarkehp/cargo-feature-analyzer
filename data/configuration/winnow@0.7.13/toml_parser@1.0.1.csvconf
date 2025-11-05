@@ -1,0 +1,12 @@
+"alloc",False
+"anstream",False
+"anstyle",False
+"debug",False
+"default",False
+"is_terminal_polyfill",False
+"memchr",False
+"simd",False
+"std",False
+"terminal_size",False
+"unstable-doc",False
+"unstable-recover",False

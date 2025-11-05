@@ -1,0 +1,11 @@
+"alloc",True
+"arbitrary_precision",False
+"default",False
+"float_roundtrip",True
+"indexmap",False
+"memchr",False
+"preserve_order",False
+"raw_value",False
+"serde_core",True
+"std",False
+"unbounded_depth",False

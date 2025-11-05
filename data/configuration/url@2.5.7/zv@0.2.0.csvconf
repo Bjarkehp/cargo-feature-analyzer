@@ -1,0 +1,8 @@
+"debugger_visualizer",False
+"default",True
+"expose_internals",False
+"form_urlencoded",True
+"idna",True
+"percent-encoding",True
+"serde",True
+"std",True
