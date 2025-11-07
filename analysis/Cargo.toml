@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = { version = "1.0.100", features = ["backtrace"] }
 cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
+chrono = "0.4.42"
 clap = { version = "4.5.51", features = ["derive"] }
 configuration-scraper = { version = "0.1.0", path = "../configuration-scraper" }
 fm-synthesizer-fca = { version = "1.0.1", path = "../fm-synthesizer-fca" }

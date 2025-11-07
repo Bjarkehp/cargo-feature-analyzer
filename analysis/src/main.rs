@@ -1,7 +1,10 @@
+pub mod flamapy;
+
 use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
 
 use anyhow::Context;
 use cargo_toml::{crate_id, feature_dependencies};
+use chrono::Local;
 use clap::Parser;
 use configuration_scraper::{configuration::Configuration, postgres};
 use fm_synthesizer_fca::{concept, uvl};
@@ -109,6 +112,42 @@ fn main() -> anyhow::Result<()> {
             uvl_writer.flush()?;
         }
     }
+
+    let date_time = Local::now().naive_local();
+    let csv_file = File::create(format!("data/result/{}.csv", date_time))?;
+    let mut csv_writer = BufWriter::new(csv_file);
+    let columns = [
+        "Crate",
+        "Estimated number of configurations (flat)",
+        "Estimated number of configurations (fca)",
+        "Configuration number (flat)",
+        "Configuration number (fca)",
+    ];
+    writeln!(csv_writer, "{}", columns.join(","))?;
+
+    for c in crates.iter() {
+        let flat = PathBuf::from(format!("data/model/flat/{}.uvl", c));
+        let fca = PathBuf::from(format!("data/model/fca/{}.uvl", c));
+
+        let estimated_number_of_configurations_flat = 
+            flamapy::estimated_number_of_configurations(&flat)?;
+        let estimated_number_of_configurations_fca = 
+            flamapy::estimated_number_of_configurations(&fca)?;
+        let configuration_number_flat = 0;
+            // flamapy::configurations_number(&flat)?;
+        let configuration_number_fca = 0;
+            // flamapy::configurations_number(&fca)?;
+        
+        writeln!(csv_writer, "{},{},{},{},{}",
+            c,
+            estimated_number_of_configurations_flat,
+            estimated_number_of_configurations_fca,
+            configuration_number_flat,
+            configuration_number_fca
+        )?;
+    }
+
+    csv_writer.flush()?;
 
     Ok(())
 }
