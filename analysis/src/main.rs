@@ -23,6 +23,12 @@ fn main() -> anyhow::Result<()> {
         .map(crate_id::parse)
         .collect::<Result<Vec<_>, _>>()?;
 
+    std::fs::create_dir_all("data/toml")?;
+    std::fs::create_dir_all("data/configuration")?;
+    std::fs::create_dir_all("data/model/flat")?;
+    std::fs::create_dir_all("data/model/fca")?;
+    std::fs::create_dir_all("data/result")?;
+
     for c in crates.iter() {
         let path = PathBuf::from(format!("data/toml/{}.toml", c));
         if !std::fs::exists(&path)? {
@@ -37,7 +43,6 @@ fn main() -> anyhow::Result<()> {
         for c in crates.iter() {
             let directory = PathBuf::from(format!("data/configuration/{}", c));
             if !std::fs::exists(&directory)? || args.overwrite_configurations {
-                std::fs::create_dir_all(&directory)?;
                 println!("Scraping configurations for {}", c);
                 let cargo_toml_content = std::fs::read_to_string(format!("data/toml/{}.toml", c))?;
                 let table: toml::Table = cargo_toml_content.parse()?;
