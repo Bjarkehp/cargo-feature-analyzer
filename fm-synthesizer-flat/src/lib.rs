@@ -43,7 +43,7 @@ fn dependency_graph_constraints<'a, E>(graph: &DiGraphMap<&'a str, E>, root: &'a
                 stack.push((dependency, neighbor));
             }
         } else {
-            cross_tree_edges.push((feature, dependency));
+            cross_tree_edges.push((dependency, feature));
         }
     }
 
@@ -72,7 +72,7 @@ fn write_tree_constraints<'a, W: Write>(
         return Ok(());
     }
 
-    writeln!(writer, "{}\"{}\"", " ".repeat(4 * indentation), current)?;
+    writeln!(writer, "{}\"{}\"", " ".repeat(4 * indentation), current.replace('-', "_"))?;
     if let Some(dependents) = constraints.get(current) {
         writeln!(writer, "{}optional", " ".repeat(4 * (indentation + 1)))?;
         for feature in dependents {
@@ -87,9 +87,9 @@ fn write_cross_tree_constraints<W: Write>(writer: &mut W, constraints: &HashMap<
     writeln!(writer, "constraints")?;
     for (feature, dependencies) in constraints {
         let dependencies_str = dependencies.iter()
-            .map(|s| format!("\"{}\"", s))
+            .map(|s| format!("\"{}\"", s.replace('-', "_")))
             .join(" & ");
-        writeln!(writer, "    \"{}\" => {}", feature, dependencies_str)?;
+        writeln!(writer, "    \"{}\" => {}", feature.replace('-', "_"), dependencies_str)?;
     }
 
     Ok(())

@@ -9,5 +9,5 @@ features
             "docsrs"
             "alloc"
 constraints
-    "nom" => "std" & "default"
-    "alloc" => "std"
+    "std" => "nom" & "alloc"
+    "default" => "nom"

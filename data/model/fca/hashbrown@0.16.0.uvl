@@ -6,23 +6,23 @@ features
 			"serde"
 			"equivalent"
 				mandatory
-					"raw-entry"
+					"raw_entry"
 				optional
 					"default"
-			"inline-more"
+			"inline_more"
 				optional
-					"allocator-api2"
-			"default-hasher"
+					"allocator_api2"
+			"default_hasher"
 				mandatory
 					"foldhash"
 		optional // Unused features
 			"bumpalo"
 			"core"
 			"nightly"
-			"rustc-dep-of-std"
-			"rustc-internal-api"
+			"rustc_dep_of_std"
+			"rustc_internal_api"
 constraints
 	"alloc" => !"default" & !"rayon" & !"serde"
-	"default" => !"alloc" & "allocator-api2" & "default-hasher" & "foldhash"
+	"default" => !"alloc" & "allocator_api2" & "default_hasher" & "foldhash"
 	"rayon" => !"alloc" & !"serde"
 	"serde" => !"alloc" & !"rayon"

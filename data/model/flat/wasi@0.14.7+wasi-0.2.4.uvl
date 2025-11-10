@@ -7,5 +7,6 @@ features
                 optional
                     "bitflags"
 constraints
-    "wasi" => "bitflags"
-    "wasip2" => "std" & "default"
+    "default" => "wasip2"
+    "bitflags" => "wasi"
+    "std" => "wasip2"

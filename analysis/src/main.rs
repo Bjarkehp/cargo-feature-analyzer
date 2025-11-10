@@ -138,10 +138,10 @@ fn main() -> anyhow::Result<()> {
             flamapy::estimated_number_of_configurations(&flat)?;
         let estimated_number_of_configurations_fca = 
             flamapy::estimated_number_of_configurations(&fca)?;
-        let configuration_number_flat = 0;
-            // flamapy::configurations_number(&flat)?;
-        let configuration_number_fca = 0;
-            // flamapy::configurations_number(&fca)?;
+        let configuration_number_flat = 
+            flamapy::configurations_number(&flat)?;
+        let configuration_number_fca = 
+            flamapy::configurations_number(&fca)?;
         
         writeln!(csv_writer, "{},{},{},{},{}",
             c,

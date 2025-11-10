@@ -10,14 +10,14 @@ features
 						optional
 							"default"
 								optional
-									"unstable-recover"
+									"unstable_recover"
 		optional // Unused features
 			"anstream"
 			"anstyle"
 			"debug"
 			"is_terminal_polyfill"
 			"terminal_size"
-			"unstable-doc"
+			"unstable_doc"
 constraints
-	"memchr" => !"unstable-recover"
-	"unstable-recover" => !"memchr"
+	"memchr" => !"unstable_recover"
+	"unstable_recover" => !"memchr"

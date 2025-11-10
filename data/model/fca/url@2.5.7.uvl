@@ -7,7 +7,7 @@ features
 						mandatory
 							"form_urlencoded"
 							"idna"
-							"percent-encoding"
+							"percent_encoding"
 							"std"
 						optional
 							"expose_internals"

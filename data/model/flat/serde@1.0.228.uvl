@@ -13,5 +13,9 @@ features
                 optional
                     "alloc"
 constraints
-    "serde_core" => "unstable" & "std" & "rc"
-    "serde" => "derive" & "default" & "alloc"
+    "unstable" => "serde_core"
+    "derive" => "serde"
+    "std" => "serde_core"
+    "rc" => "serde_core"
+    "alloc" => "serde"
+    "default" => "serde"

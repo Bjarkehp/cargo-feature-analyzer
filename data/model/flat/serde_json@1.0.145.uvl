@@ -16,6 +16,7 @@ features
                 optional
                     "alloc"
 constraints
-    "indexmap" => "preserve_order"
-    "serde_json" => "preserve_order" & "std" & "default" & "alloc"
-    "serde_core" => "std"
+    "preserve_order" => "indexmap" & "serde_json"
+    "std" => "serde_json" & "serde_core"
+    "alloc" => "serde_json"
+    "default" => "serde_json"

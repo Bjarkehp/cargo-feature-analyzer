@@ -7,12 +7,10 @@ features
                         optional
                             "default"
             "form_urlencoded"
-            "percent-encoding"
+            "percent_encoding"
             "idna"
             "expose_internals"
             "debugger_visualizer"
 constraints
-    "percent-encoding" => "std"
-    "url" => "std" & "default"
-    "form_urlencoded" => "std"
-    "idna" => "std"
+    "std" => "form_urlencoded" & "percent_encoding" & "idna" & "url"
+    "default" => "url"

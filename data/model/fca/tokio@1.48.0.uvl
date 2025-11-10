@@ -7,17 +7,17 @@ features
 			"fs"
 				optional
 					"tracing"
-			"io-std"
+			"io_std"
 			"bytes"
 				or
 					"process"
-					"io-util"
+					"io_util"
 			"libc"
 				mandatory
 					"mio"
-					"windows-sys"
+					"windows_sys"
 				or
-					"signal-hook-registry"
+					"signal_hook_registry"
 						optional
 							"signal"
 					"net"
@@ -27,18 +27,18 @@ features
 			"sync"
 			"macros"
 				mandatory
-					"tokio-macros"
+					"tokio_macros"
 			"rt"
 				optional
-					"rt-multi-thread"
+					"rt_multi_thread"
 			"default"
 		optional // Unused features
 			"backtrace"
-			"io-uring"
+			"io_uring"
 			"slab"
 			"taskdump"
-			"test-util"
+			"test_util"
 constraints
-	"full" => "fs" & "io-std" & "io-util" & "macros" & "net" & "process" & "rt-multi-thread" & "signal" & "socket2" & "sync" & "time" & "tokio-macros"
-	"process" => "signal-hook-registry"
-	"tracing" => "default" & "io-util" & "macros" & "process" & "rt-multi-thread" & "signal" & "sync" & "time" & "tokio-macros"
+	"full" => "fs" & "io_std" & "io_util" & "macros" & "net" & "process" & "rt_multi_thread" & "signal" & "socket2" & "sync" & "time" & "tokio_macros"
+	"process" => "signal_hook_registry"
+	"tracing" => "default" & "io_util" & "macros" & "process" & "rt_multi_thread" & "signal" & "sync" & "time" & "tokio_macros"
