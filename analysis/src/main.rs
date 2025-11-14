@@ -3,11 +3,12 @@ pub mod flamapy;
 use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
 
 use anyhow::Context;
-use cargo_toml::{crate_id, feature_dependencies};
+use cargo_toml::{crate_id::{self, CrateId}, feature_dependencies, implied_features};
 use chrono::Local;
 use clap::Parser;
 use configuration_scraper::{configuration::Configuration, postgres};
 use fm_synthesizer_fca::{concept, uvl};
+use itertools::Itertools;
 
 #[derive(Parser)]
 struct Args {
@@ -121,18 +122,41 @@ fn main() -> anyhow::Result<()> {
     let date_time = Local::now().naive_local();
     let csv_file = File::create(format!("data/result/{}.csv", date_time))?;
     let mut csv_writer = BufWriter::new(csv_file);
-    let columns = [
+    
+    #[allow(clippy::write_literal)]
+    writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{}",
         "Crate",
+        "Features",
+        "Feature dependencies",
+        "Configurations",
+        "Default configurations",
+        "Unique configurations",
         "Estimated number of configurations (flat)",
         "Estimated number of configurations (fca)",
         "Configuration number (flat)",
         "Configuration number (fca)",
-    ];
-    writeln!(csv_writer, "{}", columns.join(","))?;
+    )?;    
 
     for c in crates.iter() {
+        let toml = PathBuf::from(format!("data/toml/{}.toml", c));
         let flat = PathBuf::from(format!("data/model/flat/{}.uvl", c));
         let fca = PathBuf::from(format!("data/model/fca/{}.uvl", c));
+
+        let table: toml::Table = std::fs::read_to_string(&toml)?.parse()?;
+
+        let dependencies = feature_dependencies::from_cargo_toml(&table)?;
+        let features = dependencies.node_count();
+        let feature_dependencies = dependencies.edge_count();
+        let default_features = implied_features::from_dependency_graph(std::iter::once("default"), &dependencies);
+        let configurations = get_configurations(c)?;
+        let configuration_count = configurations.len();
+        let default_configurations_count = configurations
+            .iter()
+            .filter(|config| config.features.iter().all(|(feature, &enabled)| default_features.contains(feature.as_ref()) == enabled))
+            .count();
+        let unique_configurations_count = configurations.iter()
+            .into_group_map_by(|config| &config.features)
+            .len();
 
         let estimated_number_of_configurations_flat = 
             flamapy::estimated_number_of_configurations(&flat)?;
@@ -143,8 +167,13 @@ fn main() -> anyhow::Result<()> {
         let configuration_number_fca = 
             flamapy::configurations_number(&fca)?;
         
-        writeln!(csv_writer, "{},{},{},{},{}",
+        writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{}",
             c,
+            features,
+            feature_dependencies,
+            configuration_count,
+            default_configurations_count,
+            unique_configurations_count,
             estimated_number_of_configurations_flat,
             estimated_number_of_configurations_fca,
             configuration_number_flat,
@@ -155,4 +184,24 @@ fn main() -> anyhow::Result<()> {
     csv_writer.flush()?;
 
     Ok(())
+}
+
+fn get_configurations(crate_id: &CrateId) -> anyhow::Result<Vec<Configuration<'static>>> {
+    let config_path = PathBuf::from(format!("data/configuration/{}", crate_id));
+    let mut configurations = vec![];
+
+    for entry in std::fs::read_dir(&config_path)? {
+        let entry = entry?;
+        let filename = entry.file_name();
+        let name = filename.to_str()
+            .context("File name was not valid utf-8")?
+            .trim_end_matches(".csvconf");
+        let dependency_crate_id = crate_id::parse(name)?;
+        let content = std::fs::read_to_string(format!("data/configuration/{}/{}", crate_id, filename.display()))?;
+        let configuration = Configuration::from_csv_owned(dependency_crate_id.name.to_string(), dependency_crate_id.version.clone(), &content)
+            .with_context(|| format!("Configuration {}/{} could not be parsed", crate_id, filename.display()))?;
+        configurations.push(configuration);
+    }
+
+    Ok(configurations)
 }
