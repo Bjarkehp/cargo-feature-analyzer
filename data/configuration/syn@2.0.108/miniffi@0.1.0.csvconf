@@ -7,9 +7,7 @@
 "parsing",True
 "printing",True
 "proc-macro",False
-"proc-macro2",False
 "quote",True
-"syn-test-suite",False
 "test",False
 "visit",False
 "visit-mut",False

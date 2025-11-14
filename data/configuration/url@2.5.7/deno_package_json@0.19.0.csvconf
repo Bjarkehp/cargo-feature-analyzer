@@ -1,0 +1,5 @@
+"debugger_visualizer",False
+"default",True
+"expose_internals",True
+"serde",True
+"std",True

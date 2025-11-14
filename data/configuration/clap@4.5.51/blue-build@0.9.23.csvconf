@@ -1,5 +1,4 @@
 "cargo",True
-"clap_builder",True
 "clap_derive",True
 "color",True
 "debug",False

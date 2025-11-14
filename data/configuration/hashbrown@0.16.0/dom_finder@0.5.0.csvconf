@@ -1,6 +1,5 @@
 "alloc",False
 "allocator-api2",True
-"bumpalo",False
 "core",False
 "default",False
 "default-hasher",True

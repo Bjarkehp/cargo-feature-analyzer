@@ -1,0 +1,9 @@
+"alloc",True
+"arbitrary_precision",True
+"default",False
+"float_roundtrip",False
+"indexmap",False
+"preserve_order",False
+"raw_value",False
+"std",False
+"unbounded_depth",False
