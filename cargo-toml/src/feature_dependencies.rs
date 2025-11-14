@@ -35,6 +35,10 @@ fn explicit_feature_dependencies(table: &toml::Table) -> Result<Graph<'_>> {
                 .ok_or(Error::UnexpectedType(format!("{}[{}]", key, i), "str"))
             )
             .filter_ok(|d| !d.ends_with('?'))
+            // Example: io-uring depends on dep:io-uring in tokio.
+            // After trimming, they are equal, which would lead to an incorrect
+            // dependency graph.
+            .filter_ok(|&dependency| dependency != feature)
             .collect::<Result<Vec<&str>>>()?;
 
         map.add_node(feature);
