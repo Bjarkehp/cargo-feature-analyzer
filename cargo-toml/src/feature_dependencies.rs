@@ -7,10 +7,18 @@ pub type Graph<'a> = DiGraphMap<&'a str, ()>;
 
 /// Create a map between features and their dependencies from a toml table.
 pub fn from_cargo_toml(root: &toml::Table) -> Result<Graph<'_>> {
+    let mut feature_dependencies = Graph::new();
+
     let feature_table = get_table(root, "features")?;
     let dependency_tables = get_dependency_tables(root);
+    let features = scan_features(feature_table, &dependency_tables);
+    
+    for feature in features {
+        feature_dependencies.add_node(feature);
+    }
 
-    let mut feature_dependencies = explicit_feature_dependencies(feature_table)?;
+    explicit_feature_dependencies(feature_table, &mut feature_dependencies)?;
+
     dependency_tables.into_iter()
         .flat_map(optional_dependencies)
         .filter(|d| !feature_dependencies.contains_node(d))
@@ -20,10 +28,19 @@ pub fn from_cargo_toml(root: &toml::Table) -> Result<Graph<'_>> {
     Ok(feature_dependencies)
 }
 
-/// Find all features and their dependencies that are explicitly listed in the feature table.
-fn explicit_feature_dependencies(table: &toml::Table) -> Result<Graph<'_>> {
-    let mut map = Graph::new();
+fn scan_features<'a>(feature_table: &'a toml::Table, dependency_tables: &[&'a toml::Table]) -> impl Iterator<Item = &'a str> {
+    let explicit_features = feature_table.keys()
+        .map(|k| k.as_str());
+    let implicit_features = dependency_tables.iter()
+        .cloned()
+        .flat_map(optional_dependencies);
+    explicit_features.chain(implicit_features)
+        .chain(std::iter::once("default"))
+        .unique()
+}
 
+/// Find all features and their dependencies that are explicitly listed in the feature table.
+fn explicit_feature_dependencies<'a>(table: &'a toml::Table, graph: &mut Graph<'a>) -> Result<()> {
     for (key, value) in table {
         let feature = key.as_str();
         let dependencies = value.as_array()
@@ -41,13 +58,14 @@ fn explicit_feature_dependencies(table: &toml::Table) -> Result<Graph<'_>> {
             .filter_ok(|&dependency| dependency != feature)
             .collect::<Result<Vec<&str>>>()?;
 
-        map.add_node(feature);
         for dependency in dependencies {
-            map.add_edge(feature, dependency, ());
+            if graph.contains_node(dependency) {
+                graph.add_edge(feature, dependency, ());
+            }
         }
     }
 
-    Ok(map)
+    Ok(())
 }
 
 /// Find all dependencies marked as optional

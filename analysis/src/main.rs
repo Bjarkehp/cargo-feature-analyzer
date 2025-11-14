@@ -43,6 +43,7 @@ fn main() -> anyhow::Result<()> {
     if let Ok(mut client) = postgres::Client::connect(url, postgres::NoTls) {
         for c in crates.iter() {
             let directory = PathBuf::from(format!("data/configuration/{}", c));
+            std::fs::create_dir(&directory)?;
             if !std::fs::exists(&directory)? || args.overwrite_configurations {
                 println!("Scraping configurations for {}", c);
                 let cargo_toml_content = std::fs::read_to_string(format!("data/toml/{}.toml", c))?;
@@ -129,7 +130,7 @@ fn main() -> anyhow::Result<()> {
         "Features",
         "Feature dependencies",
         "Configurations",
-        "Default configurations",
+        "Default only configurations",
         "Unique configurations",
         "Estimated number of configurations (flat)",
         "Estimated number of configurations (fca)",

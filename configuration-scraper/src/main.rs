@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for config in configurations {
         let path = PathBuf::from(format!("{}/{}@{}", dir.display(), config.name, config.version));
-        write_configuration(&config, &path, &features, crate_name)?;
+        write_configuration(&config, &path, &features)?;
     }
 
     Ok(())
@@ -67,11 +67,9 @@ fn write_configuration(
     config: &Configuration, 
     destination: impl AsRef<Path>,
     features: &[&str], 
-    crate_name: &str
 ) -> std::io::Result<()> {
     let file = std::fs::File::create(destination)?;
     let mut writer = BufWriter::new(file);
-    writeln!(writer, "\"{}\",True", crate_name)?;
     for &feature in features {
         if config.features[feature] {
             writeln!(writer, "\"{}\",True", feature)?;
