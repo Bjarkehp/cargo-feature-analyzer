@@ -10,8 +10,8 @@ pub enum Error {
     Utf8(#[from] FromUtf8Error),
     #[error("Unable to parse integer from flamapy output:\n\t{0}\nInput:\n\t{1}")]
     ParseInt(ParseIntError, String),
-    #[error("Unable to parse bool from flamapy output:\n\t{0}\nInput:\n\t{1}")]
-    ParseBool(ParseBoolError, String),
+    #[error("Unable to parse bool from flamapy output:\n\t{0}")]
+    ParseBool(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -46,7 +46,9 @@ pub fn configurations_number(path: &Path) -> Result<usize> {
 
 pub fn satisfiable_configuration(model_path: &Path, configuration_path: &Path) -> Result<bool> {
     let output = run_flamapy_command(|c| c.arg("satisfiable_configuration").arg(model_path).arg(configuration_path))?;
-    let number = output.trim().parse::<bool>()
-        .map_err(|e| Error::ParseBool(e, output))?;
-    Ok(number)
+    match output.trim() {
+        "True" => Ok(true),
+        "False" => Ok(false),
+        _ => return Err(Error::ParseBool(output)),
+    }
 } 

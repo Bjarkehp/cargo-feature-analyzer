@@ -1,0 +1,12 @@
+Crate,Features,Feature dependencies,Configurations,Default only configurations,Unique configurations,Estimated number of configurations (flat),Estimated number of configurations (FCA),Configuration number (flat),Configuration number (FCA),FCA Quality
+tokio@1.48.0,27,35,198,6,53,13934592,663552,1197576,246112,0.9595959595959596
+clap@4.5.51,22,10,198,0,23,3538944,35456,698890,5952,1
+serde@1.0.228,7,2,200,48,7,108,48,75,30,0.99
+serde_json@1.0.145,9,3,200,174,9,576,112,384,35,0.97
+syn@2.0.108,13,6,179,0,19,9216,1176,7008,400,1
+winnow@0.7.13,12,12,184,121,5,1728,640,430,576,1
+url@2.5.7,5,2,199,194,2,128,8,72,8,1
+nom@8.0.0,4,2,109,91,3,16,8,12,8,1
+wasi@0.14.7+wasi-0.2.4,3,0,124,118,2,12,8,9,8,1
+hashbrown@0.16.0,14,10,102,0,14,9216,4608,4900,1632,1
+hyper@1.7.0,23,21,155,52,15,1327104,3072,247040,2112,1

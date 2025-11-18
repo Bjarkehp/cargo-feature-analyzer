@@ -1,6 +1,6 @@
 pub mod flamapy;
 
-use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
+use std::{fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
 use anyhow::Context;
 use cargo_toml::{crate_id::{self, CrateId}, feature_dependencies, implied_features};
@@ -46,8 +46,10 @@ fn main() -> anyhow::Result<()> {
         let train_directory = PathBuf::from(format!("data/configuration/train/{}", c));
         let test_directory = PathBuf::from(format!("data/configuration/test/{}", c));
         if !std::fs::exists(&train_directory)? || !std::fs::exists(&test_directory)? || args.overwrite_configurations {
-            std::fs::create_dir(&train_directory)?;
-            std::fs::create_dir(&test_directory)?;
+            if !args.overwrite_configurations {
+                std::fs::create_dir_all(&train_directory)?;
+                std::fs::create_dir_all(&test_directory)?;
+            }
             println!("Scraping configurations for {}", c);
             let cargo_toml_content = std::fs::read_to_string(format!("data/toml/{}.toml", c))?;
             let table: toml::Table = cargo_toml_content.parse()?;
@@ -58,7 +60,7 @@ fn main() -> anyhow::Result<()> {
                 &dependency_graph, 
                 &mut client, 
                 0, 
-                1000
+                200
             )?;
 
             println!("Found {} configurations", configurations.len());
@@ -70,7 +72,7 @@ fn main() -> anyhow::Result<()> {
                     &test_directory
                 };
                 let path = PathBuf::from(format!("{}/{}@{}.csvconf", directory.display(), conf.name, conf.version));
-                let conf_content = conf.to_csv();
+                let conf_content = conf.to_csv().replace('-', "_");
                 std::fs::write(path, conf_content)?;
             }
         }
@@ -93,30 +95,16 @@ fn main() -> anyhow::Result<()> {
     for c in crates.iter() {
         let path = PathBuf::from(format!("data/model/fca/{}.uvl", c));
         if !std::fs::exists(&path)? {
-            let config_path = PathBuf::from(format!("data/configuration/{}", c));
-            let mut configurations = vec![];
+            let train_configurations = get_train_configurations(c)?;
 
-            for entry in std::fs::read_dir(&config_path)? {
-                let entry = entry?;
-                let filename = entry.file_name();
-                let name = filename.to_str()
-                    .context("File name was not valid utf-8")?
-                    .trim_end_matches(".csvconf");
-                let crate_id = crate_id::parse(name)?;
-                let content = std::fs::read_to_string(format!("data/configuration/{}/{}", c, filename.display()))?;
-                let configuration = Configuration::from_csv_owned(crate_id.name.to_string(), crate_id.version.clone(), &content)
-                    .with_context(|| format!("Configuration {}/{} could not be parsed", c, filename.display()))?;
-                configurations.push(configuration);
-            }
-
-            let mut features = configurations.first()
+            let mut features = train_configurations.first()
                 .with_context(|| format!("Crate {} has no configurations", c))?
                 .features.keys()
                 .map(|k| k.as_ref())
                 .collect::<Vec<_>>();
             features.push(c.name);
 
-            let ac_poset = concept::ac_poset(&configurations, &features, c.name);
+            let ac_poset = concept::ac_poset(&train_configurations, &features, c.name);
 
             let uvl_file = File::create(&path)?;
             let mut uvl_writer = BufWriter::new(uvl_file);
@@ -130,7 +118,7 @@ fn main() -> anyhow::Result<()> {
     let mut csv_writer = BufWriter::new(csv_file);
     
     #[allow(clippy::write_literal)]
-    writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{}",
+    writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{},{}",
         "Crate",
         "Features",
         "Feature dependencies",
@@ -138,9 +126,10 @@ fn main() -> anyhow::Result<()> {
         "Default only configurations",
         "Unique configurations",
         "Estimated number of configurations (flat)",
-        "Estimated number of configurations (fca)",
+        "Estimated number of configurations (FCA)",
         "Configuration number (flat)",
-        "Configuration number (fca)",
+        "Configuration number (FCA)",
+        "FCA Quality",
     )?;    
 
     for c in crates.iter() {
@@ -154,7 +143,11 @@ fn main() -> anyhow::Result<()> {
         let features = dependencies.node_count();
         let feature_dependencies = dependencies.edge_count();
         let default_features = implied_features::from_dependency_graph(std::iter::once("default"), &dependencies);
-        let configurations = get_configurations(c)?;
+        let train_configurations = get_train_configurations(c)?;
+        let test_configurations = get_test_configurations(c)?;
+        let configurations = train_configurations.iter()
+            .chain(test_configurations.iter())
+            .collect::<Vec<_>>();
         let configuration_count = configurations.len();
         let default_configurations_count = configurations
             .iter()
@@ -172,8 +165,21 @@ fn main() -> anyhow::Result<()> {
             flamapy::configurations_number(&flat)?;
         let configuration_number_fca = 
             flamapy::configurations_number(&fca)?;
+        let satified_configurations = test_configurations.iter()
+            .filter(|config| {
+                let path = PathBuf::from(format!("data/configuration/test/{}/{}@{}.csvconf", c, config.name, config.version));
+                let output = flamapy::satisfiable_configuration(&fca, &path);
+                if let Ok(result) = output {
+                    result
+                } else {
+                    println!("Warning ({}@{}): {:?}", config.name, config.version, output);
+                    false
+                }
+            })
+            .count();
+        let quality = satified_configurations as f64 / test_configurations.len() as f64;
         
-        writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{}",
+        writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{},{}",
             c,
             features,
             feature_dependencies,
@@ -183,7 +189,8 @@ fn main() -> anyhow::Result<()> {
             estimated_number_of_configurations_flat,
             estimated_number_of_configurations_fca,
             configuration_number_flat,
-            configuration_number_fca
+            configuration_number_fca,
+            quality
         )?;
     }
 
@@ -192,8 +199,16 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_configurations(crate_id: &CrateId) -> anyhow::Result<Vec<Configuration<'static>>> {
-    let config_path = PathBuf::from(format!("data/configuration/{}", crate_id));
+fn get_train_configurations(crate_id: &CrateId) -> anyhow::Result<Vec<Configuration<'static>>> {
+    get_configurations(Path::new("data/configuration/train"), crate_id)
+}
+
+fn get_test_configurations(crate_id: &CrateId) -> anyhow::Result<Vec<Configuration<'static>>> {
+    get_configurations(Path::new("data/configuration/test"), crate_id)
+}
+
+fn get_configurations(path: &Path, crate_id: &CrateId) -> anyhow::Result<Vec<Configuration<'static>>> {
+    let config_path = PathBuf::from(format!("{}/{}", path.display(), crate_id));
     let mut configurations = vec![];
 
     for entry in std::fs::read_dir(&config_path)? {
@@ -203,7 +218,8 @@ fn get_configurations(crate_id: &CrateId) -> anyhow::Result<Vec<Configuration<'s
             .context("File name was not valid utf-8")?
             .trim_end_matches(".csvconf");
         let dependency_crate_id = crate_id::parse(name)?;
-        let content = std::fs::read_to_string(format!("data/configuration/{}/{}", crate_id, filename.display()))?;
+        let content = std::fs::read_to_string(format!("{}/{}/{}", path.display(), crate_id, filename.display()))?
+            .replace('-', "_");
         let configuration = Configuration::from_csv_owned(dependency_crate_id.name.to_string(), dependency_crate_id.version.clone(), &content)
             .with_context(|| format!("Configuration {}/{} could not be parsed", crate_id, filename.display()))?;
         configurations.push(configuration);

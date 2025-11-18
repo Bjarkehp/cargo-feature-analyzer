@@ -1,0 +1,14 @@
+"alloc",False
+"allocator_api2",False
+"core",False
+"default",False
+"default_hasher",False
+"equivalent",False
+"foldhash",False
+"inline_more",False
+"nightly",False
+"raw_entry",False
+"rayon",True
+"rustc_dep_of_std",False
+"rustc_internal_api",False
+"serde",False
