@@ -23,5 +23,5 @@
 "test-util",False
 "time",True
 "tokio-macros",True
-"tracing",True
+"tracing",False
 "windows-sys",True

@@ -1,11 +1,11 @@
 "backtrace",False
-"bytes",False
-"default",False
+"bytes",True
+"default",True
 "fs",False
 "full",False
 "io-std",False
 "io-uring",False
-"io-util",False
+"io-util",True
 "libc",False
 "macros",False
 "mio",False

@@ -18,10 +18,10 @@
 "signal-hook-registry",False
 "slab",False
 "socket2",False
-"sync",True
+"sync",False
 "taskdump",False
-"test-util",True
-"time",True
+"test-util",False
+"time",False
 "tokio-macros",True
 "tracing",False
 "windows-sys",False

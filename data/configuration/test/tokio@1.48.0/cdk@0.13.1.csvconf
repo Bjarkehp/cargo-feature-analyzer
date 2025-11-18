@@ -1,6 +1,6 @@
 "backtrace",False
 "bytes",False
-"default",True
+"default",False
 "fs",False
 "full",False
 "io-std",False
@@ -13,14 +13,14 @@
 "parking_lot",False
 "process",False
 "rt",True
-"rt-multi-thread",False
+"rt-multi-thread",True
 "signal",False
 "signal-hook-registry",False
 "slab",False
 "socket2",False
-"sync",False
+"sync",True
 "taskdump",False
-"test-util",False
+"test-util",True
 "time",True
 "tokio-macros",True
 "tracing",False

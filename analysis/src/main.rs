@@ -25,7 +25,8 @@ fn main() -> anyhow::Result<()> {
         .collect::<Result<Vec<_>, _>>()?;
 
     std::fs::create_dir_all("data/toml")?;
-    std::fs::create_dir_all("data/configuration")?;
+    std::fs::create_dir_all("data/configuration/train")?;
+    std::fs::create_dir_all("data/configuration/test")?;
     std::fs::create_dir_all("data/model/flat")?;
     std::fs::create_dir_all("data/model/fca")?;
     std::fs::create_dir_all("data/result")?;
@@ -40,35 +41,39 @@ fn main() -> anyhow::Result<()> {
     }
 
     let url = "postgres://crates:crates@localhost:5432/crates_db";
-    if let Ok(mut client) = postgres::Client::connect(url, postgres::NoTls) {
-        for c in crates.iter() {
-            let directory = PathBuf::from(format!("data/configuration/{}", c));
-            std::fs::create_dir(&directory)?;
-            if !std::fs::exists(&directory)? || args.overwrite_configurations {
-                println!("Scraping configurations for {}", c);
-                let cargo_toml_content = std::fs::read_to_string(format!("data/toml/{}.toml", c))?;
-                let table: toml::Table = cargo_toml_content.parse()?;
-                let dependency_graph = feature_dependencies::from_cargo_toml(&table)?;
-                let configurations = configuration_scraper::scrape(
-                    c.name, 
-                    &c.version, 
-                    &dependency_graph, 
-                    &mut client, 
-                    0, 
-                    1000
-                )?;
+    let mut client = postgres::Client::connect(url, postgres::NoTls)?;
+    for c in crates.iter() {
+        let train_directory = PathBuf::from(format!("data/configuration/train/{}", c));
+        let test_directory = PathBuf::from(format!("data/configuration/test/{}", c));
+        if !std::fs::exists(&train_directory)? || !std::fs::exists(&test_directory)? || args.overwrite_configurations {
+            std::fs::create_dir(&train_directory)?;
+            std::fs::create_dir(&test_directory)?;
+            println!("Scraping configurations for {}", c);
+            let cargo_toml_content = std::fs::read_to_string(format!("data/toml/{}.toml", c))?;
+            let table: toml::Table = cargo_toml_content.parse()?;
+            let dependency_graph = feature_dependencies::from_cargo_toml(&table)?;
+            let configurations = configuration_scraper::scrape(
+                c.name, 
+                &c.version, 
+                &dependency_graph, 
+                &mut client, 
+                0, 
+                1000
+            )?;
 
-                println!("Found {} configurations", configurations.len());
+            println!("Found {} configurations", configurations.len());
 
-                for conf in configurations {
-                    let path = PathBuf::from(format!("{}/{}@{}.csvconf", directory.display(), conf.name, conf.version));
-                    let conf_content = conf.to_csv();
-                    std::fs::write(path, conf_content)?;
-                }
+            for (i, conf) in configurations.iter().enumerate() {
+                let directory = if i < configurations.len() / 2 {
+                    &train_directory
+                } else {
+                    &test_directory
+                };
+                let path = PathBuf::from(format!("{}/{}@{}.csvconf", directory.display(), conf.name, conf.version));
+                let conf_content = conf.to_csv();
+                std::fs::write(path, conf_content)?;
             }
         }
-    } else {
-        println!("Warning: Could not connect to crates_db, skipping updating configurations");
     }
 
     for c in crates.iter() {
