@@ -8,5 +8,5 @@
 "simd",True
 "std",True
 "terminal_size",False
-"unstable_doc",False
-"unstable_recover",False
+"unstable-doc",False
+"unstable-recover",False

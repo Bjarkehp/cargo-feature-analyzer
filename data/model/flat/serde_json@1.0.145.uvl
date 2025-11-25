@@ -1,22 +1,17 @@
 features
     "serde_json"
         optional
-            "unbounded_depth"
-            "memchr"
-                optional
-                    "std"
-                        optional
-                            "preserve_order"
-                            "default"
-            "raw_value"
             "indexmap"
+                optional
+                    "preserve_order"
+            "unbounded_depth"
+            "std"
+                optional
+                    "default"
+            "raw_value"
             "float_roundtrip"
             "arbitrary_precision"
-            "serde_core"
-                optional
-                    "alloc"
+            "alloc"
 constraints
-    "preserve_order" => "indexmap" & "serde_json"
-    "std" => "serde_json" & "serde_core"
-    "alloc" => "serde_json"
     "default" => "serde_json"
+    "preserve_order" => "std" & "serde_json"

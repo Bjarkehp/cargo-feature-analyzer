@@ -72,7 +72,7 @@ fn main() -> anyhow::Result<()> {
                     &test_directory
                 };
                 let path = PathBuf::from(format!("{}/{}@{}.csvconf", directory.display(), conf.name, conf.version));
-                let conf_content = conf.to_csv().replace('-', "_");
+                let conf_content = conf.to_csv();
                 std::fs::write(path, conf_content)?;
             }
         }
@@ -218,8 +218,7 @@ fn get_configurations(path: &Path, crate_id: &CrateId) -> anyhow::Result<Vec<Con
             .context("File name was not valid utf-8")?
             .trim_end_matches(".csvconf");
         let dependency_crate_id = crate_id::parse(name)?;
-        let content = std::fs::read_to_string(format!("{}/{}/{}", path.display(), crate_id, filename.display()))?
-            .replace('-', "_");
+        let content = std::fs::read_to_string(format!("{}/{}/{}", path.display(), crate_id, filename.display()))?;
         let configuration = Configuration::from_csv_owned(dependency_crate_id.name.to_string(), dependency_crate_id.version.clone(), &content)
             .with_context(|| format!("Configuration {}/{} could not be parsed", crate_id, filename.display()))?;
         configurations.push(configuration);

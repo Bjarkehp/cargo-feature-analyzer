@@ -1,45 +1,40 @@
 features
 	"clap"
-		optional
-			"clap_builder"
-				mandatory
-					"std"
+		mandatory
+			"std"
+		or
+			"env"
 				optional
-					"env"
-						optional
-							"unstable_styles"
-					"clap_derive"
-						mandatory
-							"derive"
-						optional
-							"unstable_markdown"
-							"deprecated"
-							"unicode"
+					"deprecated"
+					"unstable-markdown"
+			"clap_derive"
+				mandatory
+					"derive"
+				optional
+					"unicode"
+					"string"
+					"cargo"
+			"error-context"
+				mandatory
 					"help"
+					"suggestions"
+					"usage"
+				optional
+					"color"
+						mandatory
+							"default"
 						optional
-							"suggestions"
-								optional
-									"default"
-										optional
-											"string"
-							"usage"
-								or
-									"color"
-									"error_context"
-										optional
-											"wrap_help"
-											"cargo"
+							"wrap_help"
 		optional // Unused features
 			"debug"
-			"unstable_derive_ui_tests"
-			"unstable_doc"
-			"unstable_ext"
-			"unstable_v5"
+			"unstable-derive-ui-tests"
+			"unstable-doc"
+			"unstable-ext"
+			"unstable-styles"
+			"unstable-v5"
 constraints
-	"cargo" => !"unstable_markdown" & !"unstable_styles"
-	"default" => "color" & "error_context"
-	"deprecated" => !"unstable_markdown" & !"unstable_styles" & "default"
-	"string" => !"unstable_markdown" & !"unstable_styles"
-	"unicode" => !"unstable_styles" & "error_context" & "suggestions"
-	"unstable_markdown" => !"cargo" & !"deprecated" & !"string" & !"unstable_styles" & "default" & "wrap_help"
-	"unstable_styles" => !"cargo" & !"deprecated" & !"string" & !"unicode" & !"unstable_markdown" & "clap_derive" & "default" & "derive" & "wrap_help"
+	"cargo" => !"deprecated" & !"unstable-markdown" & "error-context" & "help" & "suggestions" & "usage"
+	"deprecated" => !"cargo" & !"unstable-markdown" & "string"
+	"string" => "color" & "default"
+	"unicode" => "error-context" & "help" & "suggestions" & "usage"
+	"unstable-markdown" => !"cargo" & !"deprecated" & "unicode" & "wrap_help"

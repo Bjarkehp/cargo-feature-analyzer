@@ -72,7 +72,7 @@ fn write_tree_constraints<'a, W: Write>(
         return Ok(());
     }
 
-    writeln!(writer, "{}\"{}\"", " ".repeat(4 * indentation), current.replace('-', "_"))?;
+    writeln!(writer, "{}\"{}\"", " ".repeat(4 * indentation), current)?;
     if let Some(dependents) = constraints.get(current) {
         writeln!(writer, "{}optional", " ".repeat(4 * (indentation + 1)))?;
         for feature in dependents {
@@ -87,9 +87,9 @@ fn write_cross_tree_constraints<W: Write>(writer: &mut W, constraints: &HashMap<
     writeln!(writer, "constraints")?;
     for (feature, dependencies) in constraints {
         let dependencies_str = dependencies.iter()
-            .map(|s| format!("\"{}\"", s.replace('-', "_")))
+            .map(|s| format!("\"{}\"", s))
             .join(" & ");
-        writeln!(writer, "    \"{}\" => {}", feature.replace('-', "_"), dependencies_str)?;
+        writeln!(writer, "    \"{}\" => {}", feature, dependencies_str)?;
     }
 
     Ok(())

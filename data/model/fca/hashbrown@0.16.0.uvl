@@ -2,27 +2,25 @@ features
 	"hashbrown"
 		optional
 			"alloc"
-			"rayon"
-			"serde"
+			"inline-more"
+				optional
+					"default-hasher"
+						mandatory
+							"foldhash"
+						optional
+							"serde"
+							"default"
+					"allocator-api2"
 			"equivalent"
 				mandatory
-					"raw_entry"
-				optional
-					"default"
-			"inline_more"
-				optional
-					"allocator_api2"
-			"default_hasher"
-				mandatory
-					"foldhash"
+					"raw-entry"
 		optional // Unused features
-			"bumpalo"
 			"core"
 			"nightly"
-			"rustc_dep_of_std"
-			"rustc_internal_api"
+			"rayon"
+			"rustc-dep-of-std"
+			"rustc-internal-api"
 constraints
-	"alloc" => !"default" & !"rayon" & !"serde"
-	"default" => !"alloc" & "allocator_api2" & "default_hasher" & "foldhash"
-	"rayon" => !"alloc" & !"serde"
-	"serde" => !"alloc" & !"rayon"
+	"alloc" => !"default" & !"serde"
+	"default" => !"alloc" & "allocator-api2" & "equivalent" & "raw-entry"
+	"serde" => !"alloc"

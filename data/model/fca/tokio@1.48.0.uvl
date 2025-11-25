@@ -1,44 +1,47 @@
 features
 	"tokio"
 		optional
-			"parking_lot"
-				optional
-					"full"
-			"fs"
-				optional
-					"tracing"
-			"io_std"
-			"bytes"
-				or
-					"process"
-					"io_util"
 			"libc"
 				mandatory
 					"mio"
-					"windows_sys"
+					"windows-sys"
 				or
-					"signal_hook_registry"
-						optional
+					"signal-hook-registry"
+						or
 							"signal"
+								optional
+									"tracing"
+									"full"
+							"process"
 					"net"
 						mandatory
 							"socket2"
-			"time"
 			"sync"
-			"macros"
-				mandatory
-					"tokio_macros"
+			"time"
 			"rt"
 				optional
-					"rt_multi_thread"
+					"rt-multi-thread"
+						optional
+							"fs"
+			"macros"
+				mandatory
+					"tokio-macros"
 			"default"
+				optional
+					"parking_lot"
+					"io-std"
+					"bytes"
+						mandatory
+							"io-util"
 		optional // Unused features
 			"backtrace"
-			"io_uring"
+			"io-uring"
 			"slab"
 			"taskdump"
-			"test_util"
+			"test-util"
 constraints
-	"full" => "fs" & "io_std" & "io_util" & "macros" & "net" & "process" & "rt_multi_thread" & "signal" & "socket2" & "sync" & "time" & "tokio_macros"
-	"process" => "signal_hook_registry"
-	"tracing" => "default" & "io_util" & "macros" & "process" & "rt_multi_thread" & "signal" & "sync" & "time" & "tokio_macros"
+	"fs" => "default"
+	"full" => !"tracing" & "fs" & "io-std" & "net" & "parking_lot" & "process" & "socket2" & "sync" & "time"
+	"net" => "default"
+	"process" => "bytes" & "io-util" & "macros" & "rt" & "tokio-macros"
+	"tracing" => !"full" & "fs" & "process" & "sync" & "time"

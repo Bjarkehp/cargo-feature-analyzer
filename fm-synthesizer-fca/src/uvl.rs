@@ -29,9 +29,9 @@ impl<'a> ConstraintItem<'a> {
 impl Display for ConstraintItem<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.enabled {
-            write!(f, "\"{}\"", self.feature.replace('-', "_"))
+            write!(f, "\"{}\"", self.feature)
         } else {
-            write!(f, "!\"{}\"", self.feature.replace('-', "_"))
+            write!(f, "!\"{}\"", self.feature)
         }
     }
 }
@@ -84,7 +84,7 @@ fn write_unused_features<W: Write>(writer: &mut W, features: &[&str]) -> std::io
     
     writeln!(writer, "\t\toptional // Unused features")?;
     for feature in features {
-        writeln!(writer, "\t\t\t\"{}\"", feature.replace('-', "_"))?;
+        writeln!(writer, "\t\t\t\"{}\"", feature)?;
     }
 
     Ok(())
@@ -112,7 +112,7 @@ fn write_uvl_constraints<W: Write>(writer: &mut W, constraints: &BTreeMap<&str, 
     
     writeln!(writer, "constraints")?;
     for (antecedent, consequent) in constraints {
-        let left = format!("\"{}\"", antecedent.replace('-', "_"));
+        let left = format!("\"{}\"", antecedent);
         let right = consequent.iter()
             .map(|item| item.to_string())
             .join(" & ");
@@ -140,11 +140,11 @@ fn visit_ac_poset_node<'a, W: Write>(
         .collect::<Vec<_>>();
 
     let parent_feature = features[0];
-    writeln!(writer, "{}\"{}\"", "\t".repeat(2 * depth + 1), parent_feature.replace('-', "_"))?;
+    writeln!(writer, "{}\"{}\"", "\t".repeat(2 * depth + 1), parent_feature)?;
     if features.len() > 1 {
         writeln!(writer, "{}mandatory", "\t".repeat(2 * depth + 2))?;
         for &child_feature in &features[1..] {
-            writeln!(writer, "{}\"{}\"", "\t".repeat(2 * depth + 3), child_feature.replace('-', "_"))?;
+            writeln!(writer, "{}\"{}\"", "\t".repeat(2 * depth + 3), child_feature)?;
         }
     }
 

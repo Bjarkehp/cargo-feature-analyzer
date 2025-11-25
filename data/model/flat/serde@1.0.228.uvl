@@ -1,21 +1,15 @@
 features
     "serde"
         optional
-            "unstable"
-            "rc"
             "serde_derive"
                 optional
                     "derive"
+            "unstable"
             "std"
                 optional
                     "default"
-            "serde_core"
-                optional
-                    "alloc"
+            "rc"
+            "alloc"
 constraints
-    "unstable" => "serde_core"
     "derive" => "serde"
-    "std" => "serde_core"
-    "rc" => "serde_core"
-    "alloc" => "serde"
     "default" => "serde"

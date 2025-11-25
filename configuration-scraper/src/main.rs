@@ -72,9 +72,9 @@ fn write_configuration(
     let mut writer = BufWriter::new(file);
     for &feature in features {
         if config.features[feature] {
-            writeln!(writer, "\"{}\",True", feature.replace('-', "_"))?;
+            writeln!(writer, "\"{}\",True", feature)?;
         } else {
-            writeln!(writer, "\"{}\",False", feature.replace('-', "_"))?;
+            writeln!(writer, "\"{}\",False", feature)?;
         }
     }
 

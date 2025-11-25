@@ -1,23 +1,19 @@
 features
 	"winnow"
 		optional
-			"memchr"
-				mandatory
-					"simd"
 			"alloc"
 				optional
 					"std"
-						optional
+						or
+							"memchr"
+								mandatory
+									"simd"
 							"default"
-								optional
-									"unstable_recover"
 		optional // Unused features
 			"anstream"
 			"anstyle"
 			"debug"
 			"is_terminal_polyfill"
 			"terminal_size"
-			"unstable_doc"
-constraints
-	"memchr" => !"unstable_recover"
-	"unstable_recover" => !"memchr"
+			"unstable-doc"
+			"unstable-recover"

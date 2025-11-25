@@ -1,12 +1,9 @@
 features
-	"nom"
+	"alloc"
+		mandatory
+			"nom"
+			"std"
 		optional
-			"alloc"
-				optional
-					"memchr"
-						mandatory
-							"std"
-						optional
-							"default"
+			"default"
 		optional // Unused features
 			"docsrs"

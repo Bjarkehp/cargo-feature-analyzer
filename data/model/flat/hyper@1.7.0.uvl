@@ -1,40 +1,39 @@
 features
     "hyper"
         optional
-            "tracing"
-            "httpdate"
+            "want"
                 optional
-                    "server"
+                    "client"
                         optional
                             "full"
-            "nightly"
+            "smallvec"
+                optional
+                    "server"
+            "pin-utils"
+                optional
+                    "http1"
+            "pin-project-lite"
+            "itoa"
+            "httpdate"
+            "httparse"
+            "http-body-util"
+                optional
+                    "ffi"
             "h2"
                 optional
                     "http2"
-            "pin_utils"
-                optional
-                    "http1"
-            "itoa"
-            "httparse"
-            "futures_core"
-            "futures_channel"
-            "atomic_waker"
-            "futures_util"
-                optional
-                    "ffi"
-            "http_body_util"
+            "futures-util"
+            "futures-core"
+            "futures-channel"
+            "atomic-waker"
+            "tracing"
+            "nightly"
             "default"
-            "smallvec"
-                optional
-                    "client"
-            "pin_project_lite"
-            "want"
             "capi"
 constraints
-    "http1" => "itoa" & "httparse" & "futures_core" & "futures_channel" & "atomic_waker" & "hyper"
-    "server" => "hyper" & "smallvec" & "pin_project_lite"
-    "ffi" => "http_body_util" & "hyper"
-    "client" => "pin_project_lite" & "want" & "hyper"
-    "tracing" => "tracing"
-    "http2" => "futures_core" & "futures_channel" & "hyper"
-    "full" => "http2" & "http1" & "hyper" & "client"
+    "client" => "smallvec" & "pin-project-lite" & "hyper"
+    "full" => "server" & "http1" & "http2" & "hyper"
+    "http2" => "futures-core" & "futures-channel" & "hyper"
+    "http1" => "itoa" & "httparse" & "futures-core" & "futures-channel" & "atomic-waker" & "hyper"
+    "server" => "pin-project-lite" & "httpdate" & "hyper"
+    "ffi" => "futures-util" & "hyper"

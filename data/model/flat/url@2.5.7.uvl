@@ -6,11 +6,8 @@ features
                     "std"
                         optional
                             "default"
-            "form_urlencoded"
-            "percent_encoding"
-            "idna"
             "expose_internals"
             "debugger_visualizer"
 constraints
-    "std" => "form_urlencoded" & "percent_encoding" & "idna" & "url"
+    "std" => "url"
     "default" => "url"

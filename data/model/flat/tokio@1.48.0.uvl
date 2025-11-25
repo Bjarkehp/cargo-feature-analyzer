@@ -1,48 +1,48 @@
 features
     "tokio"
         optional
-            "tracing"
-            "test_util"
-            "backtrace"
-                optional
-                    "taskdump"
-            "signal_hook_registry"
+            "windows-sys"
                 optional
                     "signal"
                         optional
                             "full"
                     "process"
-            "windows_sys"
-                optional
                     "net"
+            "signal-hook-registry"
+            "tracing"
             "socket2"
-            "tokio_macros"
-                optional
-                    "macros"
-            "bytes"
-                optional
-                    "io_util"
             "slab"
                 optional
-                    "io_uring"
-            "mio"
+                    "io-uring"
             "libc"
-            "time"
-            "sync"
-            "rt_multi_thread"
-            "rt"
+            "backtrace"
+                optional
+                    "taskdump"
+            "tokio-macros"
+                optional
+                    "macros"
             "parking_lot"
-            "io_std"
+            "mio"
+            "bytes"
+                optional
+                    "io-util"
+            "time"
+                optional
+                    "test-util"
+            "sync"
+            "rt-multi-thread"
+            "rt"
+            "io-std"
             "fs"
             "default"
 constraints
-    "signal" => "windows_sys" & "mio" & "libc" & "tokio"
-    "rt_multi_thread" => "rt"
-    "io_util" => "tokio"
-    "test_util" => "time" & "sync" & "rt"
     "taskdump" => "tokio"
-    "net" => "socket2" & "mio" & "libc" & "tokio"
-    "io_uring" => "io_uring" & "mio" & "libc" & "tokio"
-    "process" => "windows_sys" & "bytes" & "mio" & "libc" & "tokio"
     "macros" => "tokio"
-    "full" => "process" & "net" & "macros" & "io_util" & "time" & "sync" & "rt_multi_thread" & "rt" & "parking_lot" & "io_std" & "tokio" & "fs"
+    "full" => "process" & "net" & "macros" & "parking_lot" & "io-util" & "time" & "sync" & "rt-multi-thread" & "rt" & "io-std" & "tokio" & "fs"
+    "io-util" => "tokio"
+    "test-util" => "tokio" & "sync" & "rt"
+    "signal" => "signal-hook-registry" & "libc" & "mio" & "tokio"
+    "net" => "socket2" & "libc" & "mio" & "tokio"
+    "process" => "signal-hook-registry" & "libc" & "mio" & "bytes" & "tokio"
+    "io-uring" => "libc" & "mio" & "tokio"
+    "rt-multi-thread" => "rt"

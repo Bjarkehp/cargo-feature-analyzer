@@ -3,10 +3,5 @@ features
         optional
             "std"
             "default"
-            "wasip2"
-                optional
-                    "bitflags"
+            "bitflags"
 constraints
-    "default" => "wasip2"
-    "bitflags" => "wasi"
-    "std" => "wasip2"

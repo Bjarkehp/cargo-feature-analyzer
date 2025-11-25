@@ -1,13 +1,13 @@
-"clone_impls",True
+"clone-impls",True
 "default",True
 "derive",True
-"extra_traits",False
+"extra-traits",False
 "fold",False
 "full",True
 "parsing",True
 "printing",True
-"proc_macro",True
+"proc-macro",True
 "quote",True
 "test",False
 "visit",False
-"visit_mut",False
+"visit-mut",False
