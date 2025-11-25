@@ -84,6 +84,10 @@ fn write_tree_constraints<'a, W: Write>(
 }
 
 fn write_cross_tree_constraints<W: Write>(writer: &mut W, constraints: &HashMap<&str, Vec<&str>>) -> std::io::Result<()> {
+    if constraints.is_empty() {
+        return Ok(())
+    }
+    
     writeln!(writer, "constraints")?;
     for (feature, dependencies) in constraints {
         let dependencies_str = dependencies.iter()

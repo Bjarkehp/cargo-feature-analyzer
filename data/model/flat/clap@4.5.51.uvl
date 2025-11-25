@@ -27,8 +27,8 @@ features
             "color"
             "cargo"
 constraints
-    "unstable-v5" => "deprecated"
     "default" => "suggestions" & "std" & "help" & "error-context" & "clap" & "color"
-    "derive" => "clap"
     "unstable-markdown" => "clap"
+    "unstable-v5" => "deprecated"
     "unstable-doc" => "clap"
+    "derive" => "clap"

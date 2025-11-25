@@ -18,8 +18,8 @@ features
                     "default"
             "alloc"
 constraints
-    "std" => "alloc"
-    "unstable-doc" => "unstable-recover" & "winnow" & "std" & "alloc"
     "debug" => "is_terminal_polyfill" & "anstyle" & "anstream" & "std" & "winnow"
-    "simd" => "winnow"
+    "std" => "alloc"
     "default" => "winnow"
+    "unstable-doc" => "unstable-recover" & "winnow" & "std" & "alloc"
+    "simd" => "winnow"

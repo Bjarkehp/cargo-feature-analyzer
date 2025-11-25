@@ -13,5 +13,5 @@ features
             "arbitrary_precision"
             "alloc"
 constraints
-    "default" => "serde_json"
     "preserve_order" => "std" & "serde_json"
+    "default" => "serde_json"

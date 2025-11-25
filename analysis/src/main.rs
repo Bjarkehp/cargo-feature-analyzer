@@ -1,4 +1,4 @@
-pub mod flamapy;
+pub mod flamapy_client;
 
 use std::{fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
@@ -132,6 +132,9 @@ fn main() -> anyhow::Result<()> {
         "FCA Quality",
     )?;    
 
+    let flamapy_server = Path::new("analysis/src/flamapy_server.py");
+    let mut flamapy_client = flamapy_client::Client::new(flamapy_server)?;
+
     for c in crates.iter() {
         let toml = PathBuf::from(format!("data/toml/{}.toml", c));
         let flat = PathBuf::from(format!("data/model/flat/{}.uvl", c));
@@ -157,18 +160,24 @@ fn main() -> anyhow::Result<()> {
             .into_group_map_by(|config| &config.features)
             .len();
 
+        flamapy_client.set_model(&flat)?;
+
         let estimated_number_of_configurations_flat = 
-            flamapy::estimated_number_of_configurations(&flat)?;
-        let estimated_number_of_configurations_fca = 
-            flamapy::estimated_number_of_configurations(&fca)?;
+            flamapy_client.estimated_number_of_configurations()?;
         let configuration_number_flat = 
-            flamapy::configurations_number(&flat)?;
+            flamapy_client.configurations_number()?;
+
+        flamapy_client.set_model(&fca)?;
+
+        let estimated_number_of_configurations_fca = 
+            flamapy_client.estimated_number_of_configurations()?;
         let configuration_number_fca = 
-            flamapy::configurations_number(&fca)?;
+            flamapy_client.configurations_number()?;
+
         let satified_configurations = test_configurations.iter()
             .filter(|config| {
                 let path = PathBuf::from(format!("data/configuration/test/{}/{}@{}.csvconf", c, config.name, config.version));
-                let output = flamapy::satisfiable_configuration(&fca, &path);
+                let output = flamapy_client.satisfiable_configuration(&path);
                 if let Ok(result) = output {
                     result
                 } else {
