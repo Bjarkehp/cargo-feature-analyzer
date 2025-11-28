@@ -40,16 +40,19 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    let url = "postgres://crates:crates@localhost:5432/crates_db";
+    let url = "postgres://crates:crates@localhost:5432/crates_io_db";
     let mut client = postgres::Client::connect(url, postgres::NoTls)?;
     for c in crates.iter() {
         let train_directory = PathBuf::from(format!("data/configuration/train/{}", c));
         let test_directory = PathBuf::from(format!("data/configuration/test/{}", c));
         if !std::fs::exists(&train_directory)? || !std::fs::exists(&test_directory)? || args.overwrite_configurations {
-            if !args.overwrite_configurations {
+            if !std::fs::exists(&train_directory)? {
                 std::fs::create_dir_all(&train_directory)?;
+            }
+            if !std::fs::exists(&test_directory)? {
                 std::fs::create_dir_all(&test_directory)?;
             }
+
             println!("Scraping configurations for {}", c);
             let cargo_toml_content = std::fs::read_to_string(format!("data/toml/{}.toml", c))?;
             let table: toml::Table = cargo_toml_content.parse()?;
@@ -60,13 +63,13 @@ fn main() -> anyhow::Result<()> {
                 &dependency_graph, 
                 &mut client, 
                 0, 
-                200
+                1000
             )?;
 
             println!("Found {} configurations", configurations.len());
 
             for (i, conf) in configurations.iter().enumerate() {
-                let directory = if i < configurations.len() / 2 {
+                let directory = if i < configurations.len() / 10 {
                     &train_directory
                 } else {
                     &test_directory

@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let feature_dependencies = feature_dependencies::from_cargo_toml(&table)?;
     let features = feature_dependencies.nodes()
         .collect::<Vec<_>>();
-    let mut client = postgres::Client::connect(args.database_str.as_deref().unwrap_or("postgres://crates:crates@localhost:5432/crates_db"), NoTls)?;
+    let mut client = postgres::Client::connect(args.database_str.as_deref().unwrap_or("postgres://crates:crates@localhost:5432/crates_io_db"), NoTls)?;
 
     let configurations = configuration_scraper::scrape(
         crate_name,

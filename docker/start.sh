@@ -1,0 +1,1 @@
+docker start -a crates_io_db

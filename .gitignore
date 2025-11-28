@@ -1,1 +1,3 @@
 target
+docker/db-dump.tar.gz
+data/configuration
