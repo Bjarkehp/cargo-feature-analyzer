@@ -1,0 +1,14 @@
+features
+	"openssl"
+		or
+			"vendored"
+			"default"
+		optional // Unused features
+			"aws-lc"
+			"aws-lc-fips"
+			"bindgen"
+			"unstable_boringssl"
+			"v101"
+			"v102"
+			"v110"
+			"v111"

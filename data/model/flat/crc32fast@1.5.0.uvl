@@ -1,0 +1,9 @@
+features
+    "crc32fast"
+        optional
+            "std"
+                optional
+                    "default"
+            "nightly"
+constraints
+    "default" => "crc32fast"

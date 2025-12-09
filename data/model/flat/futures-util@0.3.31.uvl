@@ -1,0 +1,42 @@
+features
+    "futures-util"
+        optional
+            "tokio-io"
+                optional
+                    "io-compat"
+            "slab"
+                optional
+                    "std"
+                        optional
+                            "io"
+                                optional
+                                    "write-all-vectored"
+                            "default"
+                            "compat"
+                            "channel"
+            "memchr"
+            "futures_01"
+            "futures-sink"
+                optional
+                    "sink"
+            "futures-macro"
+                optional
+                    "async-await-macro"
+            "futures-io"
+            "futures-channel"
+            "unstable"
+            "portable-atomic"
+            "cfg-target-has-atomic"
+            "bilock"
+            "async-await"
+            "alloc"
+constraints
+    "sink" => "futures-util"
+    "async-await-macro" => "futures-util" & "async-await"
+    "compat" => "futures_01" & "futures-util"
+    "io" => "memchr" & "futures-io" & "futures-util"
+    "channel" => "futures-channel" & "futures-util"
+    "write-all-vectored" => "futures-util"
+    "default" => "async-await-macro" & "futures-util" & "async-await"
+    "io-compat" => "io" & "compat" & "futures-util"
+    "std" => "futures-util" & "alloc"

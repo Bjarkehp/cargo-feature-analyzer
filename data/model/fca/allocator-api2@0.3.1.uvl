@@ -1,0 +1,11 @@
+features
+	"allocator-api2"
+		optional
+			"alloc"
+				optional
+					"default"
+						mandatory
+							"std"
+		optional // Unused features
+			"fresh-rust"
+			"serde"

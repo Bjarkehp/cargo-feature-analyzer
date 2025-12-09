@@ -1,0 +1,23 @@
+features
+    "ahash"
+        optional
+            "serde"
+            "portable-atomic"
+                optional
+                    "atomic-polyfill"
+            "getrandom"
+                optional
+                    "runtime-rng"
+                        optional
+                            "default"
+            "const-random"
+                optional
+                    "compile-time-rng"
+            "std"
+            "no-rng"
+            "nightly-arm-aes"
+constraints
+    "atomic-polyfill" => "ahash"
+    "default" => "std" & "ahash"
+    "compile-time-rng" => "ahash"
+    "runtime-rng" => "ahash"

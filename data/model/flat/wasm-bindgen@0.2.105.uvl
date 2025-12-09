@@ -1,0 +1,21 @@
+features
+    "wasm-bindgen"
+        optional
+            "serde_json"
+                optional
+                    "serde-serialize"
+            "serde"
+            "xxx_debug_only_print_generated_code"
+            "strict-macro"
+            "std"
+                optional
+                    "enable-interning"
+                    "default"
+            "spans"
+            "rustversion"
+            "msrv"
+            "gg-alloc"
+constraints
+    "default" => "wasm-bindgen"
+    "serde-serialize" => "serde" & "std" & "wasm-bindgen"
+    "enable-interning" => "wasm-bindgen"

@@ -1,0 +1,9 @@
+features
+	"num-traits"
+		optional
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"i128"
+			"libm"

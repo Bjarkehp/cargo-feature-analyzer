@@ -1,0 +1,28 @@
+features
+	"tungstenite"
+		optional
+			"data-encoding"
+				mandatory
+					"default"
+					"handshake"
+					"http"
+					"httparse"
+					"sha1"
+				optional
+					"native-tls"
+						mandatory
+							"native-tls-crate"
+					"__rustls-tls"
+						mandatory
+							"rustls"
+							"rustls-pki-types"
+							"rustls-tls-webpki-roots"
+							"webpki-roots"
+		optional // Unused features
+			"native-tls-vendored"
+			"rustls-native-certs"
+			"rustls-tls-native-roots"
+			"url"
+constraints
+	"__rustls-tls" => !"native-tls"
+	"native-tls" => !"__rustls-tls"

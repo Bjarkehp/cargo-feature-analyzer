@@ -1,21 +1,16 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use semver::Version;
 
-pub struct CrateId<'a> {
-    pub name: &'a str,
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CrateId {
+    pub name: String,
     pub version: Version,
 }
 
-impl<'a> CrateId<'a> {
-    pub fn new(name: &'a str, version: Version) -> Self {
+impl CrateId {
+    pub fn new(name: String, version: Version) -> Self {
         Self { name, version }
-    }
-}
-
-impl Display for CrateId<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}@{}", self.name, self.version)
     }
 }
 
@@ -27,10 +22,20 @@ pub enum Error {
     MissingVersion(String)
 }
 
-pub fn parse(s: &str) -> Result<CrateId<'_>, Error> {
-    let (crate_name, version_str) = s.split_once('@')
-        .ok_or_else(|| Error::MissingVersion(s.to_string()))?;
-    let version = version_str.parse()
-        .map_err(|e| Error::Semver(s.to_string(), e))?;
-    Ok(CrateId::new(crate_name, version))
-} 
+impl FromStr for CrateId {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (crate_name, version_str) = s.split_once('@')
+            .ok_or_else(|| Error::MissingVersion(s.to_string()))?;
+        let version = version_str.parse()
+            .map_err(|e| Error::Semver(s.to_string(), e))?;
+        Ok(CrateId::new(crate_name.to_owned(), version))
+    }
+}
+
+impl Display for CrateId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}@{}", self.name, self.version)
+    }
+}

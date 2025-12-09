@@ -1,0 +1,6 @@
+features
+	"mime_guess"
+		optional
+			"rev-mappings"
+				optional
+					"default"

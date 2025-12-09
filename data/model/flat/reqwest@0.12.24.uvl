@@ -1,0 +1,114 @@
+features
+    "reqwest"
+        optional
+            "wasm-streams"
+                optional
+                    "stream"
+            "webpki-roots"
+                optional
+                    "rustls-tls-webpki-roots-no-provider"
+                        optional
+                            "rustls-tls-webpki-roots"
+                                optional
+                                    "rustls-tls"
+            "tokio-util"
+                optional
+                    "zstd"
+                    "gzip"
+                    "deflate"
+                    "brotli"
+            "tokio-rustls"
+                optional
+                    "__rustls"
+                        optional
+                            "rustls-tls-native-roots-no-provider"
+                                optional
+                                    "rustls-tls-native-roots"
+                            "rustls-tls-manual-roots-no-provider"
+                                optional
+                                    "rustls-tls-no-provider"
+                                    "rustls-tls-manual-roots"
+                                        optional
+                                            "http3"
+            "tokio-native-tls"
+                optional
+                    "default-tls"
+                        optional
+                            "native-tls"
+                                optional
+                                    "native-tls-vendored"
+                                    "native-tls-alpn"
+                            "default"
+            "rustls-pki-types"
+                optional
+                    "__tls"
+            "rustls-native-certs"
+            "rustls"
+            "quinn"
+            "once_cell"
+                optional
+                    "hickory-dns"
+            "native-tls-crate"
+            "mime"
+                optional
+                    "charset"
+            "hyper-tls"
+            "hyper-rustls"
+            "hickory-resolver"
+            "h3-quinn"
+            "h3"
+            "h2"
+                optional
+                    "http2"
+            "futures-channel"
+                optional
+                    "blocking"
+            "encoding_rs"
+            "cookie_store"
+                optional
+                    "cookies"
+            "cookie_crate"
+            "async-compression"
+            "serde_json"
+                optional
+                    "json"
+            "mime_guess"
+                optional
+                    "multipart"
+            "futures-util"
+            "trust-dns"
+            "system-proxy"
+                optional
+                    "macos-system-configuration"
+            "socks"
+            "__rustls-ring"
+constraints
+    "native-tls-alpn" => "reqwest"
+    "rustls-tls-native-roots" => "reqwest" & "__rustls-ring"
+    "macos-system-configuration" => "reqwest"
+    "deflate" => "async-compression" & "futures-util" & "reqwest"
+    "default" => "charset" & "http2" & "system-proxy" & "reqwest"
+    "rustls-tls-webpki-roots" => "reqwest" & "__rustls-ring"
+    "rustls-tls-no-provider" => "reqwest"
+    "gzip" => "async-compression" & "futures-util" & "reqwest"
+    "rustls-tls-manual-roots" => "reqwest" & "__rustls-ring"
+    "json" => "reqwest"
+    "brotli" => "async-compression" & "futures-util" & "reqwest"
+    "native-tls-vendored" => "reqwest"
+    "rustls-tls-webpki-roots-no-provider" => "__rustls" & "reqwest"
+    "multipart" => "futures-util" & "reqwest"
+    "__tls" => "reqwest"
+    "cookies" => "cookie_crate" & "reqwest"
+    "zstd" => "async-compression" & "futures-util" & "reqwest"
+    "http2" => "reqwest"
+    "stream" => "tokio-util" & "futures-util" & "reqwest"
+    "rustls-tls" => "reqwest"
+    "default-tls" => "__tls" & "native-tls-crate" & "hyper-tls" & "reqwest"
+    "charset" => "encoding_rs" & "reqwest"
+    "hickory-dns" => "hickory-resolver" & "reqwest"
+    "rustls-tls-manual-roots-no-provider" => "reqwest"
+    "native-tls" => "reqwest"
+    "__rustls" => "__tls" & "rustls" & "hyper-rustls" & "reqwest"
+    "blocking" => "futures-util" & "reqwest"
+    "rustls-tls-native-roots-no-provider" => "rustls-native-certs" & "reqwest"
+    "http3" => "quinn" & "h3-quinn" & "h3" & "reqwest"

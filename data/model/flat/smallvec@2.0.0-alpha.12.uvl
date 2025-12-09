@@ -1,0 +1,15 @@
+features
+    "smallvec"
+        optional
+            "default"
+            "serde_core"
+                optional
+                    "serde"
+            "malloc_size_of"
+            "bytes"
+            "std"
+            "specialization"
+            "may_dangle"
+            "extract_if"
+constraints
+    "serde" => "smallvec"

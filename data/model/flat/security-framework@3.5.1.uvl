@@ -1,0 +1,23 @@
+features
+    "security-framework"
+        optional
+            "log"
+            "sync-keychain"
+            "session-tickets"
+                optional
+                    "OSX_10_13"
+                        optional
+                            "OSX_10_14"
+                                optional
+                                    "OSX_10_15"
+            "nightly"
+            "job-bless"
+            "default"
+            "alpn"
+            "OSX_10_12"
+constraints
+    "sync-keychain" => "OSX_10_13"
+    "OSX_10_13" => "alpn" & "security-framework" & "OSX_10_12"
+    "OSX_10_14" => "security-framework"
+    "default" => "OSX_10_12"
+    "OSX_10_15" => "security-framework"

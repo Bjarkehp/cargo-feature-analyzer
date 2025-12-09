@@ -1,0 +1,11 @@
+features
+    "pest_generator"
+        optional
+            "std"
+                optional
+                    "default"
+            "not-bootstrap-in-src"
+            "grammar-extras"
+            "export-internal"
+constraints
+    "default" => "pest_generator"

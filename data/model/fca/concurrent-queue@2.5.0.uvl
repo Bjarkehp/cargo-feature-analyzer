@@ -1,0 +1,12 @@
+features
+	"concurrent-queue"
+		optional
+			"portable-atomic"
+			"std"
+				optional
+					"default"
+		optional // Unused features
+			"loom"
+constraints
+	"default" => !"portable-atomic"
+	"portable-atomic" => !"default"

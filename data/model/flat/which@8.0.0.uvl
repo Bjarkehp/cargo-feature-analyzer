@@ -1,0 +1,15 @@
+features
+    "which"
+        optional
+            "winsafe"
+                optional
+                    "real-sys"
+                        optional
+                            "default"
+            "env_home"
+            "rustix"
+            "tracing"
+            "regex"
+constraints
+    "real-sys" => "env_home" & "rustix" & "which"
+    "default" => "which"

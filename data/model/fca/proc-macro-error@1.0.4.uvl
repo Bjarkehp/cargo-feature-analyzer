@@ -1,0 +1,7 @@
+features
+	"proc-macro-error"
+		optional
+			"default"
+				mandatory
+					"syn"
+					"syn-error"

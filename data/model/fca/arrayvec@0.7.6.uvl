@@ -1,0 +1,10 @@
+features
+	"arrayvec"
+		optional
+			"serde"
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"borsh"
+			"zeroize"

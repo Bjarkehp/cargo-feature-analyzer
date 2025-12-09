@@ -1,0 +1,16 @@
+features
+    "futures-channel"
+        optional
+            "futures-sink"
+                optional
+                    "sink"
+            "unstable"
+            "std"
+                optional
+                    "default"
+            "cfg-target-has-atomic"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "sink" => "futures-channel"
+    "default" => "futures-channel"

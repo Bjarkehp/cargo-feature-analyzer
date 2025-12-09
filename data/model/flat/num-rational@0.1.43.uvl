@@ -1,0 +1,13 @@
+features
+    "num-rational"
+        optional
+            "serde"
+            "rustc-serialize"
+                optional
+                    "default"
+            "num-bigint"
+                optional
+                    "bigint"
+constraints
+    "default" => "bigint" & "num-rational"
+    "bigint" => "num-rational"

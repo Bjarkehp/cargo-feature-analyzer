@@ -1,0 +1,9 @@
+features
+    "async-lock"
+        optional
+            "std"
+                optional
+                    "default"
+            "loom"
+constraints
+    "default" => "async-lock"

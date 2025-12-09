@@ -1,0 +1,6 @@
+features
+	"default"
+		mandatory
+			"multimap"
+			"serde"
+			"serde_impl"

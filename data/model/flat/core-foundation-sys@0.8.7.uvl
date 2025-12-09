@@ -1,0 +1,10 @@
+features
+    "core-foundation-sys"
+        optional
+            "mac_os_10_8_features"
+            "mac_os_10_7_support"
+            "link"
+                optional
+                    "default"
+constraints
+    "default" => "core-foundation-sys"

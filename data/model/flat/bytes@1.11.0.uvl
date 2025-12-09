@@ -1,0 +1,10 @@
+features
+    "bytes"
+        optional
+            "serde"
+            "extra-platforms"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "bytes"

@@ -1,0 +1,12 @@
+features
+	"prost"
+		optional
+			"derive"
+				mandatory
+					"prost-derive"
+				optional
+					"default"
+						mandatory
+							"std"
+		optional // Unused features
+			"no-recursion-limit"

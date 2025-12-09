@@ -1,0 +1,44 @@
+features
+	"clang-sys"
+		mandatory
+			"default"
+		optional
+			"clang_3_5"
+				mandatory
+					"clang_3_6"
+					"clang_3_7"
+					"clang_3_8"
+					"clang_3_9"
+				optional
+					"clang_4_0"
+						mandatory
+							"clang_5_0"
+							"clang_6_0"
+						alternative
+							"libloading"
+								mandatory
+									"runtime"
+							"clang_7_0"
+								optional
+									"clang_8_0"
+										mandatory
+											"clang_9_0"
+										optional
+											"clang_10_0"
+												mandatory
+													"clang_11_0"
+												optional
+													"clang_12_0"
+														mandatory
+															"clang_13_0"
+															"clang_14_0"
+															"clang_15_0"
+															"clang_16_0"
+															"clang_17_0"
+															"clang_18_0"
+		optional // Unused features
+			"libcpp"
+			"static"
+constraints
+	"clang_12_0" => !"libloading"
+	"libloading" => !"clang_12_0"

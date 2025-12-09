@@ -1,0 +1,9 @@
+features
+    "bit-set"
+        optional
+            "std"
+                optional
+                    "default"
+            "serde"
+constraints
+    "default" => "bit-set"

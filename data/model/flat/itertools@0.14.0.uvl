@@ -1,0 +1,10 @@
+features
+    "itertools"
+        optional
+            "use_std"
+                optional
+                    "default"
+            "use_alloc"
+constraints
+    "default" => "itertools"
+    "use_std" => "use_alloc"

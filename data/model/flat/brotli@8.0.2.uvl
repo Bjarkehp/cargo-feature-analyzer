@@ -1,0 +1,28 @@
+features
+    "brotli"
+        optional
+            "sha2"
+                optional
+                    "validation"
+            "alloc-stdlib"
+                optional
+                    "std"
+                        optional
+                            "default"
+            "vector_scratch_space"
+            "simd"
+            "seccomp"
+            "pass-through-ffi-panics"
+            "no-stdlib-ffi-binding"
+            "floating_point_context_mixing"
+            "float64"
+            "ffi-api"
+            "external-literal-probability"
+            "disallow_large_window_size"
+            "disable-timer"
+            "billing"
+            "benchmark"
+constraints
+    "default" => "brotli"
+    "validation" => "brotli"
+    "std" => "brotli"

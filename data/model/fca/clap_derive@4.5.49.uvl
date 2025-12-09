@@ -1,0 +1,12 @@
+features
+	"clap_derive"
+		mandatory
+			"default"
+		optional // Unused features
+			"anstyle"
+			"debug"
+			"deprecated"
+			"pulldown-cmark"
+			"raw-deprecated"
+			"unstable-markdown"
+			"unstable-v5"

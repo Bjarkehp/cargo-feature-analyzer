@@ -1,0 +1,12 @@
+features
+	"libm"
+		optional
+			"arch"
+				mandatory
+					"default"
+		optional // Unused features
+			"force-soft-floats"
+			"unstable"
+			"unstable-float"
+			"unstable-intrinsics"
+			"unstable-public-internals"

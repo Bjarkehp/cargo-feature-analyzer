@@ -1,0 +1,5 @@
+features
+    "rand_xorshift"
+        optional
+            "default"
+            "serde"

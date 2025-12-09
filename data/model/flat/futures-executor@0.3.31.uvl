@@ -1,0 +1,12 @@
+features
+    "futures-executor"
+        optional
+            "num_cpus"
+                optional
+                    "thread-pool"
+            "std"
+                optional
+                    "default"
+constraints
+    "thread-pool" => "futures-executor" & "std"
+    "default" => "futures-executor"

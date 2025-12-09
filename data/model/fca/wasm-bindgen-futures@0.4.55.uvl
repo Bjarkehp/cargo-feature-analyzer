@@ -1,0 +1,8 @@
+features
+	"default"
+		mandatory
+			"std"
+			"wasm-bindgen-futures"
+		optional // Unused features
+			"futures-core"
+			"futures-core-03-stream"

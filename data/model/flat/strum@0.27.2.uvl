@@ -1,0 +1,13 @@
+features
+    "strum"
+        optional
+            "strum_macros"
+                optional
+                    "derive"
+            "phf"
+            "std"
+                optional
+                    "default"
+constraints
+    "derive" => "strum"
+    "default" => "strum"

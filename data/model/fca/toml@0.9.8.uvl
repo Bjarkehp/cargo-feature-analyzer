@@ -1,0 +1,28 @@
+features
+	"parse"
+		mandatory
+			"serde"
+			"serde_core"
+			"toml"
+			"toml_parser"
+			"winnow"
+		optional
+			"std"
+				optional
+					"default"
+						mandatory
+							"display"
+							"toml_writer"
+						optional
+							"indexmap"
+								mandatory
+									"preserve_order"
+								optional
+									"fast_hash"
+										mandatory
+											"foldhash"
+		optional // Unused features
+			"anstream"
+			"anstyle"
+			"debug"
+			"unbounded"

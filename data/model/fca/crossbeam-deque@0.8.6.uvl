@@ -1,0 +1,6 @@
+features
+	"crossbeam-deque"
+		optional
+			"default"
+				mandatory
+					"std"

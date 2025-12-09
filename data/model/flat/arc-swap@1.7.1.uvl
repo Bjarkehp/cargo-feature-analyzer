@@ -1,0 +1,9 @@
+features
+    "arc-swap"
+        optional
+            "default"
+            "serde"
+            "weak"
+            "internal-test-strategies"
+            "experimental-thread-local"
+            "experimental-strategies"

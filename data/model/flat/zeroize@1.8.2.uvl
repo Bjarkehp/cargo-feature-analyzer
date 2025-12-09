@@ -1,0 +1,16 @@
+features
+    "zeroize"
+        optional
+            "zeroize_derive"
+                optional
+                    "derive"
+            "serde"
+            "std"
+            "simd"
+            "default"
+            "alloc"
+            "aarch64"
+constraints
+    "derive" => "zeroize"
+    "std" => "alloc"
+    "default" => "alloc"

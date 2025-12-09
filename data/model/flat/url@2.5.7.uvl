@@ -9,5 +9,5 @@ features
             "expose_internals"
             "debugger_visualizer"
 constraints
-    "default" => "url"
     "std" => "url"
+    "default" => "url"

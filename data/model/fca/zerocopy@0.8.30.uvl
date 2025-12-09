@@ -1,0 +1,19 @@
+features
+	"zerocopy"
+		optional
+			"alloc"
+				optional
+					"std"
+			"zerocopy-derive"
+				optional
+					"derive"
+						optional
+							"simd"
+			"default"
+		optional // Unused features
+			"__internal_use_only_features_that_work_on_stable"
+			"float-nightly"
+			"simd-nightly"
+constraints
+	"simd" => !"std" & "default"
+	"std" => !"simd"

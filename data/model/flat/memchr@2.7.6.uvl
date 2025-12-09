@@ -1,0 +1,21 @@
+features
+    "memchr"
+        optional
+            "log"
+                optional
+                    "logging"
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "use_std"
+            "std"
+                optional
+                    "default"
+            "libc"
+            "alloc"
+constraints
+    "rustc-dep-of-std" => "memchr"
+    "logging" => "memchr"
+    "use_std" => "std"
+    "default" => "memchr"
+    "std" => "alloc"

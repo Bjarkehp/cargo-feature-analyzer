@@ -1,0 +1,13 @@
+features
+    "os_str_bytes"
+        optional
+            "memchr"
+                optional
+                    "default"
+            "raw_os_str"
+            "conversions"
+                optional
+                    "checked_conversions"
+constraints
+    "checked_conversions" => "os_str_bytes"
+    "default" => "raw_os_str" & "os_str_bytes"

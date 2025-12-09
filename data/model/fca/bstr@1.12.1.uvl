@@ -1,0 +1,14 @@
+features
+	"bstr"
+		optional
+			"alloc"
+				mandatory
+					"std"
+				optional
+					"regex-automata"
+						mandatory
+							"unicode"
+						optional
+							"default"
+								optional
+									"serde"

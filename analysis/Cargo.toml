@@ -9,6 +9,7 @@ cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
 chrono = "0.4.42"
 clap = { version = "4.5.51", features = ["derive"] }
 configuration-scraper = { version = "0.1.0", path = "../configuration-scraper" }
+crate-scraper = { version = "0.1.0", path = "../crate-scraper" }
 fm-synthesizer-fca = { version = "1.0.1", path = "../fm-synthesizer-fca" }
 fm-synthesizer-flat = { version = "0.1.0", path = "../fm-synthesizer-flat" }
 itertools = "0.14.0"

@@ -1,0 +1,20 @@
+features
+	"OSX_10_12"
+		mandatory
+			"security-framework"
+		alternative
+			"OSX_10_13"
+				mandatory
+					"OSX_10_14"
+					"OSX_10_15"
+					"alpn"
+					"session-tickets"
+			"default"
+		optional // Unused features
+			"job-bless"
+			"log"
+			"nightly"
+			"sync-keychain"
+constraints
+	"OSX_10_13" => !"default"
+	"default" => !"OSX_10_13"

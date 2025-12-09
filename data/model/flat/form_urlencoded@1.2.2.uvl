@@ -1,0 +1,10 @@
+features
+    "form_urlencoded"
+        optional
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "default" => "form_urlencoded"
+    "std" => "alloc"

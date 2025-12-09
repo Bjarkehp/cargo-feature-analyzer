@@ -1,0 +1,38 @@
+features
+    "icu_provider"
+        optional
+            "default"
+            "writeable"
+                optional
+                    "baked"
+                    "alloc"
+                        optional
+                            "std"
+                                optional
+                                    "export"
+                                    "deserialize_bincode_1"
+            "stable_deref_trait"
+            "serde_json"
+                optional
+                    "deserialize_json"
+            "postcard"
+                optional
+                    "deserialize_postcard_1"
+            "log"
+                optional
+                    "logging"
+            "erased-serde"
+            "databake"
+            "bincode"
+            "zerotrie"
+            "sync"
+            "serde"
+constraints
+    "baked" => "zerotrie" & "icu_provider"
+    "std" => "icu_provider"
+    "alloc" => "stable_deref_trait" & "icu_provider"
+    "export" => "postcard" & "erased-serde" & "databake" & "sync" & "serde" & "icu_provider"
+    "deserialize_postcard_1" => "serde" & "icu_provider"
+    "deserialize_json" => "serde" & "icu_provider"
+    "logging" => "icu_provider"
+    "deserialize_bincode_1" => "bincode" & "serde" & "icu_provider"

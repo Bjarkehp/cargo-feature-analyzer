@@ -1,0 +1,12 @@
+features
+    "async-channel"
+        optional
+            "portable-atomic-util"
+                optional
+                    "portable-atomic"
+            "std"
+                optional
+                    "default"
+constraints
+    "portable-atomic" => "async-channel"
+    "default" => "async-channel"

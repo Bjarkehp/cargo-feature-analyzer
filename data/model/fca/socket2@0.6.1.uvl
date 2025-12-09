@@ -1,0 +1,6 @@
+features
+	"default"
+		mandatory
+			"socket2"
+		optional
+			"all"

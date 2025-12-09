@@ -1,0 +1,9 @@
+features
+	"tracing-core"
+		optional
+			"default"
+				mandatory
+					"once_cell"
+					"std"
+		optional // Unused features
+			"valuable"

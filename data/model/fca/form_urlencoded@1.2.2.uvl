@@ -1,0 +1,7 @@
+features
+	"form_urlencoded"
+		optional
+			"alloc"
+				mandatory
+					"default"
+					"std"

@@ -1,0 +1,9 @@
+features
+	"crossbeam-utils"
+		optional
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"loom"
+			"nightly"

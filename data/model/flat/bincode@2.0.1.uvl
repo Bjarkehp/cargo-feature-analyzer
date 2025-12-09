@@ -1,0 +1,15 @@
+features
+    "bincode"
+        optional
+            "serde"
+            "bincode_derive"
+                optional
+                    "derive"
+                        optional
+                            "default"
+            "std"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "derive" => "bincode"
+    "default" => "std" & "bincode"

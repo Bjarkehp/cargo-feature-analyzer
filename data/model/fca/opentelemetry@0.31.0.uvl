@@ -1,0 +1,22 @@
+features
+	"opentelemetry"
+		optional
+			"metrics"
+				optional
+					"default"
+						mandatory
+							"internal-logs"
+							"logs"
+							"tracing"
+			"futures"
+				mandatory
+					"futures-core"
+					"futures-sink"
+					"pin-project-lite"
+					"thiserror"
+					"trace"
+		optional // Unused features
+			"spec_unstable_logs_enabled"
+			"testing"
+constraints
+	"default" => "futures" & "futures-core" & "futures-sink" & "pin-project-lite" & "thiserror" & "trace"

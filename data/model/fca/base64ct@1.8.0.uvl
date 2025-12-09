@@ -1,0 +1,7 @@
+features
+	"base64ct"
+		optional
+			"alloc"
+				optional
+					"std"
+			"default"

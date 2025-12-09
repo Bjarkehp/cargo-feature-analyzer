@@ -1,0 +1,16 @@
+features
+    "anstream"
+        optional
+            "anstyle-wincon"
+                optional
+                    "wincon"
+                        optional
+                            "default"
+            "anstyle-query"
+                optional
+                    "auto"
+            "test"
+constraints
+    "auto" => "anstream"
+    "default" => "auto" & "anstream"
+    "wincon" => "anstream"

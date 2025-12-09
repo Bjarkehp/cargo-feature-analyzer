@@ -1,0 +1,9 @@
+features
+    "semver"
+        optional
+            "std"
+                optional
+                    "default"
+            "serde"
+constraints
+    "default" => "semver"

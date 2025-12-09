@@ -1,0 +1,29 @@
+features
+    "rand"
+        optional
+            "getrandom"
+                optional
+                    "os_rng"
+                        optional
+                            "thread_rng"
+                                optional
+                                    "default"
+            "chacha20"
+                optional
+                    "std_rng"
+                    "chacha"
+            "unbiased"
+            "std"
+            "small_rng"
+            "simd_support"
+            "serde"
+            "nightly"
+            "log"
+            "alloc"
+constraints
+    "default" => "os_rng" & "std_rng" & "std" & "small_rng" & "rand"
+    "std_rng" => "rand"
+    "thread_rng" => "std_rng" & "rand" & "std"
+    "os_rng" => "rand"
+    "chacha" => "rand"
+    "std" => "alloc"

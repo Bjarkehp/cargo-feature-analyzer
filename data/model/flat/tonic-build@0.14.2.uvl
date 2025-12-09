@@ -1,0 +1,8 @@
+features
+    "tonic-build"
+        optional
+            "transport"
+                optional
+                    "default"
+constraints
+    "default" => "tonic-build"

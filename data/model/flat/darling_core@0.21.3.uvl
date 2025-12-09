@@ -1,0 +1,11 @@
+features
+    "darling_core"
+        optional
+            "default"
+            "strsim"
+                optional
+                    "suggestions"
+            "serde"
+            "diagnostics"
+constraints
+    "suggestions" => "darling_core"

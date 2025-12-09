@@ -45,7 +45,7 @@ BEGIN;
     -- Import the CSV data.
 
     -- \copy "categories" ("category", "crates_cnt", "created_at", "description", "id", "path", "slug") FROM 'data/categories.csv' WITH CSV HEADER
-    -- \copy "crate_downloads" ("crate_id", "downloads") FROM 'data/crate_downloads.csv' WITH CSV HEADER
+    \copy "crate_downloads" ("crate_id", "downloads") FROM 'data/crate_downloads.csv' WITH CSV HEADER
     \copy "crates" ("created_at", "description", "documentation", "homepage", "id", "max_features", "max_upload_size", "name", "readme", "repository", "trustpub_only", "updated_at") FROM 'data/crates.csv' WITH CSV HEADER
     -- \copy "keywords" ("crates_cnt", "created_at", "id", "keyword") FROM 'data/keywords.csv' WITH CSV HEADER
     -- \copy "metadata" ("total_downloads") FROM 'data/metadata.csv' WITH CSV HEADER

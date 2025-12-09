@@ -1,0 +1,10 @@
+features
+    "base64"
+        optional
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "base64"

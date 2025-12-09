@@ -1,0 +1,10 @@
+features
+    "proc-macro2"
+        optional
+            "span-locations"
+            "proc-macro"
+                optional
+                    "default"
+            "nightly"
+constraints
+    "default" => "proc-macro2"

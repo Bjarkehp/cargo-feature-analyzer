@@ -1,0 +1,5 @@
+features
+    "wasm-bindgen-macro"
+        optional
+            "default"
+            "strict-macro"

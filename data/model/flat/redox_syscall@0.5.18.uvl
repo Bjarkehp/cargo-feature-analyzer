@@ -1,0 +1,13 @@
+features
+    "redox_syscall"
+        optional
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "userspace"
+                optional
+                    "default"
+            "std"
+constraints
+    "rustc-dep-of-std" => "redox_syscall"
+    "default" => "redox_syscall"

@@ -1,0 +1,9 @@
+features
+	"idna"
+		optional
+			"compiled_data"
+				optional
+					"alloc"
+						mandatory
+							"default"
+							"std"

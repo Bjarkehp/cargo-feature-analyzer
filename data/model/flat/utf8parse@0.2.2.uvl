@@ -1,0 +1,5 @@
+features
+    "utf8parse"
+        optional
+            "nightly"
+            "default"

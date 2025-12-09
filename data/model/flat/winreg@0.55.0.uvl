@@ -1,0 +1,11 @@
+features
+    "winreg"
+        optional
+            "default"
+            "serde"
+                optional
+                    "serialization-serde"
+            "chrono"
+            "transactions"
+constraints
+    "serialization-serde" => "transactions" & "winreg"

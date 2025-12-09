@@ -1,0 +1,8 @@
+features
+    "mime_guess"
+        optional
+            "rev-mappings"
+                optional
+                    "default"
+constraints
+    "default" => "mime_guess"

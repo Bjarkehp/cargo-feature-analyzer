@@ -1,0 +1,8 @@
+features
+    "crossbeam-channel"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "crossbeam-channel"

@@ -1,0 +1,10 @@
+features
+    "sha2"
+        optional
+            "zeroize"
+            "oid"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "default" => "sha2" & "alloc"

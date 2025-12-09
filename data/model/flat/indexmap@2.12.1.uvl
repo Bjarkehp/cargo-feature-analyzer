@@ -1,0 +1,18 @@
+features
+    "indexmap"
+        optional
+            "sval"
+            "serde_core"
+                optional
+                    "serde"
+            "rayon"
+            "quickcheck"
+            "borsh"
+            "arbitrary"
+            "test_debug"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "indexmap"
+    "serde" => "indexmap"

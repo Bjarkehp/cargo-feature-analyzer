@@ -1,0 +1,8 @@
+features
+    "httparse"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "httparse"

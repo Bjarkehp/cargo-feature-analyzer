@@ -1,0 +1,12 @@
+features
+	"mio"
+		optional
+			"os-poll"
+				or
+					"os-ext"
+					"net"
+			"log"
+				optional
+					"default"
+constraints
+	"net" => "log"

@@ -1,0 +1,19 @@
+features
+	"default"
+		mandatory
+			"display"
+			"parse"
+			"toml_edit"
+			"toml_parser"
+			"toml_writer"
+			"winnow"
+		optional
+			"serde"
+				mandatory
+					"serde_core"
+					"serde_spanned"
+		optional // Unused features
+			"anstream"
+			"anstyle"
+			"debug"
+			"unbounded"

@@ -1,0 +1,13 @@
+features
+    "unicode-width"
+        optional
+            "std"
+                optional
+                    "rustc-dep-of-std"
+            "core"
+            "no_std"
+            "default"
+            "cjk"
+constraints
+    "rustc-dep-of-std" => "core" & "unicode-width"
+    "default" => "cjk"

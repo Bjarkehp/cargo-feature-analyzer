@@ -1,0 +1,6 @@
+features
+	"csv-core"
+		mandatory
+			"default"
+		optional // Unused features
+			"libc"

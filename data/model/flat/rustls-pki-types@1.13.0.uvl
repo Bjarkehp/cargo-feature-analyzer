@@ -1,0 +1,17 @@
+features
+    "rustls-pki-types"
+        optional
+            "web-time"
+                optional
+                    "web"
+            "zeroize"
+                optional
+                    "alloc"
+                        optional
+                            "std"
+                            "default"
+constraints
+    "default" => "rustls-pki-types"
+    "web" => "rustls-pki-types"
+    "std" => "rustls-pki-types"
+    "alloc" => "rustls-pki-types"

@@ -1,0 +1,6 @@
+features
+    "memoffset"
+        optional
+            "unstable_offset_of"
+            "unstable_const"
+            "default"

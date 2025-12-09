@@ -1,0 +1,13 @@
+features
+    "prost"
+        optional
+            "prost-derive"
+                optional
+                    "derive"
+                        optional
+                            "default"
+            "std"
+            "no-recursion-limit"
+constraints
+    "default" => "std" & "prost"
+    "derive" => "prost"

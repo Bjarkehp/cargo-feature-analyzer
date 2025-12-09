@@ -1,0 +1,18 @@
+features
+    "futures-lite"
+        optional
+            "parking"
+                optional
+                    "std"
+                        optional
+                            "default"
+            "memchr"
+            "futures-io"
+            "fastrand"
+                optional
+                    "race"
+            "alloc"
+constraints
+    "std" => "futures-io" & "fastrand" & "futures-lite" & "alloc"
+    "default" => "race" & "futures-lite"
+    "race" => "futures-lite"

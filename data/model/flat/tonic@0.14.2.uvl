@@ -1,0 +1,56 @@
+features
+    "tonic"
+        optional
+            "webpki-roots"
+                optional
+                    "tls-webpki-roots"
+            "tower"
+                optional
+                    "server"
+                        optional
+                            "transport"
+                                optional
+                                    "default"
+                    "router"
+                    "channel"
+                        optional
+                            "tls-native-roots"
+            "tokio-rustls"
+                optional
+                    "tls-ring"
+                    "tls-connect-info"
+                        optional
+                            "_tls-any"
+                                optional
+                                    "tls-aws-lc"
+            "tokio"
+            "socket2"
+            "rustls-native-certs"
+            "hyper-util"
+            "hyper-timeout"
+            "hyper"
+            "h2"
+            "flate2"
+                optional
+                    "gzip"
+                    "deflate"
+            "axum"
+            "async-trait"
+                optional
+                    "codegen"
+            "zstd"
+constraints
+    "codegen" => "tonic"
+    "tls-webpki-roots" => "channel" & "_tls-any" & "tonic"
+    "tls-native-roots" => "_tls-any" & "rustls-native-certs" & "tonic"
+    "server" => "tokio" & "socket2" & "hyper-util" & "hyper" & "h2" & "tonic"
+    "tls-aws-lc" => "tokio-rustls" & "tonic"
+    "tls-ring" => "_tls-any" & "tonic"
+    "transport" => "channel" & "tonic"
+    "gzip" => "tonic"
+    "default" => "router" & "codegen" & "tonic"
+    "channel" => "tokio" & "hyper-util" & "hyper-timeout" & "hyper" & "tonic"
+    "tls-connect-info" => "tonic"
+    "_tls-any" => "tokio" & "tonic"
+    "deflate" => "tonic"
+    "router" => "axum" & "tonic"

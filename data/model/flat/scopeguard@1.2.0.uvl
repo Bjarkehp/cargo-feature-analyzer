@@ -1,0 +1,8 @@
+features
+    "scopeguard"
+        optional
+            "use_std"
+                optional
+                    "default"
+constraints
+    "default" => "scopeguard"

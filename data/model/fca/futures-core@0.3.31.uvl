@@ -1,0 +1,12 @@
+features
+	"futures-core"
+		optional
+			"alloc"
+				optional
+					"default"
+						mandatory
+							"std"
+		optional // Unused features
+			"cfg-target-has-atomic"
+			"portable-atomic"
+			"unstable"

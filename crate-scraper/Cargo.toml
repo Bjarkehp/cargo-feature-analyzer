@@ -1,0 +1,20 @@
+[package]
+name = "crate-scraper"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "crate_scraper"
+path = "src/lib.rs"
+
+[[bin]]
+name = "crate_scraper_bin"
+path = "src/main.rs"
+
+[dependencies]
+postgres = { version = "0.19" }
+clap = { version = "4", features = ["derive"] }
+itertools = "0.14"
+cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
+thiserror = "2.0.17"
+semver = "1"

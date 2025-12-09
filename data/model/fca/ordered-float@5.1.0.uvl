@@ -1,0 +1,29 @@
+features
+	"ordered-float"
+		optional
+			"serde"
+				optional
+					"arbitrary"
+					"rand"
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"borsh"
+			"bytemuck"
+			"derive-visitor"
+			"libm"
+			"num-cmp"
+			"proptest"
+			"randtest"
+			"rkyv"
+			"rkyv_16"
+			"rkyv_32"
+			"rkyv_64"
+			"rkyv_ck"
+			"schemars"
+			"speedy"
+constraints
+	"arbitrary" => !"default" & !"rand"
+	"default" => !"arbitrary" & !"rand"
+	"rand" => !"arbitrary" & !"default"

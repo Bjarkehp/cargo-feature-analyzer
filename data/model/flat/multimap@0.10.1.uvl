@@ -1,0 +1,11 @@
+features
+    "multimap"
+        optional
+            "serde"
+                optional
+                    "serde_impl"
+                        optional
+                            "default"
+constraints
+    "serde_impl" => "multimap"
+    "default" => "multimap"

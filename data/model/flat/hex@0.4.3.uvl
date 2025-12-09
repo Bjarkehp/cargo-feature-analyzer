@@ -1,0 +1,11 @@
+features
+    "hex"
+        optional
+            "serde"
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "hex"

@@ -1,0 +1,34 @@
+features
+    "tungstenite"
+        optional
+            "webpki-roots"
+                optional
+                    "rustls-tls-webpki-roots"
+            "sha1"
+                optional
+                    "handshake"
+                        optional
+                            "default"
+            "rustls-pki-types"
+                optional
+                    "__rustls-tls"
+                        optional
+                            "rustls-tls-native-roots"
+            "rustls-native-certs"
+            "rustls"
+            "native-tls-crate"
+                optional
+                    "native-tls-vendored"
+                    "native-tls"
+            "httparse"
+            "http"
+            "data-encoding"
+            "url"
+constraints
+    "rustls-tls-native-roots" => "rustls-native-certs" & "tungstenite"
+    "handshake" => "httparse" & "http" & "data-encoding" & "tungstenite"
+    "__rustls-tls" => "rustls" & "tungstenite"
+    "default" => "tungstenite"
+    "rustls-tls-webpki-roots" => "__rustls-tls" & "tungstenite"
+    "native-tls-vendored" => "native-tls" & "tungstenite"
+    "native-tls" => "tungstenite"

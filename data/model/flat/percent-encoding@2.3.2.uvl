@@ -1,0 +1,10 @@
+features
+    "percent-encoding"
+        optional
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "default" => "percent-encoding"
+    "std" => "alloc"

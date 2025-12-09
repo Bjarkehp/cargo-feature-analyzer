@@ -1,11 +1,12 @@
 features
 	"serde_json"
-		alternative
+		optional
 			"alloc"
 			"default"
 				mandatory
 					"std"
 				optional
+					"unbounded_depth"
 					"indexmap"
 						mandatory
 							"preserve_order"
@@ -13,7 +14,7 @@ features
 			"arbitrary_precision"
 			"float_roundtrip"
 			"raw_value"
-			"unbounded_depth"
 constraints
-	"alloc" => !"indexmap"
-	"indexmap" => !"alloc"
+	"alloc" => !"indexmap" & !"unbounded_depth"
+	"indexmap" => !"alloc" & !"unbounded_depth"
+	"unbounded_depth" => !"alloc" & !"indexmap"

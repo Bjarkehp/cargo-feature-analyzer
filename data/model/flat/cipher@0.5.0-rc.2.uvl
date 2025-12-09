@@ -1,0 +1,18 @@
+features
+    "cipher"
+        optional
+            "default"
+            "block-buffer"
+                optional
+                    "stream-wrapper"
+            "blobby"
+                optional
+                    "dev"
+            "zeroize"
+            "rand_core"
+            "getrandom"
+            "block-padding"
+            "alloc"
+constraints
+    "dev" => "cipher"
+    "stream-wrapper" => "cipher"

@@ -1,0 +1,12 @@
+features
+    "tracing-core"
+        optional
+            "valuable"
+            "once_cell"
+                optional
+                    "std"
+                        optional
+                            "default"
+constraints
+    "default" => "tracing-core"
+    "std" => "tracing-core"

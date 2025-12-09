@@ -1,0 +1,9 @@
+features
+	"cc"
+		optional
+			"default"
+				optional
+					"jobserver"
+						mandatory
+							"libc"
+							"parallel"

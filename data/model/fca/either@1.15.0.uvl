@@ -1,0 +1,10 @@
+features
+	"either"
+		optional
+			"default"
+				mandatory
+					"std"
+				optional
+					"serde"
+		optional // Unused features
+			"use_std"

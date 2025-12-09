@@ -1,0 +1,9 @@
+features
+	"adler"
+		mandatory
+			"default"
+			"std"
+		optional // Unused features
+			"compiler_builtins"
+			"core"
+			"rustc-dep-of-std"

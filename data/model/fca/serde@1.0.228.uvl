@@ -1,17 +1,17 @@
 features
 	"serde"
-		optional
+		or
 			"derive"
 				mandatory
 					"serde_derive"
 				optional
-					"rc"
 					"alloc"
+					"rc"
 			"default"
 				mandatory
 					"std"
 		optional // Unused features
 			"unstable"
 constraints
-	"alloc" => !"default"
-	"default" => !"alloc"
+	"alloc" => !"rc"
+	"rc" => !"alloc" & "default" & "std"

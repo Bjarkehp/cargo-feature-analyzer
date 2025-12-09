@@ -1,0 +1,60 @@
+features
+    "object"
+        optional
+            "wasmparser"
+                optional
+                    "wasm"
+                        optional
+                            "doc"
+                            "all"
+                                optional
+                                    "unstable-all"
+            "ruzstd"
+                optional
+                    "compression"
+                        optional
+                            "default"
+            "indexmap"
+                optional
+                    "write_core"
+                        optional
+                            "write_std"
+                                optional
+                                    "write"
+                                    "build"
+                            "build_core"
+            "hashbrown"
+            "flate2"
+            "crc32fast"
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "alloc"
+            "xcoff"
+                optional
+                    "read"
+            "unstable"
+            "unaligned"
+            "std"
+            "read_core"
+            "pe"
+            "macho"
+            "elf"
+            "coff"
+            "cargo-all"
+            "archive"
+constraints
+    "unstable-all" => "object" & "unstable"
+    "read" => "unaligned" & "read_core" & "object" & "pe" & "macho" & "elf" & "coff" & "archive"
+    "default" => "read" & "object"
+    "build_core" => "read_core" & "object"
+    "doc" => "compression" & "write_std" & "build_core" & "xcoff" & "std" & "read_core" & "pe" & "macho" & "elf" & "object" & "coff" & "archive"
+    "pe" => "coff"
+    "all" => "compression" & "write" & "build" & "read" & "std" & "object"
+    "write_core" => "hashbrown" & "crc32fast" & "object"
+    "compression" => "flate2" & "std" & "object"
+    "rustc-dep-of-std" => "alloc" & "object"
+    "write_std" => "object" & "std"
+    "wasm" => "object"
+    "write" => "xcoff" & "object" & "pe" & "macho" & "elf" & "coff"
+    "build" => "build_core" & "elf" & "object"

@@ -1,0 +1,8 @@
+features
+    "unicode-normalization"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "unicode-normalization"

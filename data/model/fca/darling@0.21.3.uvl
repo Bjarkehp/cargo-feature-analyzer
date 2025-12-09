@@ -1,0 +1,9 @@
+features
+	"darling"
+		optional
+			"default"
+				mandatory
+					"suggestions"
+		optional // Unused features
+			"diagnostics"
+			"serde"

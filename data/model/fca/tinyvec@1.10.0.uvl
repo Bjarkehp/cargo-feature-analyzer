@@ -1,0 +1,32 @@
+features
+	"tinyvec"
+		optional
+			"serde"
+			"rustc_1_57"
+				optional
+					"grab_spare_slice"
+					"rustc_1_61"
+					"std"
+			"default"
+				optional
+					"rustc_1_55"
+					"rustc_1_40"
+			"alloc"
+				mandatory
+					"tinyvec_macros"
+		optional // Unused features
+			"arbitrary"
+			"borsh"
+			"debugger_visualizer"
+			"experimental_write_impl"
+			"generic-array"
+			"latest_stable_rust"
+			"nightly_slice_partition_dedup"
+			"real_blackbox"
+constraints
+	"grab_spare_slice" => !"rustc_1_40" & !"rustc_1_55" & !"rustc_1_61" & !"serde" & !"std"
+	"rustc_1_40" => !"grab_spare_slice" & !"rustc_1_55" & !"rustc_1_61" & !"serde" & !"std" & "alloc" & "tinyvec_macros"
+	"rustc_1_55" => !"grab_spare_slice" & !"rustc_1_40" & !"rustc_1_61" & !"serde" & !"std"
+	"rustc_1_61" => !"grab_spare_slice" & !"rustc_1_40" & !"rustc_1_55" & !"serde" & !"std"
+	"serde" => !"grab_spare_slice" & !"rustc_1_40" & !"rustc_1_55" & !"rustc_1_61" & !"std"
+	"std" => !"grab_spare_slice" & !"rustc_1_40" & !"rustc_1_55" & !"rustc_1_61" & !"serde" & "alloc" & "default" & "tinyvec_macros"

@@ -1,0 +1,11 @@
+features
+    "proc-macro-error"
+        optional
+            "syn"
+                optional
+                    "syn-error"
+                        optional
+                            "default"
+constraints
+    "syn-error" => "proc-macro-error"
+    "default" => "proc-macro-error"

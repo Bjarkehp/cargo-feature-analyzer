@@ -1,0 +1,13 @@
+features
+	"libc"
+		optional
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"align"
+			"const-extern-fn"
+			"extra_traits"
+			"rustc-dep-of-std"
+			"rustc-std-workspace-core"
+			"use_std"

@@ -1,0 +1,10 @@
+features
+    "darling"
+        optional
+            "suggestions"
+                optional
+                    "default"
+            "serde"
+            "diagnostics"
+constraints
+    "default" => "darling"

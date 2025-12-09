@@ -1,0 +1,10 @@
+features
+	"default"
+		mandatory
+			"rustc-demangle"
+		optional
+			"std"
+		optional // Unused features
+			"compiler_builtins"
+			"core"
+			"rustc-dep-of-std"

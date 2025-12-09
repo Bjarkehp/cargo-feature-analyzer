@@ -1,0 +1,25 @@
+features
+	"zstd-sys"
+		optional
+			"no_wasm_shim"
+			"legacy"
+				mandatory
+					"zdict_builder"
+				optional
+					"default"
+						optional
+							"experimental"
+		optional // Unused features
+			"debug"
+			"fat-lto"
+			"no_asm"
+			"non-cargo"
+			"pkg-config"
+			"seekable"
+			"std"
+			"thin"
+			"thin-lto"
+			"zstdmt"
+constraints
+	"experimental" => !"no_wasm_shim"
+	"no_wasm_shim" => !"experimental"

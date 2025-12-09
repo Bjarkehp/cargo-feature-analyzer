@@ -1,0 +1,10 @@
+features
+    "cc"
+        optional
+            "default"
+            "libc"
+                optional
+                    "parallel"
+            "jobserver"
+constraints
+    "parallel" => "cc" & "jobserver"

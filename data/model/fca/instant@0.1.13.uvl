@@ -1,0 +1,15 @@
+features
+	"default"
+		mandatory
+			"instant"
+		optional
+			"js-sys"
+				mandatory
+					"wasm-bindgen"
+					"wasm-bindgen_rs"
+					"web-sys"
+				optional
+					"inaccurate"
+		optional // Unused features
+			"now"
+			"stdweb"

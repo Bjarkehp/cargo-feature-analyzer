@@ -1,0 +1,10 @@
+features
+    "stable_deref_trait"
+        optional
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "default" => "stable_deref_trait"
+    "std" => "alloc"

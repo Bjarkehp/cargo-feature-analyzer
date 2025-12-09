@@ -1,0 +1,23 @@
+features
+	"zstd"
+		optional
+			"zstdmt"
+				optional
+					"experimental"
+			"arrays"
+				mandatory
+					"default"
+					"legacy"
+					"zdict_builder"
+		optional // Unused features
+			"bindgen"
+			"debug"
+			"doc-cfg"
+			"fat-lto"
+			"no_asm"
+			"pkg-config"
+			"thin"
+			"thin-lto"
+			"wasm"
+constraints
+	"experimental" => "arrays" & "default" & "legacy" & "zdict_builder"

@@ -1,0 +1,10 @@
+features
+    "num-complex"
+        optional
+            "serde"
+            "rustc-serialize"
+                optional
+                    "default"
+            "unstable"
+constraints
+    "default" => "num-complex"

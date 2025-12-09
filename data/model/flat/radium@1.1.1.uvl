@@ -1,0 +1,8 @@
+features
+    "radium"
+        optional
+            "default"
+            "portable-atomic-fallback"
+            "portable-atomic"
+constraints
+    "portable-atomic-fallback" => "portable-atomic"

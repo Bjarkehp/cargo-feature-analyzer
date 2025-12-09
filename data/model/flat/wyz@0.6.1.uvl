@@ -1,0 +1,11 @@
+features
+    "wyz"
+        optional
+            "once_cell"
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "default" => "wyz"
+    "std" => "alloc"

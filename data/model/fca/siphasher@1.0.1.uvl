@@ -1,0 +1,12 @@
+features
+	"siphasher"
+		optional
+			"default"
+				mandatory
+					"std"
+				optional
+					"serde"
+		optional // Unused features
+			"serde_json"
+			"serde_no_std"
+			"serde_std"

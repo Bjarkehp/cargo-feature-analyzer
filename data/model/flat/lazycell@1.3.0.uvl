@@ -1,0 +1,11 @@
+features
+    "lazycell"
+        optional
+            "default"
+            "serde"
+            "clippy"
+                optional
+                    "nightly-testing"
+            "nightly"
+constraints
+    "nightly-testing" => "lazycell" & "nightly"

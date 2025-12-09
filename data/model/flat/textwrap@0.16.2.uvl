@@ -1,0 +1,12 @@
+features
+    "textwrap"
+        optional
+            "unicode-width"
+                optional
+                    "default"
+            "unicode-linebreak"
+            "terminal_size"
+            "smawk"
+            "hyphenation"
+constraints
+    "default" => "unicode-linebreak" & "smawk" & "textwrap"

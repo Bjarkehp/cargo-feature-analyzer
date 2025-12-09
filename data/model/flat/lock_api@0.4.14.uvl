@@ -1,0 +1,11 @@
+features
+    "lock_api"
+        optional
+            "serde"
+            "owning_ref"
+            "nightly"
+            "default"
+            "atomic_usize"
+            "arc_lock"
+constraints
+    "default" => "atomic_usize"

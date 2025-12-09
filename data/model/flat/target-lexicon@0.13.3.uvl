@@ -1,0 +1,12 @@
+features
+    "target-lexicon"
+        optional
+            "serde"
+                optional
+                    "serde_support"
+            "std"
+            "default"
+            "arch_zkasm"
+            "arch_z80"
+constraints
+    "serde_support" => "std" & "target-lexicon"

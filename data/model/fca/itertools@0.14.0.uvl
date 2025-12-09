@@ -1,0 +1,8 @@
+features
+	"itertools"
+		optional
+			"use_alloc"
+				optional
+					"default"
+						mandatory
+							"use_std"

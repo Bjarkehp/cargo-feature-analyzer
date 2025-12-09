@@ -10,14 +10,14 @@ pub use postgres;
 
 pub mod configuration;
 
-pub fn scrape<'a>(
+pub fn scrape(
     crate_name: &str, 
     crate_version: &Version, 
-    feature_dependencies: &'a feature_dependencies::Graph,
+    feature_dependencies: &feature_dependencies::Graph,
     client: &mut postgres::Client, 
     offset: i64, 
     limit: i64
-) -> Result<Vec<Configuration<'a>>, Error> {
+) -> Result<Vec<Configuration<'static>>, Error> {
     let features = feature_dependencies.nodes()
         .collect::<Vec<_>>();
 
@@ -37,12 +37,12 @@ pub fn scrape<'a>(
     Ok(configurations)
 }
 
-fn row_to_config<'a>(
+fn row_to_config(
     row: &Row, 
     crate_version: &Version,
-    features: &[&'a str],
+    features: &[&str],
     feature_dependencies: &feature_dependencies::Graph,
-) -> Option<Configuration<'a>> {
+) -> Option<Configuration<'static>> {
     let dependent_name: String = row.get("dependent_crate");
     let dependency_requirement_str: String = row.get("dependency_requirement");
     let dependency_requirement = VersionReq::parse(&dependency_requirement_str)
@@ -67,8 +67,8 @@ fn row_to_config<'a>(
         .map(|f| Cow::Owned(f.to_string()))
         .collect::<BTreeSet<Cow<str>>>();
     let features = features.iter()
-        .cloned()
-        .map(Cow::Borrowed)
+        .map(|&s| s.to_owned())
+        .map(Cow::Owned)
         .map(|s| {
             let is_enabled = enabled_features.contains(&s);
             (s, is_enabled)

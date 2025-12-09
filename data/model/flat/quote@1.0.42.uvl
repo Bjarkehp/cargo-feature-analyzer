@@ -1,0 +1,8 @@
+features
+    "quote"
+        optional
+            "proc-macro"
+                optional
+                    "default"
+constraints
+    "default" => "quote"

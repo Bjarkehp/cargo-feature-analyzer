@@ -1,0 +1,18 @@
+features
+    "ring"
+        optional
+            "wasm32_unknown_unknown_js"
+            "unstable-testing-arm-no-neon"
+            "unstable-testing-arm-no-hw"
+            "test_logging"
+            "std"
+            "slow_tests"
+            "less-safe-getrandom-espidf"
+            "less-safe-getrandom-custom-or-rdrand"
+            "dev_urandom_fallback"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "ring" & "alloc"

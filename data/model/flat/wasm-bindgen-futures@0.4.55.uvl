@@ -1,0 +1,12 @@
+features
+    "wasm-bindgen-futures"
+        optional
+            "futures-core"
+                optional
+                    "futures-core-03-stream"
+            "std"
+                optional
+                    "default"
+constraints
+    "futures-core-03-stream" => "wasm-bindgen-futures"
+    "default" => "wasm-bindgen-futures"

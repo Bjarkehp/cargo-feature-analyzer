@@ -1,0 +1,11 @@
+features
+    "parking_lot"
+        optional
+            "serde"
+            "send_guard"
+            "owning_ref"
+            "nightly"
+            "hardware-lock-elision"
+            "default"
+            "deadlock_detection"
+            "arc_lock"

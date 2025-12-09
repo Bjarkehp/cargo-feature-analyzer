@@ -1,0 +1,26 @@
+features
+    "bindgen"
+        optional
+            "prettyplease"
+                optional
+                    "default"
+            "log"
+                optional
+                    "logging"
+            "clap_complete"
+                optional
+                    "__cli"
+            "clap"
+            "annotate-snippets"
+                optional
+                    "experimental"
+            "static"
+            "runtime"
+            "__testing_only_libclang_9"
+            "__testing_only_libclang_16"
+            "__testing_only_extra_assertions"
+constraints
+    "logging" => "bindgen"
+    "__cli" => "clap" & "bindgen"
+    "experimental" => "bindgen"
+    "default" => "logging" & "runtime" & "bindgen"

@@ -1,0 +1,9 @@
+features
+	"bytes"
+		optional
+			"serde"
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"extra-platforms"

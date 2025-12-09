@@ -1,0 +1,11 @@
+features
+    "getrandom"
+        optional
+            "default"
+            "js-sys"
+                optional
+                    "wasm_js"
+            "wasm-bindgen"
+            "std"
+constraints
+    "wasm_js" => "wasm-bindgen" & "getrandom"

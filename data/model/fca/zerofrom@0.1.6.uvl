@@ -1,0 +1,9 @@
+features
+	"zerofrom"
+		optional
+			"derive"
+				mandatory
+					"zerofrom-derive"
+		optional // Unused features
+			"alloc"
+			"default"

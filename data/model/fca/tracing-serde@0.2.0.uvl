@@ -1,0 +1,8 @@
+features
+	"default"
+		mandatory
+			"tracing-serde"
+		optional // Unused features
+			"valuable"
+			"valuable-serde"
+			"valuable_crate"

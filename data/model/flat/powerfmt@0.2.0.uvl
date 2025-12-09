@@ -1,0 +1,14 @@
+features
+    "powerfmt"
+        optional
+            "powerfmt-macros"
+                optional
+                    "macros"
+                        optional
+                            "default"
+            "std"
+            "alloc"
+constraints
+    "default" => "std" & "powerfmt"
+    "macros" => "powerfmt"
+    "std" => "alloc"

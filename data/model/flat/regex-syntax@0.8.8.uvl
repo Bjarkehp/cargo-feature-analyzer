@@ -1,0 +1,19 @@
+features
+    "regex-syntax"
+        optional
+            "unicode-segment"
+                optional
+                    "unicode"
+                        optional
+                            "default"
+            "unicode-script"
+            "unicode-perl"
+            "unicode-gencat"
+            "unicode-case"
+            "unicode-bool"
+            "unicode-age"
+            "std"
+            "arbitrary"
+constraints
+    "default" => "std" & "regex-syntax"
+    "unicode" => "unicode-script" & "unicode-perl" & "unicode-gencat" & "unicode-case" & "unicode-bool" & "unicode-age" & "regex-syntax"

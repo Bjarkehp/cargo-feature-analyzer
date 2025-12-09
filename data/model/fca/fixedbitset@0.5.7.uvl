@@ -1,0 +1,8 @@
+features
+	"fixedbitset"
+		optional
+			"std"
+				optional
+					"default"
+		optional // Unused features
+			"serde"

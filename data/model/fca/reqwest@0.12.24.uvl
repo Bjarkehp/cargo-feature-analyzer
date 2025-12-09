@@ -1,0 +1,90 @@
+features
+	"reqwest"
+		optional
+			"futures-util"
+				or
+					"blocking"
+						mandatory
+							"futures-channel"
+					"mime_guess"
+						mandatory
+							"multipart"
+					"tokio-util"
+						or
+							"async-compression"
+								alternative
+									"brotli"
+										mandatory
+											"gzip"
+											"native-tls"
+											"native-tls-alpn"
+											"native-tls-vendored"
+											"socks"
+									"zstd"
+							"stream"
+								mandatory
+									"wasm-streams"
+			"__tls"
+				mandatory
+					"rustls-pki-types"
+				or
+					"h2"
+						mandatory
+							"http2"
+						or
+							"default-tls"
+								mandatory
+									"hyper-tls"
+									"native-tls-crate"
+									"tokio-native-tls"
+								optional
+									"default"
+							"charset"
+								mandatory
+									"encoding_rs"
+									"mime"
+									"system-proxy"
+					"__rustls"
+						mandatory
+							"__rustls-ring"
+							"hyper-rustls"
+							"rustls"
+							"tokio-rustls"
+						or
+							"rustls-native-certs"
+								mandatory
+									"rustls-tls-native-roots"
+									"rustls-tls-native-roots-no-provider"
+							"rustls-tls"
+								mandatory
+									"rustls-tls-webpki-roots"
+									"rustls-tls-webpki-roots-no-provider"
+									"webpki-roots"
+			"json"
+				mandatory
+					"serde_json"
+		optional // Unused features
+			"cookie_crate"
+			"cookie_store"
+			"cookies"
+			"deflate"
+			"h3"
+			"h3-quinn"
+			"hickory-dns"
+			"hickory-resolver"
+			"http3"
+			"macos-system-configuration"
+			"once_cell"
+			"quinn"
+			"rustls-tls-manual-roots"
+			"rustls-tls-manual-roots-no-provider"
+			"rustls-tls-no-provider"
+			"trust-dns"
+constraints
+	"async-compression" => "h2" & "http2"
+	"blocking" => !"brotli" & !"mime_guess" & !"rustls-native-certs" & "__tls" & "rustls-pki-types"
+	"brotli" => !"blocking" & !"default" & !"mime_guess" & !"rustls-native-certs" & !"zstd" & "default-tls" & "hyper-tls" & "native-tls-crate" & "stream" & "tokio-native-tls" & "wasm-streams"
+	"default" => !"brotli" & !"rustls-native-certs" & !"zstd" & "charset" & "encoding_rs" & "mime" & "system-proxy"
+	"mime_guess" => !"blocking" & !"brotli" & !"zstd" & "json" & "serde_json"
+	"rustls-native-certs" => !"blocking" & !"brotli" & !"default" & !"zstd" & "json" & "serde_json"
+	"zstd" => !"brotli" & !"default" & !"mime_guess" & !"rustls-native-certs" & "json" & "rustls-tls" & "rustls-tls-webpki-roots" & "rustls-tls-webpki-roots-no-provider" & "serde_json" & "webpki-roots"

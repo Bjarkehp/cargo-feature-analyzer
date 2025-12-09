@@ -1,0 +1,8 @@
+features
+    "fnv"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "fnv"

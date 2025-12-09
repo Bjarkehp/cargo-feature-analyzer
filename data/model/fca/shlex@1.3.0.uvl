@@ -1,0 +1,6 @@
+features
+	"shlex"
+		optional
+			"std"
+				optional
+					"default"

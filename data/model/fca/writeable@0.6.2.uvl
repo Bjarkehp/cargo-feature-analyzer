@@ -1,0 +1,8 @@
+features
+	"writeable"
+		optional
+			"alloc"
+				mandatory
+					"default"
+		optional // Unused features
+			"either"

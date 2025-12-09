@@ -1,0 +1,6 @@
+features
+	"fnv"
+		optional
+			"default"
+				mandatory
+					"std"

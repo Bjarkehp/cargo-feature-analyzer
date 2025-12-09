@@ -1,0 +1,8 @@
+features
+	"default"
+		mandatory
+			"pem"
+			"std"
+		optional // Unused features
+			"serde"
+			"serde_core"

@@ -1,0 +1,27 @@
+features
+    "futures"
+        optional
+            "futures-executor"
+                optional
+                    "thread-pool"
+                    "executor"
+                        optional
+                            "default"
+            "write-all-vectored"
+            "unstable"
+            "std"
+                optional
+                    "compat"
+                        optional
+                            "io-compat"
+            "cfg-target-has-atomic"
+            "bilock"
+            "async-await"
+            "alloc"
+constraints
+    "executor" => "std" & "futures"
+    "default" => "std" & "futures" & "async-await"
+    "io-compat" => "futures"
+    "thread-pool" => "executor" & "futures"
+    "compat" => "futures"
+    "std" => "alloc"

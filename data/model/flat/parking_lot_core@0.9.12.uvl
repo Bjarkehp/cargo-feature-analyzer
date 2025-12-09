@@ -1,0 +1,11 @@
+features
+    "parking_lot_core"
+        optional
+            "default"
+            "petgraph"
+                optional
+                    "deadlock_detection"
+            "backtrace"
+            "nightly"
+constraints
+    "deadlock_detection" => "backtrace" & "parking_lot_core"

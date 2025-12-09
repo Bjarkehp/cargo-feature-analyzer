@@ -1,0 +1,5 @@
+features
+    "tracing-attributes"
+        optional
+            "default"
+            "async-await"

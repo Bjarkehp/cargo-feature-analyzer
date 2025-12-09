@@ -1,0 +1,8 @@
+features
+    "thiserror"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "thiserror"

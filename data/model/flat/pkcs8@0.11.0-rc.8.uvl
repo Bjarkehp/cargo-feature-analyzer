@@ -1,0 +1,23 @@
+features
+    "pkcs8"
+        optional
+            "default"
+            "subtle"
+            "rand_core"
+                optional
+                    "encryption"
+                        optional
+                            "sha1-insecure"
+                            "des-insecure"
+                            "3des"
+            "pkcs5"
+            "std"
+            "pem"
+            "alloc"
+constraints
+    "encryption" => "pkcs5" & "pkcs8" & "alloc"
+    "3des" => "pkcs5" & "pkcs8"
+    "std" => "alloc"
+    "des-insecure" => "pkcs5" & "pkcs8"
+    "pem" => "alloc"
+    "sha1-insecure" => "pkcs5" & "pkcs8"

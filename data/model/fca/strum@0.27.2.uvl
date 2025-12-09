@@ -1,0 +1,11 @@
+features
+	"strum"
+		or
+			"derive"
+				mandatory
+					"strum_macros"
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"phf"

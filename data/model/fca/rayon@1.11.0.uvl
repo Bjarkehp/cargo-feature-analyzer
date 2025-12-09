@@ -1,0 +1,7 @@
+features
+	"rayon"
+		optional
+			"default"
+		optional // Unused features
+			"wasm_sync"
+			"web_spin_lock"

@@ -1,0 +1,9 @@
+features
+    "ansi_term"
+        optional
+            "default"
+            "serde"
+                optional
+                    "derive_serde_style"
+constraints
+    "derive_serde_style" => "ansi_term"

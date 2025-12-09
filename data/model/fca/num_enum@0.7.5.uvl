@@ -1,0 +1,9 @@
+features
+	"num_enum"
+		optional
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"complex-expressions"
+			"external_doc"

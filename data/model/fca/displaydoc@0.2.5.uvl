@@ -1,0 +1,6 @@
+features
+	"displaydoc"
+		optional
+			"default"
+				mandatory
+					"std"

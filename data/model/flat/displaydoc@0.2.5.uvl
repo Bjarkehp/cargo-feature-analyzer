@@ -1,0 +1,8 @@
+features
+    "displaydoc"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "displaydoc"

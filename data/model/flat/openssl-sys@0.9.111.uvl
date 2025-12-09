@@ -1,0 +1,18 @@
+features
+    "openssl-sys"
+        optional
+            "default"
+            "bssl-sys"
+                optional
+                    "unstable_boringssl"
+            "aws-lc-sys"
+                optional
+                    "aws-lc"
+            "aws-lc-fips-sys"
+                optional
+                    "aws-lc-fips"
+            "vendored"
+constraints
+    "unstable_boringssl" => "openssl-sys"
+    "aws-lc-fips" => "openssl-sys"
+    "aws-lc" => "openssl-sys"

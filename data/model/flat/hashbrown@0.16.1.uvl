@@ -1,0 +1,27 @@
+features
+    "hashbrown"
+        optional
+            "serde_core"
+                optional
+                    "serde"
+            "rayon"
+            "foldhash"
+                optional
+                    "default-hasher"
+                        optional
+                            "default"
+            "equivalent"
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "allocator-api2"
+            "alloc"
+            "rustc-internal-api"
+            "raw-entry"
+            "nightly"
+            "inline-more"
+constraints
+    "rustc-dep-of-std" => "alloc" & "rustc-internal-api" & "hashbrown" & "nightly"
+    "serde" => "hashbrown"
+    "default" => "equivalent" & "allocator-api2" & "raw-entry" & "inline-more" & "hashbrown"
+    "default-hasher" => "hashbrown"

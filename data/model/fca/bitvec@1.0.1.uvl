@@ -1,0 +1,13 @@
+features
+	"bitvec"
+		optional
+			"alloc"
+				optional
+					"atomic"
+						mandatory
+							"default"
+							"std"
+						optional
+							"serde"
+		optional // Unused features
+			"testing"

@@ -1,0 +1,8 @@
+features
+    "rustls-pemfile"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "rustls-pemfile"

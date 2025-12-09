@@ -1,0 +1,56 @@
+features
+	"rustix"
+		or
+			"stdio"
+			"net"
+				optional
+					"io_uring"
+						mandatory
+							"rand"
+			"mm"
+				optional
+					"time"
+			"process"
+				optional
+					"pty"
+					"system"
+					"mount"
+			"alloc"
+				mandatory
+					"std"
+				optional
+					"pipe"
+					"event"
+					"thread"
+					"default"
+						optional
+							"termios"
+							"param"
+			"fs"
+				optional
+					"shm"
+		optional // Unused features
+			"all-apis"
+			"core"
+			"libc"
+			"libc_errno"
+			"linux_4_11"
+			"linux_5_1"
+			"linux_5_11"
+			"linux_latest"
+			"runtime"
+			"rustc-dep-of-std"
+			"rustc-std-workspace-alloc"
+			"try_close"
+			"use-explicitly-provided-auxv"
+			"use-libc"
+			"use-libc-auxv"
+constraints
+	"io_uring" => !"param" & !"pipe" & !"pty" & !"shm" & !"stdio" & "event" & "mount" & "system" & "time"
+	"mount" => "default" & "fs" & "thread"
+	"param" => !"io_uring" & !"pipe" & !"pty" & !"shm" & !"stdio"
+	"pipe" => !"io_uring" & !"param" & !"pty" & !"shm" & !"stdio"
+	"pty" => !"io_uring" & !"param" & !"pipe" & !"shm" & !"stdio" & "fs" & "termios"
+	"shm" => !"io_uring" & !"param" & !"pipe" & !"pty" & !"stdio"
+	"stdio" => !"io_uring" & !"param" & !"pipe" & !"pty" & !"shm"
+	"system" => "thread"

@@ -1,0 +1,14 @@
+features
+    "instant"
+        optional
+            "default"
+            "web-sys"
+                optional
+                    "wasm-bindgen"
+            "wasm-bindgen_rs"
+            "stdweb"
+            "js-sys"
+            "now"
+            "inaccurate"
+constraints
+    "wasm-bindgen" => "wasm-bindgen_rs" & "js-sys" & "instant"

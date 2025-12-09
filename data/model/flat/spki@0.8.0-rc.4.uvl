@@ -1,0 +1,22 @@
+features
+    "spki"
+        optional
+            "default"
+            "sha2"
+                optional
+                    "fingerprint"
+            "digest"
+            "base64ct"
+                optional
+                    "base64"
+            "std"
+                optional
+                    "arbitrary"
+            "pem"
+            "alloc"
+constraints
+    "base64" => "spki"
+    "arbitrary" => "spki"
+    "fingerprint" => "digest" & "spki"
+    "std" => "alloc"
+    "pem" => "alloc"

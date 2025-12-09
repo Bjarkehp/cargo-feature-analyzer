@@ -1,0 +1,8 @@
+features
+	"sync_wrapper"
+		optional
+			"default"
+				optional
+					"futures"
+						mandatory
+							"futures-core"

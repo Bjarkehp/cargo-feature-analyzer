@@ -1,0 +1,18 @@
+features
+	"pest"
+		optional
+			"default"
+				mandatory
+					"memchr"
+					"std"
+				optional
+					"pretty-print"
+						mandatory
+							"serde"
+							"serde_json"
+						optional
+							"miette"
+								mandatory
+									"miette-error"
+		optional // Unused features
+			"const_prec_climber"

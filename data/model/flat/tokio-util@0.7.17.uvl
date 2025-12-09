@@ -1,0 +1,32 @@
+features
+    "tokio-util"
+        optional
+            "tracing"
+            "slab"
+                optional
+                    "time"
+                        optional
+                            "full"
+            "hashbrown"
+                optional
+                    "join-map"
+            "futures-util"
+                optional
+                    "rt"
+                    "__docs_rs"
+            "futures-io"
+                optional
+                    "compat"
+            "net"
+            "io-util"
+            "io"
+            "default"
+            "codec"
+constraints
+    "full" => "join-map" & "rt" & "compat" & "net" & "io-util" & "tokio-util" & "codec"
+    "rt" => "tokio-util"
+    "io-util" => "io"
+    "compat" => "tokio-util"
+    "__docs_rs" => "tokio-util"
+    "join-map" => "rt" & "tokio-util"
+    "time" => "tokio-util"

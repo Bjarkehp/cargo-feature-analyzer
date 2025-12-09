@@ -1,0 +1,12 @@
+features
+    "pem"
+        optional
+            "serde_core"
+                optional
+                    "serde"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "pem"
+    "serde" => "pem"

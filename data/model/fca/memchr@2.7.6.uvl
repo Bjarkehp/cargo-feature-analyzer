@@ -1,0 +1,16 @@
+features
+	"memchr"
+		optional
+			"alloc"
+				mandatory
+					"std"
+				optional
+					"default"
+						optional
+							"libc"
+		optional // Unused features
+			"core"
+			"log"
+			"logging"
+			"rustc-dep-of-std"
+			"use_std"

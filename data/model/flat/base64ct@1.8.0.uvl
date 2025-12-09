@@ -1,0 +1,8 @@
+features
+    "base64ct"
+        optional
+            "default"
+            "std"
+            "alloc"
+constraints
+    "std" => "alloc"

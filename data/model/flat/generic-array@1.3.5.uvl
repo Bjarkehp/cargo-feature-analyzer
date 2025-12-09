@@ -1,0 +1,19 @@
+features
+    "generic-array"
+        optional
+            "default"
+            "zeroize"
+            "serde_core"
+                optional
+                    "serde"
+            "hybrid-array-0_4"
+            "generic_array-0_14"
+                optional
+                    "compat-0_14"
+            "faster-hex"
+            "const-default"
+            "internals"
+            "alloc"
+constraints
+    "serde" => "generic-array"
+    "compat-0_14" => "generic-array"

@@ -1,0 +1,16 @@
+features
+    "io-lifetimes"
+        optional
+            "windows-sys"
+                optional
+                    "close"
+            "hermit-abi"
+            "libc"
+            "tokio"
+            "socket2"
+            "os_pipe"
+            "mio"
+            "async-std"
+            "default"
+constraints
+    "close" => "hermit-abi" & "libc" & "io-lifetimes"

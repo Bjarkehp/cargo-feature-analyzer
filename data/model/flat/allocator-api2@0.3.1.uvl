@@ -1,0 +1,12 @@
+features
+    "allocator-api2"
+        optional
+            "serde"
+            "std"
+                optional
+                    "default"
+            "fresh-rust"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "allocator-api2"

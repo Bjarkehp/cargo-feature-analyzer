@@ -1,0 +1,15 @@
+features
+    "crossbeam-epoch"
+        optional
+            "loom-crate"
+                optional
+                    "loom"
+            "std"
+                optional
+                    "default"
+            "nightly"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "loom" => "crossbeam-epoch"
+    "default" => "crossbeam-epoch"

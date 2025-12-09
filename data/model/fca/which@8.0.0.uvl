@@ -1,0 +1,12 @@
+features
+	"default"
+		mandatory
+			"env_home"
+			"real-sys"
+			"rustix"
+			"which"
+			"winsafe"
+		optional
+			"regex"
+		optional // Unused features
+			"tracing"

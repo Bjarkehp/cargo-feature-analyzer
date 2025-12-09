@@ -1,0 +1,8 @@
+features
+    "funty"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "funty"

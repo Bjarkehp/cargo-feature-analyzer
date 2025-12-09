@@ -1,0 +1,10 @@
+features
+	"native-tls"
+		optional
+			"default"
+				optional
+					"vendored"
+					"alpn"
+constraints
+	"alpn" => !"vendored"
+	"vendored" => !"alpn"

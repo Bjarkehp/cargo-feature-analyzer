@@ -1,0 +1,33 @@
+features
+    "addr2line"
+        optional
+            "typed-arena"
+                optional
+                    "loader"
+                        optional
+                            "default"
+                            "bin"
+                                optional
+                                    "all"
+            "smallvec"
+            "rustc-demangle"
+            "object"
+                optional
+                    "wasm"
+            "memmap2"
+            "fallible-iterator"
+            "cpp_demangle"
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "clap"
+            "alloc"
+            "std"
+            "cargo-all"
+constraints
+    "rustc-dep-of-std" => "alloc" & "addr2line"
+    "loader" => "object" & "memmap2" & "std" & "addr2line"
+    "bin" => "smallvec" & "rustc-demangle" & "fallible-iterator" & "cpp_demangle" & "clap" & "addr2line"
+    "default" => "smallvec" & "rustc-demangle" & "fallible-iterator" & "cpp_demangle" & "addr2line"
+    "all" => "wasm" & "addr2line"
+    "wasm" => "addr2line"

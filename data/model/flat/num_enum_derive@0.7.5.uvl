@@ -1,0 +1,13 @@
+features
+    "num_enum_derive"
+        optional
+            "proc-macro-crate"
+                optional
+                    "std"
+                        optional
+                            "default"
+            "external_doc"
+            "complex-expressions"
+constraints
+    "std" => "num_enum_derive"
+    "default" => "num_enum_derive"

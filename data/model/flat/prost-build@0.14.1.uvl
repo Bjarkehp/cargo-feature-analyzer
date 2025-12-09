@@ -1,0 +1,17 @@
+features
+    "prost-build"
+        optional
+            "syn"
+                optional
+                    "format"
+                        optional
+                            "default"
+            "pulldown-cmark-to-cmark"
+                optional
+                    "cleanup-markdown"
+            "pulldown-cmark"
+            "prettyplease"
+constraints
+    "cleanup-markdown" => "pulldown-cmark" & "prost-build"
+    "format" => "prettyplease" & "prost-build"
+    "default" => "prost-build"

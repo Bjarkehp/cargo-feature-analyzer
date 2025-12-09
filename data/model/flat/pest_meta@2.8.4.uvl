@@ -1,0 +1,6 @@
+features
+    "pest_meta"
+        optional
+            "not-bootstrap-in-src"
+            "grammar-extras"
+            "default"

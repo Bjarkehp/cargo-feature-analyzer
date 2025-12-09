@@ -1,0 +1,9 @@
+features
+    "rayon"
+        optional
+            "default"
+            "wasm_sync"
+                optional
+                    "web_spin_lock"
+constraints
+    "web_spin_lock" => "rayon"

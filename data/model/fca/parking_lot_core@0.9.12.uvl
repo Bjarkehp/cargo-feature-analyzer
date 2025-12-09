@@ -1,0 +1,11 @@
+features
+	"default"
+		mandatory
+			"parking_lot_core"
+		optional
+			"backtrace"
+				mandatory
+					"deadlock_detection"
+					"petgraph"
+		optional // Unused features
+			"nightly"

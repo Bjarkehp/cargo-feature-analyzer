@@ -1,0 +1,16 @@
+features
+	"zerovec"
+		optional
+			"derive"
+				mandatory
+					"zerovec-derive"
+				optional
+					"yoke"
+		optional // Unused features
+			"alloc"
+			"databake"
+			"default"
+			"hashmap"
+			"serde"
+			"std"
+			"twox-hash"

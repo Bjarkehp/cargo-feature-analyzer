@@ -1,0 +1,5 @@
+features
+    "csv-core"
+        optional
+            "libc"
+            "default"

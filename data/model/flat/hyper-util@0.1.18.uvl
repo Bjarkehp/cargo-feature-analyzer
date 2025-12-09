@@ -1,0 +1,42 @@
+features
+    "hyper-util"
+        optional
+            "windows-registry"
+                optional
+                    "client-proxy-system"
+                        optional
+                            "full"
+            "system-configuration"
+            "tower-service"
+                optional
+                    "service"
+                    "client"
+                        optional
+                            "client-proxy"
+                            "client-legacy"
+            "socket2"
+            "percent-encoding"
+            "libc"
+            "ipnet"
+            "futures-util"
+            "futures-channel"
+            "base64"
+            "tracing"
+            "tokio"
+                optional
+                    "server-graceful"
+            "server-auto"
+            "server"
+            "http2"
+            "http1"
+            "default"
+            "__internal_happy_eyeballs_tests"
+constraints
+    "client-proxy-system" => "system-configuration" & "hyper-util"
+    "full" => "service" & "client" & "client-proxy" & "client-legacy" & "tracing" & "server-graceful" & "tokio" & "server-auto" & "server" & "http2" & "http1" & "hyper-util"
+    "service" => "hyper-util"
+    "server-auto" => "server" & "http2" & "http1"
+    "server-graceful" => "hyper-util" & "server"
+    "client-proxy" => "percent-encoding" & "ipnet" & "base64" & "hyper-util"
+    "client" => "futures-channel" & "tracing" & "tokio" & "hyper-util"
+    "client-legacy" => "socket2" & "libc" & "futures-util" & "tokio" & "hyper-util"

@@ -1,0 +1,8 @@
+features
+	"futures-sink"
+		optional
+			"alloc"
+				mandatory
+					"std"
+				optional
+					"default"

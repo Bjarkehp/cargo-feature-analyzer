@@ -1,0 +1,12 @@
+features
+	"alloc"
+		mandatory
+			"bincode"
+			"bincode_derive"
+			"derive"
+		optional
+			"default"
+				mandatory
+					"std"
+				optional
+					"serde"

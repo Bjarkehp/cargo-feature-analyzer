@@ -1,0 +1,6 @@
+features
+	"ucd-trie"
+		optional
+			"default"
+				mandatory
+					"std"

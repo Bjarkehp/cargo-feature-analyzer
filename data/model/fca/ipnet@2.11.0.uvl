@@ -1,0 +1,14 @@
+features
+	"ipnet"
+		optional
+			"serde"
+				optional
+					"json"
+						mandatory
+							"schemars"
+			"std"
+				optional
+					"default"
+		optional // Unused features
+			"heapless"
+			"ser_as_str"

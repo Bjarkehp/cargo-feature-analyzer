@@ -1,0 +1,8 @@
+features
+    "errno"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "errno"

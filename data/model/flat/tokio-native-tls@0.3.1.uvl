@@ -1,0 +1,5 @@
+features
+    "tokio-native-tls"
+        optional
+            "default"
+            "vendored"

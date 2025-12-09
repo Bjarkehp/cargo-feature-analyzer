@@ -1,0 +1,5 @@
+features
+    "unicode-segmentation"
+        optional
+            "default"
+            "no_std"

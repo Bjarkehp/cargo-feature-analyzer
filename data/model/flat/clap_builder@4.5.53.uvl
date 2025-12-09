@@ -1,0 +1,45 @@
+features
+    "clap_builder"
+        optional
+            "unicode-width"
+                optional
+                    "unicode"
+                        optional
+                            "unstable-doc"
+            "unicase"
+            "terminal_size"
+                optional
+                    "wrap_help"
+            "strsim"
+                optional
+                    "suggestions"
+                        optional
+                            "default"
+            "backtrace"
+                optional
+                    "debug"
+            "anstream"
+                optional
+                    "color"
+                        optional
+                            "unstable-styles"
+            "usage"
+            "unstable-v5"
+            "unstable-ext"
+            "string"
+            "std"
+            "help"
+            "error-context"
+            "env"
+            "deprecated"
+            "cargo"
+constraints
+    "unstable-styles" => "clap_builder"
+    "suggestions" => "clap_builder" & "error-context"
+    "unstable-v5" => "deprecated"
+    "unicode" => "unicase" & "clap_builder"
+    "debug" => "clap_builder"
+    "wrap_help" => "clap_builder" & "help"
+    "color" => "clap_builder"
+    "default" => "color" & "usage" & "std" & "help" & "error-context" & "clap_builder"
+    "unstable-doc" => "wrap_help" & "unstable-ext" & "clap_builder" & "string" & "env" & "cargo"

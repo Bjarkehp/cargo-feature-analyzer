@@ -1,0 +1,8 @@
+features
+    "anstyle"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "anstyle"

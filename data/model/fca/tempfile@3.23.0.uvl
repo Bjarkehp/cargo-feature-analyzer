@@ -1,0 +1,8 @@
+features
+	"tempfile"
+		optional
+			"default"
+				mandatory
+					"getrandom"
+		optional // Unused features
+			"nightly"

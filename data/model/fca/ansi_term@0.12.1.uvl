@@ -1,0 +1,7 @@
+features
+	"ansi_term"
+		mandatory
+			"default"
+		optional // Unused features
+			"derive_serde_style"
+			"serde"

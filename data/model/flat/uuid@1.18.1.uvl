@@ -1,0 +1,64 @@
+features
+    "uuid"
+        optional
+            "rand"
+                optional
+                    "rng-rand"
+                    "fast-rng"
+            "getrandom"
+                optional
+                    "rng-getrandom"
+                    "rng"
+                        optional
+                            "v7"
+                            "v4"
+            "js-sys"
+                optional
+                    "js"
+            "wasm-bindgen"
+            "uuid-rng-internal-lib"
+            "zerocopy"
+            "uuid-macro-internal"
+                optional
+                    "macro-diagnostics"
+            "slog"
+            "sha1_smol"
+                optional
+                    "sha1"
+                        optional
+                            "v5"
+            "serde"
+            "md-5"
+                optional
+                    "md5"
+                        optional
+                            "v3"
+            "bytemuck"
+            "borsh-derive"
+                optional
+                    "borsh"
+            "arbitrary"
+            "v8"
+            "v6"
+            "v1"
+            "std"
+                optional
+                    "default"
+            "atomic"
+constraints
+    "rng-rand" => "rng" & "uuid-rng-internal-lib" & "uuid"
+    "default" => "uuid"
+    "borsh" => "uuid"
+    "v1" => "atomic"
+    "fast-rng" => "rng" & "uuid"
+    "v3" => "uuid"
+    "sha1" => "uuid"
+    "v6" => "atomic"
+    "js" => "wasm-bindgen" & "uuid"
+    "macro-diagnostics" => "uuid"
+    "rng-getrandom" => "rng" & "uuid-rng-internal-lib" & "uuid"
+    "v7" => "uuid"
+    "v5" => "uuid"
+    "rng" => "uuid"
+    "v4" => "uuid"
+    "md5" => "uuid"

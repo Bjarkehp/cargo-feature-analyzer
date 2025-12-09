@@ -1,0 +1,13 @@
+features
+    "bitvec"
+        optional
+            "serde"
+            "testing"
+            "std"
+                optional
+                    "default"
+            "atomic"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "bitvec" & "atomic"

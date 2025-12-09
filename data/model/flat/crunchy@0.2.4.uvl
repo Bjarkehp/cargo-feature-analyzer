@@ -1,0 +1,14 @@
+features
+    "crunchy"
+        optional
+            "std"
+            "limit_64"
+            "limit_512"
+            "limit_256"
+            "limit_2048"
+            "limit_128"
+                optional
+                    "default"
+            "limit_1024"
+constraints
+    "default" => "crunchy"

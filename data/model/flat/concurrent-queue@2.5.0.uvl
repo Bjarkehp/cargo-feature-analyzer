@@ -1,0 +1,10 @@
+features
+    "concurrent-queue"
+        optional
+            "loom"
+            "portable-atomic"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "concurrent-queue"

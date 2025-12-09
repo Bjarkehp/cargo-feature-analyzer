@@ -1,0 +1,17 @@
+features
+	"tinystr"
+		optional
+			"zerovec"
+			"alloc"
+				optional
+					"default"
+						optional
+							"serde"
+								mandatory
+									"serde_core"
+		optional // Unused features
+			"databake"
+			"std"
+constraints
+	"serde" => !"zerovec"
+	"zerovec" => !"serde"

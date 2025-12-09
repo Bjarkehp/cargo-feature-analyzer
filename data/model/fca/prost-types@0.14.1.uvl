@@ -1,0 +1,9 @@
+features
+	"prost-types"
+		optional
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"arbitrary"
+			"chrono"

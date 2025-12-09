@@ -1,0 +1,36 @@
+features
+    "flate2"
+        optional
+            "miniz_oxide"
+                optional
+                    "rust_backend"
+                        optional
+                            "miniz-sys"
+                            "default"
+            "libz-sys"
+                optional
+                    "zlib-ng-compat"
+                    "zlib-default"
+                    "zlib"
+            "libz-rs-sys"
+                optional
+                    "zlib-rs"
+            "libz-ng-sys"
+                optional
+                    "zlib-ng"
+            "cloudflare-zlib-sys"
+                optional
+                    "cloudflare_zlib"
+            "any_zlib"
+            "any_impl"
+constraints
+    "zlib-ng" => "flate2" & "any_zlib"
+    "rust_backend" => "flate2" & "any_impl"
+    "zlib-ng-compat" => "zlib" & "flate2"
+    "zlib-default" => "flate2" & "any_zlib"
+    "default" => "flate2"
+    "any_zlib" => "any_impl"
+    "zlib-rs" => "flate2" & "any_zlib"
+    "cloudflare_zlib" => "flate2" & "any_zlib"
+    "miniz-sys" => "flate2"
+    "zlib" => "flate2" & "any_zlib"

@@ -1,0 +1,10 @@
+features
+	"hyper-tls"
+		or
+			"alpn"
+			"default"
+				optional
+					"vendored"
+constraints
+	"alpn" => !"vendored"
+	"vendored" => !"alpn"

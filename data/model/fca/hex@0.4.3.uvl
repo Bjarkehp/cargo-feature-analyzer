@@ -1,0 +1,10 @@
+features
+	"hex"
+		optional
+			"alloc"
+				optional
+					"default"
+						mandatory
+							"std"
+						optional
+							"serde"

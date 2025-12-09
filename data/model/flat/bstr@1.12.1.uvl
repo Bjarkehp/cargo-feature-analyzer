@@ -1,0 +1,15 @@
+features
+    "bstr"
+        optional
+            "regex-automata"
+                optional
+                    "unicode"
+                        optional
+                            "default"
+            "std"
+            "serde"
+            "alloc"
+constraints
+    "default" => "std" & "bstr"
+    "std" => "alloc"
+    "unicode" => "bstr"

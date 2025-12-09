@@ -1,0 +1,13 @@
+features
+    "adler"
+        optional
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "compiler_builtins"
+            "std"
+                optional
+                    "default"
+constraints
+    "rustc-dep-of-std" => "compiler_builtins" & "adler"
+    "default" => "adler"

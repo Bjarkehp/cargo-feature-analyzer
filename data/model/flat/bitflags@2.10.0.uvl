@@ -1,0 +1,13 @@
+features
+    "bitflags"
+        optional
+            "default"
+            "serde_core"
+                optional
+                    "serde"
+            "bytemuck"
+            "arbitrary"
+            "std"
+            "example_generated"
+constraints
+    "serde" => "bitflags"

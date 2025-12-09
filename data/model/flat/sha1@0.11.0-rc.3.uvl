@@ -1,0 +1,11 @@
+features
+    "sha1"
+        optional
+            "zeroize"
+            "oid"
+                optional
+                    "default"
+            "force-soft"
+            "alloc"
+constraints
+    "default" => "sha1" & "alloc"

@@ -1,0 +1,10 @@
+features
+    "num-traits"
+        optional
+            "std"
+                optional
+                    "default"
+            "libm"
+            "i128"
+constraints
+    "default" => "num-traits"

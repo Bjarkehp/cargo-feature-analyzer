@@ -1,0 +1,7 @@
+features
+	"default"
+		mandatory
+			"h2"
+		optional // Unused features
+			"stream"
+			"unstable"

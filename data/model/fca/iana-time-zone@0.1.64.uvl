@@ -1,0 +1,6 @@
+features
+	"default"
+		mandatory
+			"iana-time-zone"
+		optional // Unused features
+			"fallback"

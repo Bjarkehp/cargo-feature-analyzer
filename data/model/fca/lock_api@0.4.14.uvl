@@ -1,0 +1,13 @@
+features
+	"lock_api"
+		optional
+			"atomic_usize"
+				mandatory
+					"default"
+				optional
+					"arc_lock"
+						optional
+							"serde"
+		optional // Unused features
+			"nightly"
+			"owning_ref"

@@ -1,0 +1,35 @@
+features
+    "toml"
+        optional
+            "winnow"
+                optional
+                    "parse"
+                        optional
+                            "default"
+            "toml_writer"
+                optional
+                    "display"
+            "toml_parser"
+            "serde_core"
+                optional
+                    "serde"
+            "indexmap"
+                optional
+                    "preserve_order"
+                        optional
+                            "fast_hash"
+            "foldhash"
+            "anstyle"
+                optional
+                    "debug"
+            "anstream"
+            "unbounded"
+            "std"
+constraints
+    "parse" => "toml_parser" & "toml"
+    "serde" => "toml"
+    "default" => "display" & "serde" & "std" & "toml"
+    "fast_hash" => "foldhash" & "toml"
+    "preserve_order" => "std" & "toml"
+    "debug" => "anstream" & "std" & "toml"
+    "display" => "toml"

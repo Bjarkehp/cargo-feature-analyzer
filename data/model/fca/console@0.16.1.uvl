@@ -1,0 +1,14 @@
+features
+	"alloc"
+		mandatory
+			"console"
+			"libc"
+			"once_cell"
+			"std"
+		optional
+			"ansi-parsing"
+				mandatory
+					"default"
+					"unicode-width"
+				optional
+					"windows-console-colors"

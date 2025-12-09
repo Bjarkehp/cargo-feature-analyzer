@@ -1,6 +1,6 @@
 use std::{error::Error, fs::{self, File}, io::{stdin, BufWriter, Write}, path::{Path, PathBuf}};
 
-use cargo_toml::crate_id;
+use cargo_toml::crate_id::{self, CrateId};
 use clap::Parser;
 use concept::Concept;
 use configuration_scraper::configuration::Configuration;
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect::<Vec<_>>();
 
     let configurations = configurations_files.iter()
-        .map(|(name, content)| Ok((crate_id::parse(name.as_str())?, content)))
+        .map(|(name, content)| Ok((name.parse::<CrateId>()?, content)))
         .map_ok(|(id, content)| Configuration::from_csv(id.name.to_string(), id.version.clone(), content)
             .ok_or(format!("Failed to parse configuration from {}", id)))
         .collect::<Result<Result<Vec<_>, _>, crate_id::Error>>()??;

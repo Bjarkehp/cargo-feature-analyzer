@@ -1,0 +1,11 @@
+features
+    "md-5"
+        optional
+            "zeroize"
+            "oid"
+                optional
+                    "default"
+            "force-soft"
+            "alloc"
+constraints
+    "default" => "md-5" & "alloc"

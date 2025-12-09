@@ -1,0 +1,16 @@
+features
+	"tokio-stream"
+		optional
+			"net"
+			"io-util"
+			"time"
+				optional
+					"default"
+						optional
+							"sync"
+								mandatory
+									"tokio-util"
+		optional // Unused features
+			"fs"
+			"full"
+			"signal"

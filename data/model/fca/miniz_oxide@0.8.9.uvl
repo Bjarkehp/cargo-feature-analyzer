@@ -1,0 +1,20 @@
+features
+	"miniz_oxide"
+		optional
+			"with-alloc"
+				optional
+					"std"
+					"simd"
+						mandatory
+							"simd-adler32"
+					"default"
+		optional // Unused features
+			"alloc"
+			"block-boundary"
+			"core"
+			"rustc-dep-of-std"
+			"serde"
+constraints
+	"default" => !"simd"
+	"simd" => !"default" & !"std"
+	"std" => !"simd"

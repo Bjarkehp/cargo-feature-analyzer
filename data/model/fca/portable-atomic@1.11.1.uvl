@@ -1,0 +1,24 @@
+features
+	"portable-atomic"
+		optional
+			"serde"
+			"require-cas"
+			"critical-section"
+			"fallback"
+				optional
+					"std"
+					"float"
+					"default"
+					"unsafe-assume-single-core"
+		optional // Unused features
+			"disable-fiq"
+			"force-amo"
+			"s-mode"
+constraints
+	"critical-section" => !"float" & !"serde" & !"std" & !"unsafe-assume-single-core"
+	"default" => !"serde"
+	"float" => !"critical-section" & !"require-cas" & !"serde" & !"unsafe-assume-single-core"
+	"require-cas" => !"float" & !"serde" & !"std" & !"unsafe-assume-single-core"
+	"serde" => !"critical-section" & !"default" & !"float" & !"require-cas" & !"std" & !"unsafe-assume-single-core"
+	"std" => !"critical-section" & !"require-cas" & !"serde" & !"unsafe-assume-single-core"
+	"unsafe-assume-single-core" => !"critical-section" & !"float" & !"require-cas" & !"serde" & !"std"

@@ -1,0 +1,8 @@
+features
+	"futures-io"
+		optional
+			"std"
+				optional
+					"default"
+		optional // Unused features
+			"unstable"

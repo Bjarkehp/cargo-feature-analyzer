@@ -1,0 +1,16 @@
+features
+	"rustls-pki-types"
+		optional
+			"alloc"
+				mandatory
+					"zeroize"
+				or
+					"std"
+					"default"
+						optional
+							"web"
+								mandatory
+									"web-time"
+constraints
+	"std" => !"web"
+	"web" => !"std"

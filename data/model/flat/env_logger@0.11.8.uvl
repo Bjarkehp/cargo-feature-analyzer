@@ -1,0 +1,23 @@
+features
+    "env_logger"
+        optional
+            "jiff"
+                optional
+                    "humantime"
+                        optional
+                            "default"
+            "anstyle"
+                optional
+                    "color"
+                        optional
+                            "auto-color"
+            "anstream"
+            "unstable-kv"
+            "regex"
+            "kv"
+constraints
+    "default" => "auto-color" & "regex" & "env_logger"
+    "unstable-kv" => "kv"
+    "auto-color" => "anstream" & "env_logger"
+    "humantime" => "env_logger"
+    "color" => "anstream" & "env_logger"

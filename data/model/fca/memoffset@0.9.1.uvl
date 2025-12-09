@@ -1,0 +1,8 @@
+features
+	"default"
+		mandatory
+			"memoffset"
+		optional
+			"unstable_const"
+		optional // Unused features
+			"unstable_offset_of"

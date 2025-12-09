@@ -1,0 +1,14 @@
+features
+    "serde_spanned"
+        optional
+            "serde_core"
+                optional
+                    "serde"
+                        optional
+                            "default"
+            "std"
+            "alloc"
+constraints
+    "default" => "std" & "serde_spanned"
+    "serde" => "serde_spanned"
+    "std" => "alloc"

@@ -1,0 +1,8 @@
+features
+    "synstructure"
+        optional
+            "proc-macro"
+                optional
+                    "default"
+constraints
+    "default" => "synstructure"

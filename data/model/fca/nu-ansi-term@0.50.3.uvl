@@ -1,0 +1,11 @@
+features
+	"nu-ansi-term"
+		optional
+			"default"
+				mandatory
+					"std"
+				optional
+					"gnu_legacy"
+		optional // Unused features
+			"derive_serde_style"
+			"serde"

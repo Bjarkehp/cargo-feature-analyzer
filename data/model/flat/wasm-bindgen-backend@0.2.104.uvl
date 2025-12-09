@@ -1,0 +1,5 @@
+features
+    "wasm-bindgen-backend"
+        optional
+            "default"
+            "extra-traits"

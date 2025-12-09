@@ -1,0 +1,11 @@
+features
+    "either"
+        optional
+            "serde"
+            "use_std"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "either"
+    "use_std" => "std"

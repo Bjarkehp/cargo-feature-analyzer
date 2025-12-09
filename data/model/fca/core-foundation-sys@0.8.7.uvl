@@ -1,0 +1,8 @@
+features
+	"core-foundation-sys"
+		mandatory
+			"default"
+			"link"
+		optional // Unused features
+			"mac_os_10_7_support"
+			"mac_os_10_8_features"

@@ -1,0 +1,10 @@
+features
+	"arc-swap"
+		mandatory
+			"default"
+		optional // Unused features
+			"experimental-strategies"
+			"experimental-thread-local"
+			"internal-test-strategies"
+			"serde"
+			"weak"

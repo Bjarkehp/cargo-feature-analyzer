@@ -1,0 +1,25 @@
+features
+    "once_cell"
+        optional
+            "parking_lot_core"
+                optional
+                    "parking_lot"
+            "unstable"
+            "std"
+                optional
+                    "default"
+            "race"
+                optional
+                    "alloc"
+            "portable-atomic"
+                optional
+                    "critical-section"
+                        optional
+                            "atomic-polyfill"
+constraints
+    "parking_lot" => "once_cell"
+    "critical-section" => "once_cell"
+    "atomic-polyfill" => "once_cell"
+    "std" => "alloc"
+    "alloc" => "once_cell"
+    "default" => "once_cell"

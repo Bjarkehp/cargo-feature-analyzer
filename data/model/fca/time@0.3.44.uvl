@@ -1,0 +1,36 @@
+features
+	"time"
+		optional
+			"alloc"
+				or
+					"macros"
+						mandatory
+							"time-macros"
+						optional
+							"serde-human-readable"
+					"std"
+						or
+							"serde"
+								optional
+									"serde-well-known"
+							"libc"
+								mandatory
+									"local-offset"
+									"num_threads"
+							"parsing"
+							"default"
+							"formatting"
+								mandatory
+									"itoa"
+		optional // Unused features
+			"js-sys"
+			"large-dates"
+			"quickcheck"
+			"rand"
+			"rand08"
+			"rand09"
+			"wasm-bindgen"
+constraints
+	"libc" => !"serde-human-readable"
+	"serde-human-readable" => !"libc" & "default" & "formatting" & "itoa" & "parsing" & "serde"
+	"serde-well-known" => "default" & "formatting" & "itoa" & "parsing"

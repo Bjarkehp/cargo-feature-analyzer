@@ -1,0 +1,16 @@
+features
+    "rustls-webpki"
+        optional
+            "std"
+                optional
+                    "default"
+            "ring"
+            "aws-lc-rs-unstable"
+            "aws-lc-rs-fips"
+            "aws-lc-rs"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "aws-lc-rs-unstable" => "aws-lc-rs"
+    "aws-lc-rs-fips" => "aws-lc-rs"
+    "default" => "rustls-webpki"

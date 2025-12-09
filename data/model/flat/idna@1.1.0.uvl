@@ -1,0 +1,11 @@
+features
+    "idna"
+        optional
+            "std"
+                optional
+                    "default"
+            "compiled_data"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "idna" & "compiled_data"

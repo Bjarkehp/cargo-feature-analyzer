@@ -1,0 +1,29 @@
+features
+    "gimli"
+        optional
+            "stable_deref_trait"
+                optional
+                    "endian-reader"
+                        optional
+                            "read-all"
+                                optional
+                                    "default"
+            "indexmap"
+                optional
+                    "write"
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "alloc"
+            "std"
+            "read-core"
+                optional
+                    "read"
+            "fallible-iterator"
+constraints
+    "write" => "gimli"
+    "default" => "write" & "gimli"
+    "read-all" => "std" & "read" & "gimli" & "fallible-iterator"
+    "endian-reader" => "read" & "gimli"
+    "read" => "gimli"
+    "rustc-dep-of-std" => "alloc" & "gimli"

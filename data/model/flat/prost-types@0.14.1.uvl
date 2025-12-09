@@ -1,0 +1,10 @@
+features
+    "prost-types"
+        optional
+            "chrono"
+            "std"
+                optional
+                    "default"
+            "arbitrary"
+constraints
+    "default" => "prost-types"

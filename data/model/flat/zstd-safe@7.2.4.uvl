@@ -1,0 +1,22 @@
+features
+    "zstd-safe"
+        optional
+            "zstdmt"
+            "zdict_builder"
+                optional
+                    "default"
+            "thin-lto"
+            "thin"
+            "std"
+            "seekable"
+            "pkg-config"
+            "no_asm"
+            "legacy"
+            "fat-lto"
+            "experimental"
+            "doc-cfg"
+            "debug"
+            "bindgen"
+            "arrays"
+constraints
+    "default" => "legacy" & "zstd-safe" & "arrays"

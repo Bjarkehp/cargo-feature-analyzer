@@ -1,0 +1,9 @@
+features
+    "slab"
+        optional
+            "serde"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "slab"

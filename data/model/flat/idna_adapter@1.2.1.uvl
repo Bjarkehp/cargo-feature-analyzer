@@ -1,0 +1,5 @@
+features
+    "idna_adapter"
+        optional
+            "default"
+            "compiled_data"

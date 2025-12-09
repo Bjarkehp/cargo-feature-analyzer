@@ -1,0 +1,9 @@
+features
+	"default"
+		mandatory
+			"pest_derive"
+			"std"
+		optional
+			"grammar-extras"
+		optional // Unused features
+			"not-bootstrap-in-src"

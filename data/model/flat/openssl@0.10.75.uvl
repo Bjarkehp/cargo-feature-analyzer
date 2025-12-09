@@ -1,0 +1,13 @@
+features
+    "openssl"
+        optional
+            "vendored"
+            "v111"
+            "v110"
+            "v102"
+            "v101"
+            "unstable_boringssl"
+            "default"
+            "bindgen"
+            "aws-lc-fips"
+            "aws-lc"

@@ -1,0 +1,9 @@
+features
+    "vec_map"
+        optional
+            "default"
+            "serde"
+                optional
+                    "eders"
+constraints
+    "eders" => "vec_map"

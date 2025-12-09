@@ -1,0 +1,27 @@
+features
+    "hyper-rustls"
+        optional
+            "webpki-roots"
+                optional
+                    "webpki-tokio"
+            "rustls-platform-verifier"
+            "rustls-native-certs"
+                optional
+                    "native-tokio"
+                        optional
+                            "default"
+            "log"
+                optional
+                    "logging"
+            "tls12"
+            "ring"
+            "http2"
+            "http1"
+            "fips"
+            "aws-lc-rs"
+constraints
+    "native-tokio" => "hyper-rustls"
+    "default" => "logging" & "tls12" & "http1" & "hyper-rustls" & "aws-lc-rs"
+    "logging" => "hyper-rustls"
+    "fips" => "aws-lc-rs"
+    "webpki-tokio" => "hyper-rustls"

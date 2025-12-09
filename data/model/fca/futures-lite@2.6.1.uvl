@@ -1,0 +1,16 @@
+features
+	"futures-lite"
+		optional
+			"alloc"
+				optional
+					"fastrand"
+						mandatory
+							"futures-io"
+							"parking"
+							"std"
+						optional
+							"race"
+								optional
+									"default"
+		optional // Unused features
+			"memchr"

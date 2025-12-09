@@ -1,0 +1,8 @@
+features
+	"ryu"
+		optional
+			"default"
+				optional
+					"small"
+		optional // Unused features
+			"no-panic"

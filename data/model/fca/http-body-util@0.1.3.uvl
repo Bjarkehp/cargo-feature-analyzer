@@ -1,0 +1,9 @@
+features
+	"http-body-util"
+		optional
+			"default"
+				optional
+					"channel"
+						mandatory
+							"full"
+							"tokio"

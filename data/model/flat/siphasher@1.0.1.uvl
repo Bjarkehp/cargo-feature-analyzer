@@ -1,0 +1,15 @@
+features
+    "siphasher"
+        optional
+            "serde_json"
+            "serde"
+                optional
+                    "serde_std"
+                    "serde_no_std"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "siphasher"
+    "serde_no_std" => "siphasher"
+    "serde_std" => "std" & "siphasher"

@@ -1,0 +1,38 @@
+features
+    "regex"
+        optional
+            "memchr"
+                optional
+                    "perf-literal"
+                        optional
+                            "perf"
+                                optional
+                                    "default"
+            "aho-corasick"
+            "use_std"
+            "unstable"
+            "unicode-segment"
+                optional
+                    "unicode"
+            "unicode-script"
+            "unicode-perl"
+            "unicode-gencat"
+            "unicode-case"
+            "unicode-bool"
+            "unicode-age"
+            "std"
+            "perf-onepass"
+            "perf-inline"
+            "perf-dfa-full"
+            "perf-dfa"
+            "perf-cache"
+            "perf-backtrack"
+            "pattern"
+            "logging"
+constraints
+    "perf" => "perf-onepass" & "perf-inline" & "perf-dfa" & "perf-cache" & "perf-backtrack" & "regex"
+    "default" => "unicode" & "std" & "regex"
+    "unstable" => "pattern"
+    "perf-literal" => "aho-corasick" & "regex"
+    "unicode" => "unicode-script" & "unicode-perl" & "unicode-gencat" & "unicode-case" & "unicode-bool" & "unicode-age" & "regex"
+    "use_std" => "std"

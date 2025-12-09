@@ -1,0 +1,15 @@
+features
+    "litemap"
+        optional
+            "serde_core"
+                optional
+                    "serde"
+            "yoke"
+            "testing"
+            "default"
+            "databake"
+            "alloc"
+constraints
+    "serde" => "litemap" & "alloc"
+    "default" => "alloc"
+    "testing" => "alloc"

@@ -1,0 +1,51 @@
+features
+	"tonic"
+		optional
+			"async-trait"
+				mandatory
+					"codegen"
+				optional
+					"channel"
+						mandatory
+							"hyper"
+							"hyper-timeout"
+							"hyper-util"
+							"tokio"
+							"tower"
+						optional
+							"h2"
+								mandatory
+									"server"
+									"socket2"
+									"transport"
+								optional
+									"_tls-any"
+										mandatory
+											"tls-connect-info"
+											"tokio-rustls"
+										or
+											"tls-ring"
+											"rustls-native-certs"
+												mandatory
+													"tls-native-roots"
+												optional
+													"tls-aws-lc"
+													"flate2"
+														mandatory
+															"gzip"
+														optional
+															"zstd"
+									"axum"
+										mandatory
+											"router"
+										optional
+											"default"
+		optional // Unused features
+			"deflate"
+			"tls-webpki-roots"
+			"webpki-roots"
+constraints
+	"flate2" => "default"
+	"tls-aws-lc" => !"tls-ring" & !"zstd" & "default"
+	"tls-ring" => !"tls-aws-lc" & !"zstd"
+	"zstd" => !"tls-aws-lc" & !"tls-ring"

@@ -1,0 +1,12 @@
+features
+    "adler2"
+        optional
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "adler2"
+    "rustc-dep-of-std" => "adler2"

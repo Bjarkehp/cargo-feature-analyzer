@@ -1,0 +1,73 @@
+features
+    "regex-automata"
+        optional
+            "regex-syntax"
+                optional
+                    "syntax"
+                        optional
+                            "meta"
+                                optional
+                                    "default"
+            "memchr"
+                optional
+                    "perf-literal-substring"
+                        optional
+                            "perf-literal"
+                                optional
+                                    "perf"
+            "log"
+                optional
+                    "logging"
+                        optional
+                            "internal-instrument-pikevm"
+                                optional
+                                    "internal-instrument"
+            "aho-corasick"
+                optional
+                    "perf-literal-multisubstring"
+            "unicode-word-boundary"
+                optional
+                    "unicode"
+            "unicode-segment"
+            "unicode-script"
+            "unicode-perl"
+            "unicode-gencat"
+            "unicode-case"
+            "unicode-bool"
+            "unicode-age"
+            "std"
+            "perf-inline"
+            "nfa-thompson"
+                optional
+                    "nfa-pikevm"
+                        optional
+                            "nfa"
+                    "nfa-backtrack"
+                    "hybrid"
+                    "dfa-onepass"
+                        optional
+                            "dfa"
+                    "dfa-build"
+            "dfa-search"
+            "alloc"
+constraints
+    "perf-literal" => "perf-literal-multisubstring" & "regex-automata"
+    "internal-instrument" => "regex-automata"
+    "perf" => "perf-inline" & "regex-automata"
+    "perf-literal-multisubstring" => "regex-automata"
+    "dfa-onepass" => "regex-automata"
+    "perf-literal-substring" => "regex-automata"
+    "logging" => "regex-automata"
+    "unicode" => "unicode-segment" & "unicode-script" & "unicode-perl" & "unicode-gencat" & "unicode-case" & "unicode-bool" & "unicode-age" & "regex-automata"
+    "syntax" => "regex-automata" & "alloc"
+    "meta" => "nfa-pikevm" & "regex-automata"
+    "default" => "syntax" & "perf" & "unicode" & "std" & "nfa" & "hybrid" & "dfa" & "regex-automata"
+    "dfa" => "dfa-build" & "dfa-search" & "regex-automata"
+    "hybrid" => "regex-automata" & "alloc"
+    "std" => "alloc"
+    "internal-instrument-pikevm" => "std" & "regex-automata"
+    "nfa-pikevm" => "regex-automata"
+    "dfa-build" => "dfa-search" & "regex-automata"
+    "nfa-thompson" => "alloc"
+    "nfa" => "nfa-backtrack" & "nfa-thompson" & "regex-automata"
+    "nfa-backtrack" => "regex-automata"

@@ -1,0 +1,12 @@
+features
+	"textwrap"
+		optional
+			"default"
+				mandatory
+					"smawk"
+					"unicode-linebreak"
+					"unicode-width"
+				optional
+					"terminal_size"
+		optional // Unused features
+			"hyphenation"

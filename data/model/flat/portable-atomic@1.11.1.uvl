@@ -1,0 +1,17 @@
+features
+    "portable-atomic"
+        optional
+            "serde"
+            "critical-section"
+            "unsafe-assume-single-core"
+            "std"
+            "s-mode"
+            "require-cas"
+            "force-amo"
+            "float"
+            "fallback"
+                optional
+                    "default"
+            "disable-fiq"
+constraints
+    "default" => "portable-atomic"

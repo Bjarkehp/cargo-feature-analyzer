@@ -1,0 +1,8 @@
+features
+    "js-sys"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "js-sys"

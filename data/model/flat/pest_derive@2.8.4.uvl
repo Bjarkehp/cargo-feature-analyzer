@@ -1,0 +1,10 @@
+features
+    "pest_derive"
+        optional
+            "std"
+                optional
+                    "default"
+            "not-bootstrap-in-src"
+            "grammar-extras"
+constraints
+    "default" => "pest_derive"

@@ -1,0 +1,11 @@
+features
+	"anstream"
+		optional
+			"anstyle-query"
+				mandatory
+					"anstyle-wincon"
+					"auto"
+					"default"
+					"wincon"
+		optional // Unused features
+			"test"

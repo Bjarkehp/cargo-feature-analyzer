@@ -1,0 +1,7 @@
+features
+    "signature"
+        optional
+            "default"
+            "digest"
+            "rand_core"
+            "alloc"

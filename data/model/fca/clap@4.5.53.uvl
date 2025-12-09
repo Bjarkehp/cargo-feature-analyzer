@@ -1,0 +1,37 @@
+features
+	"clap"
+		mandatory
+			"clap_derive"
+			"derive"
+			"error-context"
+			"help"
+			"std"
+			"usage"
+		optional
+			"env"
+				optional
+					"string"
+			"color"
+				mandatory
+					"suggestions"
+				optional
+					"default"
+						optional
+							"deprecated"
+							"cargo"
+								optional
+									"wrap_help"
+										optional
+											"unicode"
+		optional // Unused features
+			"debug"
+			"unstable-derive-ui-tests"
+			"unstable-doc"
+			"unstable-ext"
+			"unstable-markdown"
+			"unstable-styles"
+			"unstable-v5"
+constraints
+	"deprecated" => !"string" & !"unicode"
+	"string" => !"deprecated" & "default"
+	"unicode" => !"deprecated"

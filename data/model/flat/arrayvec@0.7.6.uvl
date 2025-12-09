@@ -1,0 +1,11 @@
+features
+    "arrayvec"
+        optional
+            "zeroize"
+            "serde"
+            "borsh"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "arrayvec"

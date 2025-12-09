@@ -1,0 +1,13 @@
+features
+	"default"
+		mandatory
+			"phf"
+			"std"
+		optional
+			"macros"
+				mandatory
+					"phf_macros"
+		optional // Unused features
+			"serde"
+			"uncased"
+			"unicase"

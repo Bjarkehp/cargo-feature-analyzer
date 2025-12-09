@@ -1,0 +1,13 @@
+features
+    "futures-core"
+        optional
+            "portable-atomic"
+            "unstable"
+            "std"
+                optional
+                    "default"
+            "cfg-target-has-atomic"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "futures-core"

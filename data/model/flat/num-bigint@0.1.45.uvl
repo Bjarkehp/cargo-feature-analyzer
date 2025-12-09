@@ -1,0 +1,10 @@
+features
+    "num-bigint"
+        optional
+            "serde"
+            "rustc-serialize"
+                optional
+                    "default"
+            "rand"
+constraints
+    "default" => "rand" & "num-bigint"

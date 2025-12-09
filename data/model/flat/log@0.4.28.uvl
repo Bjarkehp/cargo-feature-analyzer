@@ -1,0 +1,41 @@
+features
+    "log"
+        optional
+            "default"
+            "value-bag"
+                optional
+                    "kv_unstable"
+                        optional
+                            "kv_unstable_sval"
+                            "kv_unstable_std"
+                                optional
+                                    "kv_unstable_serde"
+                    "kv_sval"
+                    "kv_std"
+                        optional
+                            "kv_serde"
+            "sval_ref"
+            "sval"
+            "serde"
+            "std"
+            "release_max_level_warn"
+            "release_max_level_trace"
+            "release_max_level_off"
+            "release_max_level_info"
+            "release_max_level_error"
+            "release_max_level_debug"
+            "max_level_warn"
+            "max_level_trace"
+            "max_level_off"
+            "max_level_info"
+            "max_level_error"
+            "max_level_debug"
+            "kv"
+constraints
+    "kv_unstable_std" => "kv_std" & "log"
+    "kv_serde" => "value-bag" & "serde" & "log"
+    "kv_std" => "std" & "log" & "kv"
+    "kv_unstable" => "log" & "kv"
+    "kv_unstable_sval" => "kv_sval" & "log"
+    "kv_sval" => "sval_ref" & "sval" & "log" & "kv"
+    "kv_unstable_serde" => "kv_serde" & "log"

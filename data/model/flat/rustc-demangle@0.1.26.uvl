@@ -1,0 +1,11 @@
+features
+    "rustc-demangle"
+        optional
+            "default"
+            "core"
+                optional
+                    "rustc-dep-of-std"
+            "std"
+            "compiler_builtins"
+constraints
+    "rustc-dep-of-std" => "rustc-demangle"

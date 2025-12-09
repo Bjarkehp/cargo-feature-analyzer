@@ -1,0 +1,14 @@
+features
+    "linked-hash-map"
+        optional
+            "default"
+            "serde"
+                optional
+                    "serde_impl"
+            "heapsize"
+                optional
+                    "heapsize_impl"
+            "nightly"
+constraints
+    "serde_impl" => "linked-hash-map"
+    "heapsize_impl" => "linked-hash-map"

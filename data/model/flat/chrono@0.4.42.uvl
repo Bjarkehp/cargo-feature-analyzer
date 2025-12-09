@@ -1,0 +1,44 @@
+features
+    "chrono"
+        optional
+            "windows-link"
+                optional
+                    "winapi"
+                        optional
+                            "clock"
+                                optional
+                                    "default"
+            "iana-time-zone"
+            "wasm-bindgen"
+                optional
+                    "wasmbind"
+            "js-sys"
+            "serde"
+            "pure-rust-locales"
+                optional
+                    "unstable-locales"
+            "arbitrary"
+            "std"
+                optional
+                    "now"
+            "rkyv-validation"
+            "rkyv-64"
+            "rkyv-32"
+            "rkyv-16"
+            "rkyv"
+            "oldtime"
+            "libc"
+            "core-error"
+            "alloc"
+            "__internal_bench"
+constraints
+    "winapi" => "chrono"
+    "default" => "wasmbind" & "std" & "oldtime" & "chrono"
+    "rkyv-64" => "rkyv"
+    "now" => "chrono"
+    "unstable-locales" => "chrono"
+    "std" => "alloc"
+    "wasmbind" => "js-sys" & "chrono"
+    "rkyv-32" => "rkyv"
+    "rkyv-16" => "rkyv"
+    "clock" => "iana-time-zone" & "now" & "chrono"

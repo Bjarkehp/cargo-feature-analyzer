@@ -1,0 +1,31 @@
+features
+    "petgraph"
+        optional
+            "serde_derive"
+                optional
+                    "serde-1"
+            "serde"
+            "dot-parser-macros"
+                optional
+                    "dot_parser"
+                        optional
+                            "all"
+            "dot-parser"
+            "unstable"
+            "std"
+                optional
+                    "rayon"
+                    "quickcheck"
+                    "default"
+            "stable_graph"
+            "matrix_graph"
+            "graphmap"
+            "generate"
+constraints
+    "quickcheck" => "stable_graph" & "petgraph" & "graphmap"
+    "dot_parser" => "dot-parser" & "std" & "petgraph"
+    "all" => "unstable" & "rayon" & "quickcheck" & "stable_graph" & "matrix_graph" & "graphmap" & "petgraph"
+    "serde-1" => "serde" & "petgraph"
+    "default" => "stable_graph" & "matrix_graph" & "graphmap" & "petgraph"
+    "rayon" => "petgraph"
+    "unstable" => "generate"

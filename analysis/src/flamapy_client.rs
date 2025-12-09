@@ -1,4 +1,4 @@
-use std::{io::{BufRead, BufReader, BufWriter, Read, Write, stdout}, num::ParseIntError, path::Path, process::{Child, ChildStdin, ChildStdout, Command, Stdio}, string::FromUtf8Error};
+use std::{io::{BufRead, BufReader, BufWriter, Read, Write, stdout}, num::{IntErrorKind, ParseFloatError, ParseIntError}, path::Path, process::{Child, ChildStdin, ChildStdout, Command, Stdio}, string::FromUtf8Error};
 
 use which::which;
 
@@ -37,24 +37,22 @@ impl Client {
         Ok(())
     }
 
-    pub fn estimated_number_of_configurations(&mut self) -> Result<usize, CommandError> {
+    pub fn estimated_number_of_configurations(&mut self) -> Result<f64, CommandError> {
         writeln!(self.writer, "estimated_number_of_configurations")?;
         self.writer.flush()?;
         let mut output = String::new();
         self.reader.read_line(&mut output)?;
-        let parsed_output = output.trim().parse()
-            .map_err(|e| CommandError::ParseInt(e, output))?;
-        Ok(parsed_output)
+        output.trim().parse()
+            .map_err(|e| CommandError::ParseFloat(e, output))
     }
 
-    pub fn configurations_number(&mut self) -> Result<usize, CommandError> {
+    pub fn configurations_number(&mut self) -> Result<f64, CommandError> {
         writeln!(self.writer, "configurations_number")?;
         self.writer.flush()?;
         let mut output = String::new();
         self.reader.read_line(&mut output)?;
-        let parsed_output = output.trim().parse()
-            .map_err(|e| CommandError::ParseInt(e, output))?;
-        Ok(parsed_output)
+        output.trim().parse()
+            .map_err(|e| CommandError::ParseFloat(e, output))
     }
 
     pub fn satisfiable_configuration(&mut self, configuration_path: &Path) -> Result<bool, CommandError> {
@@ -90,6 +88,8 @@ pub enum CommandError {
     Flamapy(String),
     #[error("Unable to parse integer from flamapy output:\n\t{0}\nInput:\n\t{1}")]
     ParseInt(ParseIntError, String),
+    #[error("Unable to parse float from flamapy output:\n\t{0}\nInput:\n\t{1}")]
+    ParseFloat(ParseFloatError, String),
     #[error("Unable to parse bool from flamapy output:\n\t{0}")]
     ParseBool(String),
 }

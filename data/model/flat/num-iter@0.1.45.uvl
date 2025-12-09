@@ -1,0 +1,9 @@
+features
+    "num-iter"
+        optional
+            "std"
+                optional
+                    "default"
+            "i128"
+constraints
+    "default" => "num-iter"

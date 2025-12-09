@@ -1,0 +1,14 @@
+features
+    "core-foundation"
+        optional
+            "uuid"
+                optional
+                    "with-uuid"
+            "mac_os_10_8_features"
+            "mac_os_10_7_support"
+            "link"
+                optional
+                    "default"
+constraints
+    "with-uuid" => "core-foundation"
+    "default" => "core-foundation"

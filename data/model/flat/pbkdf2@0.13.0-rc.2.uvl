@@ -1,0 +1,18 @@
+features
+    "pbkdf2"
+        optional
+            "sha2"
+                optional
+                    "simple"
+                        optional
+                            "getrandom"
+            "sha1"
+            "password-hash"
+            "hmac"
+                optional
+                    "default"
+            "std"
+constraints
+    "default" => "pbkdf2"
+    "simple" => "getrandom" & "password-hash" & "hmac" & "pbkdf2"
+    "getrandom" => "password-hash" & "pbkdf2"

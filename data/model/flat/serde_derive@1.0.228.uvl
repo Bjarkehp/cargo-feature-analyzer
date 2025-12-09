@@ -1,0 +1,5 @@
+features
+    "serde_derive"
+        optional
+            "deserialize_in_place"
+            "default"

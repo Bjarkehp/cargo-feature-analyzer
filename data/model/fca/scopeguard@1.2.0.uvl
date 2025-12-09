@@ -1,0 +1,6 @@
+features
+	"scopeguard"
+		optional
+			"default"
+				mandatory
+					"use_std"

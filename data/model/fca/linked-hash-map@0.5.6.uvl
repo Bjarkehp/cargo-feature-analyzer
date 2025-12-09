@@ -1,0 +1,12 @@
+features
+	"linked-hash-map"
+		optional
+			"default"
+				optional
+					"serde"
+						mandatory
+							"serde_impl"
+		optional // Unused features
+			"heapsize"
+			"heapsize_impl"
+			"nightly"

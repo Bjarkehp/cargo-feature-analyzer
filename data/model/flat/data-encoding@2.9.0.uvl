@@ -1,0 +1,10 @@
+features
+    "data-encoding"
+        optional
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "data-encoding"

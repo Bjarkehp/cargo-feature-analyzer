@@ -1,0 +1,4 @@
+features
+    "is_terminal_polyfill"
+        optional
+            "default"

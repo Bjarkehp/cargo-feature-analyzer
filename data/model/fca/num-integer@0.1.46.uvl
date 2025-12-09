@@ -1,0 +1,10 @@
+features
+	"num-integer"
+		optional
+			"i128"
+			"std"
+				optional
+					"default"
+constraints
+	"default" => !"i128"
+	"i128" => !"default"

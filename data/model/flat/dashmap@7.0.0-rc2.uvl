@@ -1,0 +1,14 @@
+features
+    "dashmap"
+        optional
+            "default"
+            "serde"
+                optional
+                    "all"
+            "rayon"
+            "arbitrary"
+            "typesize"
+            "raw-api"
+            "inline-more"
+constraints
+    "all" => "rayon" & "arbitrary" & "typesize" & "raw-api" & "dashmap"

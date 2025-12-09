@@ -1,0 +1,18 @@
+features
+    "event-listener"
+        optional
+            "parking"
+                optional
+                    "std"
+                        optional
+                            "default"
+            "portable_atomic_crate"
+                optional
+                    "portable-atomic"
+            "portable-atomic-util"
+            "critical-section"
+            "loom"
+constraints
+    "default" => "event-listener"
+    "std" => "event-listener"
+    "portable-atomic" => "portable-atomic-util" & "event-listener"

@@ -1,0 +1,9 @@
+features
+	"default"
+		mandatory
+			"lazycell"
+		optional // Unused features
+			"clippy"
+			"nightly"
+			"nightly-testing"
+			"serde"

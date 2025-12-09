@@ -1,0 +1,9 @@
+features
+    "icu_collections"
+        optional
+            "default"
+            "serde"
+            "databake"
+            "alloc"
+constraints
+    "serde" => "alloc"

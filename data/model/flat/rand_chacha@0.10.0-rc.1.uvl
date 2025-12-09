@@ -1,0 +1,9 @@
+features
+    "rand_chacha"
+        optional
+            "std"
+                optional
+                    "default"
+            "serde"
+constraints
+    "default" => "rand_chacha"

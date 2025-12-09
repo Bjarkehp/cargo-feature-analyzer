@@ -1,0 +1,10 @@
+features
+    "lru"
+        optional
+            "hashbrown"
+                optional
+                    "nightly"
+                    "default"
+constraints
+    "default" => "lru"
+    "nightly" => "lru"

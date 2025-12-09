@@ -1,0 +1,10 @@
+features
+    "crossbeam-utils"
+        optional
+            "loom"
+            "std"
+                optional
+                    "default"
+            "nightly"
+constraints
+    "default" => "crossbeam-utils"

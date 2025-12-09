@@ -1,0 +1,19 @@
+features
+	"winnow"
+		optional
+			"alloc"
+				mandatory
+					"std"
+				or
+					"memchr"
+						mandatory
+							"simd"
+					"default"
+		optional // Unused features
+			"anstream"
+			"anstyle"
+			"debug"
+			"is_terminal_polyfill"
+			"terminal_size"
+			"unstable-doc"
+			"unstable-recover"

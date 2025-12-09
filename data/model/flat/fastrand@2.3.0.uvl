@@ -1,0 +1,14 @@
+features
+    "fastrand"
+        optional
+            "getrandom"
+                optional
+                    "js"
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "fastrand"
+    "js" => "std" & "fastrand"

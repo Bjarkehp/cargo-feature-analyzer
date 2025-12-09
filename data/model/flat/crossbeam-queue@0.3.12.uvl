@@ -1,0 +1,11 @@
+features
+    "crossbeam-queue"
+        optional
+            "std"
+                optional
+                    "default"
+            "nightly"
+            "alloc"
+constraints
+    "default" => "crossbeam-queue"
+    "std" => "alloc"

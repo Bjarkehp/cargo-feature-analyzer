@@ -1,0 +1,37 @@
+features
+	"bytemuck"
+		optional
+			"default"
+				optional
+					"min_const_generics"
+						optional
+							"must_cast"
+					"extern_crate_alloc"
+					"bytemuck_derive"
+						mandatory
+							"derive"
+		optional // Unused features
+			"aarch64_simd"
+			"align_offset"
+			"alloc_uninit"
+			"avx512_simd"
+			"const_zeroed"
+			"extern_crate_std"
+			"impl_core_error"
+			"latest_stable_rust"
+			"must_cast_extra"
+			"nightly_docs"
+			"nightly_float"
+			"nightly_portable_simd"
+			"nightly_stdsimd"
+			"pod_saturating"
+			"track_caller"
+			"transparentwrapper_extra"
+			"unsound_ptr_pod_impl"
+			"wasm_simd"
+			"zeroable_atomics"
+			"zeroable_maybe_uninit"
+			"zeroable_unwind_fn"
+constraints
+	"bytemuck_derive" => !"must_cast"
+	"must_cast" => !"bytemuck_derive" & "extern_crate_alloc"

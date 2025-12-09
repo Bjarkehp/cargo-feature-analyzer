@@ -1,0 +1,15 @@
+features
+    "yoke"
+        optional
+            "yoke-derive"
+                optional
+                    "derive"
+            "zerofrom"
+                optional
+                    "default"
+                    "alloc"
+            "serde"
+constraints
+    "default" => "alloc" & "yoke"
+    "alloc" => "yoke"
+    "derive" => "zerofrom" & "yoke"

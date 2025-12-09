@@ -1,0 +1,11 @@
+features
+    "zerofrom"
+        optional
+            "zerofrom-derive"
+                optional
+                    "derive"
+            "default"
+            "alloc"
+constraints
+    "derive" => "zerofrom"
+    "default" => "alloc"

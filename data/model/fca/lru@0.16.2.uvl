@@ -1,0 +1,8 @@
+features
+	"lru"
+		optional
+			"default"
+				mandatory
+					"hashbrown"
+		optional // Unused features
+			"nightly"

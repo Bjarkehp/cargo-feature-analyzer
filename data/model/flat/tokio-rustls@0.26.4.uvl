@@ -1,0 +1,18 @@
+features
+    "tokio-rustls"
+        optional
+            "zlib"
+            "tls12"
+                optional
+                    "default"
+            "ring"
+            "logging"
+            "fips"
+            "early-data"
+            "brotli"
+            "aws_lc_rs"
+                optional
+                    "aws-lc-rs"
+constraints
+    "default" => "logging" & "tokio-rustls" & "aws_lc_rs"
+    "aws-lc-rs" => "tokio-rustls"

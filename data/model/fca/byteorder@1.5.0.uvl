@@ -1,0 +1,8 @@
+features
+	"byteorder"
+		optional
+			"std"
+				optional
+					"default"
+						optional
+							"i128"

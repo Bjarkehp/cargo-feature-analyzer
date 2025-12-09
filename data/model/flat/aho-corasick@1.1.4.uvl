@@ -1,0 +1,16 @@
+features
+    "aho-corasick"
+        optional
+            "memchr"
+                optional
+                    "perf-literal"
+                        optional
+                            "default"
+            "log"
+                optional
+                    "logging"
+            "std"
+constraints
+    "default" => "std" & "aho-corasick"
+    "perf-literal" => "aho-corasick"
+    "logging" => "aho-corasick"

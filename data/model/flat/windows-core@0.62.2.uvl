@@ -1,0 +1,8 @@
+features
+    "windows-core"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "windows-core"

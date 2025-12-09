@@ -1,0 +1,9 @@
+features
+    "cfg-if"
+        optional
+            "default"
+            "core"
+                optional
+                    "rustc-dep-of-std"
+constraints
+    "rustc-dep-of-std" => "cfg-if"

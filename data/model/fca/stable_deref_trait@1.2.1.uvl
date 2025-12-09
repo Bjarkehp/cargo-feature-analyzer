@@ -1,0 +1,8 @@
+features
+	"stable_deref_trait"
+		optional
+			"alloc"
+				optional
+					"std"
+						optional
+							"default"

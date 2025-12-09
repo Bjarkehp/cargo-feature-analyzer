@@ -1,0 +1,10 @@
+features
+    "axum-core"
+        optional
+            "default"
+            "tower-http"
+                optional
+                    "__private_docs"
+            "tracing"
+constraints
+    "__private_docs" => "axum-core"

@@ -1,0 +1,7 @@
+features
+	"semver"
+		optional
+			"std"
+				or
+					"serde"
+					"default"

@@ -1,0 +1,9 @@
+features
+    "byteorder"
+        optional
+            "std"
+                optional
+                    "default"
+            "i128"
+constraints
+    "default" => "byteorder"

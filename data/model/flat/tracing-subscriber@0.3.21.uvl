@@ -1,0 +1,49 @@
+features
+    "tracing-subscriber"
+        optional
+            "valuable_crate"
+                optional
+                    "valuable"
+            "valuable-serde"
+            "tracing-serde"
+                optional
+                    "json"
+            "tracing-log"
+                optional
+                    "default"
+            "tracing"
+                optional
+                    "env-filter"
+            "time"
+                optional
+                    "local-time"
+            "thread_local"
+                optional
+                    "registry"
+                        optional
+                            "fmt"
+                                optional
+                                    "ansi"
+            "smallvec"
+            "sharded-slab"
+            "serde_json"
+            "serde"
+            "regex-automata"
+            "parking_lot"
+            "once_cell"
+            "matchers"
+            "chrono"
+            "std"
+            "regex"
+            "nu-ansi-term"
+            "alloc"
+constraints
+    "default" => "fmt" & "ansi" & "smallvec" & "std" & "tracing-subscriber"
+    "fmt" => "std" & "tracing-subscriber"
+    "valuable" => "valuable-serde" & "tracing-serde" & "tracing-subscriber"
+    "local-time" => "tracing-subscriber"
+    "ansi" => "nu-ansi-term" & "tracing-subscriber"
+    "std" => "alloc"
+    "env-filter" => "thread_local" & "regex-automata" & "once_cell" & "matchers" & "std" & "tracing-subscriber"
+    "registry" => "sharded-slab" & "std" & "tracing-subscriber"
+    "json" => "serde_json" & "serde" & "tracing-subscriber"

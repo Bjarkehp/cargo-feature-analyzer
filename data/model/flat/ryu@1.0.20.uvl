@@ -1,0 +1,6 @@
+features
+    "ryu"
+        optional
+            "default"
+            "no-panic"
+            "small"

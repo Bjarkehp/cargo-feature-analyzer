@@ -1,0 +1,33 @@
+features
+    "ordered-float"
+        optional
+            "speedy"
+            "schemars"
+            "rand"
+                optional
+                    "randtest"
+            "proptest"
+            "num-cmp"
+            "derive-visitor"
+            "bytemuck"
+            "borsh"
+            "arbitrary"
+            "std"
+                optional
+                    "default"
+            "serde"
+            "rkyv_ck"
+            "rkyv_64"
+            "rkyv_32"
+                optional
+                    "rkyv"
+                        optional
+                            "rkyv_16"
+            "libm"
+constraints
+    "randtest" => "ordered-float"
+    "default" => "ordered-float"
+    "rkyv_32" => "rkyv"
+    "rkyv_64" => "rkyv"
+    "rkyv_16" => "ordered-float"
+    "rkyv" => "ordered-float"

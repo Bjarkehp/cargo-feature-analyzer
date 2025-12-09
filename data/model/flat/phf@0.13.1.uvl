@@ -1,0 +1,15 @@
+features
+    "phf"
+        optional
+            "serde"
+            "phf_macros"
+                optional
+                    "macros"
+            "unicase"
+            "uncased"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "phf"
+    "macros" => "phf"

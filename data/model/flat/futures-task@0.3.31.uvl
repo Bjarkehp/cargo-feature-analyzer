@@ -1,0 +1,12 @@
+features
+    "futures-task"
+        optional
+            "unstable"
+            "std"
+                optional
+                    "default"
+            "cfg-target-has-atomic"
+            "alloc"
+constraints
+    "default" => "futures-task"
+    "std" => "alloc"

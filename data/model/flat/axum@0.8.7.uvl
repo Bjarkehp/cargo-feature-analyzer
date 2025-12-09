@@ -1,0 +1,56 @@
+features
+    "axum"
+        optional
+            "tower-http"
+                optional
+                    "__private_docs"
+            "tokio-tungstenite"
+                optional
+                    "ws"
+            "sha1"
+            "serde_urlencoded"
+                optional
+                    "query"
+                        optional
+                            "default"
+                    "form"
+            "serde_path_to_error"
+                optional
+                    "json"
+            "serde_json"
+            "serde"
+            "reqwest"
+                optional
+                    "__private"
+            "multer"
+                optional
+                    "multipart"
+            "hyper-util"
+                optional
+                    "tokio"
+            "hyper"
+                optional
+                    "http2"
+                    "http1"
+            "form_urlencoded"
+            "base64"
+            "axum-macros"
+                optional
+                    "macros"
+            "tracing"
+            "tower-log"
+            "original-uri"
+            "matched-path"
+constraints
+    "http1" => "axum"
+    "multipart" => "axum"
+    "json" => "serde_json" & "axum"
+    "default" => "form" & "json" & "tokio" & "http1" & "tracing" & "tower-log" & "original-uri" & "matched-path" & "axum"
+    "ws" => "sha1" & "tokio" & "hyper" & "base64" & "axum"
+    "http2" => "axum"
+    "__private" => "tokio" & "http1" & "axum"
+    "macros" => "axum"
+    "query" => "serde_path_to_error" & "form_urlencoded" & "axum"
+    "form" => "serde_path_to_error" & "form_urlencoded" & "axum"
+    "tokio" => "axum"
+    "__private_docs" => "serde" & "axum"

@@ -2575,7 +2575,7 @@ CREATE INDEX versions_id_yanked_idx ON public.versions USING btree (id) WHERE ya
 
 -- MODIFIED
 CREATE INDEX versions_created_at_index ON public.versions USING btree (created_at DESC, id);
-
+CREATE INDEX versions_crate_id_created_at ON public.versions USING btree (crate_id, created_at DESC);
 
 --
 -- Name: crates insert_crate_downloads_row; Type: TRIGGER; Schema: public; Owner: -

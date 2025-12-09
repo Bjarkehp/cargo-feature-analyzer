@@ -1,0 +1,8 @@
+features
+    "ucd-trie"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "ucd-trie"

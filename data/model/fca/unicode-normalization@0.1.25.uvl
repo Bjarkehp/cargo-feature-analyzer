@@ -1,0 +1,5 @@
+features
+	"default"
+		mandatory
+			"std"
+			"unicode-normalization"

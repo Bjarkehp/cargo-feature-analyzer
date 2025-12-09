@@ -1,0 +1,6 @@
+features
+	"static_assertions"
+		optional
+			"default"
+		optional // Unused features
+			"nightly"

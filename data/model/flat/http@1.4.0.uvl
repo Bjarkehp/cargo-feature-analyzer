@@ -1,0 +1,8 @@
+features
+    "http"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "http"

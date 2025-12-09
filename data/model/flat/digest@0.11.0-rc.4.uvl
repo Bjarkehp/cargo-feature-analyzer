@@ -1,0 +1,29 @@
+features
+    "digest"
+        optional
+            "subtle"
+                optional
+                    "mac"
+            "const-oid"
+                optional
+                    "oid"
+            "block-buffer"
+                optional
+                    "block-api"
+                        optional
+                            "default"
+            "blobby"
+                optional
+                    "dev"
+            "zeroize"
+            "rand_core"
+                optional
+                    "getrandom"
+            "alloc"
+constraints
+    "block-api" => "digest"
+    "oid" => "digest"
+    "dev" => "digest"
+    "default" => "digest"
+    "getrandom" => "digest"
+    "mac" => "digest"

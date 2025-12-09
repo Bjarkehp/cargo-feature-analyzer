@@ -1,0 +1,13 @@
+features
+    "bumpalo"
+        optional
+            "allocator-api2"
+            "std"
+            "serde"
+            "default"
+            "collections"
+            "boxed"
+            "bench_allocator_api"
+            "allocator_api"
+constraints
+    "bench_allocator_api" => "allocator_api"

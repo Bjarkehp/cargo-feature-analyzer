@@ -1,0 +1,24 @@
+features
+	"default"
+		mandatory
+			"quick-xml"
+		optional
+			"async-tokio"
+				mandatory
+					"tokio"
+				optional
+					"escape-html"
+			"encoding"
+				mandatory
+					"encoding_rs"
+			"serde"
+				optional
+					"serialize"
+						optional
+							"overlapped-lists"
+		optional // Unused features
+			"arbitrary"
+			"document-features"
+			"serde-types"
+constraints
+	"escape-html" => "encoding" & "encoding_rs" & "overlapped-lists"

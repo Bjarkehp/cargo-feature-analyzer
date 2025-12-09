@@ -1,0 +1,9 @@
+features
+    "anyhow"
+        optional
+            "backtrace"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "anyhow"

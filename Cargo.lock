@@ -35,6 +35,7 @@ dependencies = [
  "chrono",
  "clap",
  "configuration-scraper",
+ "crate-scraper",
  "fm-synthesizer-fca",
  "fm-synthesizer-flat",
  "itertools 0.14.0",
@@ -404,6 +405,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "crate-scraper"
+version = "0.1.0"
+dependencies = [
+ "cargo-toml",
+ "clap",
+ "itertools 0.14.0",
+ "postgres",
+ "semver",
+ "thiserror",
 ]
 
 [[package]]

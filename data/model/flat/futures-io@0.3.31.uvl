@@ -1,0 +1,9 @@
+features
+    "futures-io"
+        optional
+            "unstable"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "futures-io"

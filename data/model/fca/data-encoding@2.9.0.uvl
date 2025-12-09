@@ -1,0 +1,8 @@
+features
+	"data-encoding"
+		optional
+			"alloc"
+				optional
+					"std"
+						optional
+							"default"

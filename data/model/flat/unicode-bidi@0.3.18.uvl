@@ -1,0 +1,21 @@
+features
+    "unicode-bidi"
+        optional
+            "smallvec"
+            "serde"
+                optional
+                    "with_serde"
+            "flamer"
+                optional
+                    "flame_it"
+            "flame"
+            "unstable"
+            "std"
+                optional
+                    "default"
+            "hardcoded-data"
+            "bench_it"
+constraints
+    "with_serde" => "unicode-bidi"
+    "default" => "hardcoded-data" & "unicode-bidi"
+    "flame_it" => "flame" & "unicode-bidi"

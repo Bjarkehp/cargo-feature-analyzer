@@ -1,0 +1,8 @@
+features
+	"bit-set"
+		optional
+			"default"
+				mandatory
+					"std"
+		optional // Unused features
+			"serde"

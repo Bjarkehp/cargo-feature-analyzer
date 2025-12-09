@@ -1,0 +1,15 @@
+features
+    "anstyle-parse"
+        optional
+            "utf8parse"
+                optional
+                    "utf8"
+                        optional
+                            "default"
+            "arrayvec"
+                optional
+                    "core"
+constraints
+    "core" => "anstyle-parse"
+    "utf8" => "anstyle-parse"
+    "default" => "anstyle-parse"

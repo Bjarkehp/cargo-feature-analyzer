@@ -1,0 +1,15 @@
+features
+	"tracing-log"
+		optional
+			"log-tracer"
+				alternative
+					"ahash"
+						mandatory
+							"interest-cache"
+							"lru"
+					"std"
+						optional
+							"default"
+constraints
+	"ahash" => !"default"
+	"default" => !"ahash"

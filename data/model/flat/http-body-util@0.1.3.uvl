@@ -1,0 +1,12 @@
+features
+    "http-body-util"
+        optional
+            "tokio"
+                optional
+                    "channel"
+                        optional
+                            "full"
+            "default"
+constraints
+    "full" => "http-body-util"
+    "channel" => "http-body-util"

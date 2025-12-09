@@ -1,0 +1,35 @@
+features
+	"clap_builder"
+		optional
+			"anstream"
+				mandatory
+					"color"
+					"error-context"
+					"help"
+					"std"
+					"strsim"
+					"suggestions"
+					"usage"
+				or
+					"string"
+						optional
+							"cargo"
+								mandatory
+									"env"
+									"terminal_size"
+									"wrap_help"
+					"default"
+		optional // Unused features
+			"backtrace"
+			"debug"
+			"deprecated"
+			"unicase"
+			"unicode"
+			"unicode-width"
+			"unstable-doc"
+			"unstable-ext"
+			"unstable-styles"
+			"unstable-v5"
+constraints
+	"cargo" => !"default"
+	"default" => !"cargo"

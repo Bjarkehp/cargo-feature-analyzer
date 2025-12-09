@@ -1,0 +1,17 @@
+features
+	"env_logger"
+		optional
+			"anstream"
+				mandatory
+					"anstyle"
+					"auto-color"
+					"color"
+				optional
+					"default"
+						mandatory
+							"humantime"
+							"jiff"
+							"regex"
+		optional // Unused features
+			"kv"
+			"unstable-kv"

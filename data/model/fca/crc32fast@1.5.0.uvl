@@ -1,0 +1,8 @@
+features
+	"crc32fast"
+		optional
+			"default"
+				mandatory
+					"std"
+				optional
+					"nightly"

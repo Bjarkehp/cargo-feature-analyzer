@@ -1,0 +1,14 @@
+features
+    "toml_datetime"
+        optional
+            "serde_core"
+                optional
+                    "serde"
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "default" => "toml_datetime"
+    "std" => "alloc"
+    "serde" => "toml_datetime"

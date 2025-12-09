@@ -1,0 +1,10 @@
+features
+    "num_enum"
+        optional
+            "std"
+                optional
+                    "default"
+            "external_doc"
+            "complex-expressions"
+constraints
+    "default" => "num_enum"

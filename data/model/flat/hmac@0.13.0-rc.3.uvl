@@ -1,0 +1,5 @@
+features
+    "hmac"
+        optional
+            "default"
+            "zeroize"

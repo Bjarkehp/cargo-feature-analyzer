@@ -1,0 +1,5 @@
+features
+    "thread_local"
+        optional
+            "default"
+            "nightly"

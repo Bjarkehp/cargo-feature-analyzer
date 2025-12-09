@@ -1,0 +1,29 @@
+features
+    "tinyvec"
+        optional
+            "tinyvec_macros"
+                optional
+                    "alloc"
+                        optional
+                            "std"
+            "serde"
+            "generic-array"
+            "borsh"
+            "arbitrary"
+            "rustc_1_61"
+                optional
+                    "latest_stable_rust"
+            "rustc_1_57"
+            "rustc_1_55"
+            "rustc_1_40"
+            "real_blackbox"
+            "nightly_slice_partition_dedup"
+            "grab_spare_slice"
+            "experimental_write_impl"
+            "default"
+            "debugger_visualizer"
+constraints
+    "latest_stable_rust" => "tinyvec"
+    "alloc" => "tinyvec"
+    "std" => "tinyvec"
+    "rustc_1_61" => "rustc_1_57"

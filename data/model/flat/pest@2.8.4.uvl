@@ -1,0 +1,19 @@
+features
+    "pest"
+        optional
+            "serde_json"
+                optional
+                    "pretty-print"
+                        optional
+                            "miette-error"
+            "serde"
+            "miette"
+            "memchr"
+                optional
+                    "default"
+            "std"
+            "const_prec_climber"
+constraints
+    "pretty-print" => "serde" & "pest"
+    "default" => "std" & "pest"
+    "miette-error" => "miette" & "std" & "pest"

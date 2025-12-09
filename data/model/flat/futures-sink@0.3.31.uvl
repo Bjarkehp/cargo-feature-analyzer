@@ -1,0 +1,10 @@
+features
+    "futures-sink"
+        optional
+            "std"
+                optional
+                    "default"
+            "alloc"
+constraints
+    "std" => "alloc"
+    "default" => "futures-sink"

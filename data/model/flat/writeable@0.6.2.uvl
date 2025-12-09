@@ -1,0 +1,8 @@
+features
+    "writeable"
+        optional
+            "either"
+            "default"
+            "alloc"
+constraints
+    "default" => "alloc"

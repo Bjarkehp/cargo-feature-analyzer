@@ -1,0 +1,6 @@
+features
+    "aes"
+        optional
+            "default"
+            "zeroize"
+            "hazmat"

@@ -1,0 +1,23 @@
+features
+    "num"
+        optional
+            "num-rational"
+                optional
+                    "serde"
+                    "rustc-serialize"
+                        optional
+                            "default"
+                    "rational"
+            "num-complex"
+                optional
+                    "complex"
+            "num-bigint"
+                optional
+                    "bigint"
+constraints
+    "default" => "rational" & "complex" & "bigint" & "num"
+    "complex" => "num"
+    "bigint" => "num"
+    "rustc-serialize" => "num-complex" & "num-bigint" & "num"
+    "rational" => "num"
+    "serde" => "num-complex" & "num-bigint" & "num"

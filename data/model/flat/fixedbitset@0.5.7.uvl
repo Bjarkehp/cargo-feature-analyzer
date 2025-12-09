@@ -1,0 +1,9 @@
+features
+    "fixedbitset"
+        optional
+            "serde"
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "fixedbitset"

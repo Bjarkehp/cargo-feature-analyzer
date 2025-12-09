@@ -1,0 +1,8 @@
+features
+    "time-macros"
+        optional
+            "default"
+            "serde"
+            "parsing"
+            "large-dates"
+            "formatting"

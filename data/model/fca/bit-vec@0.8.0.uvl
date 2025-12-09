@@ -1,0 +1,14 @@
+features
+	"bit-vec"
+		mandatory
+			"default"
+			"std"
+		optional
+			"miniserde"
+		optional // Unused features
+			"borsh"
+			"borsh_std"
+			"nanoserde"
+			"serde"
+			"serde_no_std"
+			"serde_std"

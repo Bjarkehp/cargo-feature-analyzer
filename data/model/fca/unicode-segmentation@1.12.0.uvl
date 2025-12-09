@@ -1,0 +1,6 @@
+features
+	"unicode-segmentation"
+		optional
+			"default"
+		optional // Unused features
+			"no_std"

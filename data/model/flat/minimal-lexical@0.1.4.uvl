@@ -1,0 +1,12 @@
+features
+    "minimal-lexical"
+        optional
+            "std"
+                optional
+                    "default"
+            "no_alloc"
+            "nightly"
+            "lint"
+            "compact"
+constraints
+    "default" => "minimal-lexical"

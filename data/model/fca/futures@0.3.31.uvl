@@ -1,0 +1,22 @@
+features
+	"futures"
+		optional
+			"alloc"
+				optional
+					"executor"
+						mandatory
+							"futures-executor"
+							"std"
+						optional
+							"async-await"
+								mandatory
+									"default"
+								optional
+									"compat"
+		optional // Unused features
+			"bilock"
+			"cfg-target-has-atomic"
+			"io-compat"
+			"thread-pool"
+			"unstable"
+			"write-all-vectored"

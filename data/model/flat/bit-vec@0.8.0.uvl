@@ -1,0 +1,20 @@
+features
+    "bit-vec"
+        optional
+            "serde"
+                optional
+                    "serde_std"
+                    "serde_no_std"
+            "nanoserde"
+            "miniserde"
+            "borsh"
+                optional
+                    "borsh_std"
+            "std"
+                optional
+                    "default"
+constraints
+    "serde_std" => "std" & "bit-vec"
+    "default" => "bit-vec"
+    "serde_no_std" => "bit-vec"
+    "borsh_std" => "bit-vec"

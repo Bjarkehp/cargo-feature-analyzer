@@ -1,0 +1,21 @@
+features
+    "icu_properties"
+        optional
+            "unicode-bidi"
+                optional
+                    "unicode_bidi"
+            "icu_properties_data"
+                optional
+                    "compiled_data"
+                        optional
+                            "default"
+            "databake"
+                optional
+                    "datagen"
+            "serde"
+            "alloc"
+constraints
+    "default" => "icu_properties"
+    "compiled_data" => "icu_properties"
+    "datagen" => "serde" & "icu_properties"
+    "unicode_bidi" => "icu_properties"

@@ -1,0 +1,8 @@
+features
+    "shlex"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "shlex"

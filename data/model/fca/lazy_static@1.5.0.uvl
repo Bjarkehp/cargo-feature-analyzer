@@ -1,0 +1,7 @@
+features
+	"lazy_static"
+		optional
+			"default"
+		optional // Unused features
+			"spin"
+			"spin_no_std"

@@ -1,0 +1,10 @@
+features
+	"alloc"
+		mandatory
+			"crossbeam-queue"
+		optional
+			"std"
+				optional
+					"default"
+		optional // Unused features
+			"nightly"

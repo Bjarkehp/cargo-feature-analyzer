@@ -1,0 +1,8 @@
+features
+    "libloading"
+        optional
+            "std"
+                optional
+                    "default"
+constraints
+    "default" => "libloading"

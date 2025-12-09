@@ -1,0 +1,12 @@
+features
+	"crypto-common"
+		optional
+			"rand_core"
+				optional
+					"getrandom"
+			"default"
+		optional // Unused features
+			"std"
+constraints
+	"default" => !"getrandom"
+	"getrandom" => !"default"
