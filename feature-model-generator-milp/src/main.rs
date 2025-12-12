@@ -1,10 +1,11 @@
 pub mod util;
 pub mod milp;
 
-use std::{error::Error, fs::File, io::BufWriter, path::PathBuf};
-
+use std::{fs::File, io::BufWriter, path::PathBuf};
+use anyhow::{Context, anyhow};
+use cargo_toml::crate_id::CrateId;
+use configuration_scraper::configuration::Configuration;
 use clap::Parser;
-use configuration::Configuration;
 use good_lp::{scip, Solution, SolverModel};
 use itertools::Itertools;
 use petgraph::{graph::DiGraph, visit::EdgeRef, Direction};
@@ -18,7 +19,7 @@ struct Args {
     destination: PathBuf,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     let configurations_files = WalkDir::new(args.source)
@@ -33,14 +34,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect::<Vec<_>>();
 
     let configurations = configurations_files.iter()
-        .map(|(name, content)| Configuration::from_csvconf(name.clone(), content)
-            .ok_or(format!("Failed to parse configuration from {}", name)))
-        .collect::<Result<Vec<_>, _>>()?;
+        .map(|(name, content)| {
+            let crate_id: CrateId = name.parse()
+                .with_context(|| format!("Failed to parse {name} to crate id"))?;
+            let configuration = Configuration::from_csv_owned(crate_id.name, crate_id.version, content)
+                .ok_or_else(|| anyhow!("Failed to parse file content as csv"))?;
+            Ok(configuration)
+        })
+        .collect::<Result<Vec<_>, anyhow::Error>>()?;
 
-    let features = configuration::all_features(&configurations_files[0].1)
-        .ok_or(format!("Failed to parse features from {}", configurations_files[0].0))?
-        .into_iter()
-        .filter(|f| configurations.iter().any(|c| c.features().contains(f)))
+    let features = configurations[0].features.keys()
+        .filter(|&f| configurations.iter().any(|c| c.features.get(f) == Some(&true)))
+        .map(|f| f.as_ref())
         .collect::<Vec<_>>();
 
     let milp = milp::create_problem(&features, &configurations);

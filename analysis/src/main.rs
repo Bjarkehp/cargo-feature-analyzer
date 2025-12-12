@@ -25,7 +25,7 @@ fn main() {
     std::fs::create_dir_all(FCA_MODEL_PATH)
         .unwrap_or_else(|e| panic!("Failed to create directory {FCA_MODEL_PATH}: {e}"));
     std::fs::create_dir_all("data/result")
-        .unwrap_or_else(|e| panic!("UFailed to create directory data/result: {e}"));
+        .unwrap_or_else(|e| panic!("Failed to create directory data/result: {e}"));
 
     let url = "postgres://crates:crates@localhost:5432/crates_io_db";
     let mut client = postgres::Client::connect(url, postgres::NoTls)
@@ -254,12 +254,15 @@ fn get_or_scrape_configurations(id: &CrateId, dependency_graph: &feature_depende
 fn read_configuration(path: &Path) -> Configuration<'static> {
     let content = std::fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("Failed to read configuration file at {path:?}: {e}"));
+    
     let file_name = path.file_stem()
         .unwrap_or_else(|| panic!("Failed to get name of file at {path:?}"))
         .to_str()
         .unwrap_or_else(|| panic!("Failed to convert path {path:?} to utf8"));
+
     let config_id: CrateId = file_name.parse()
         .unwrap_or_else(|e| panic!("Failed to parse configuration id for file at {path:?}: {e}"));
+
     Configuration::from_csv_owned(config_id.name, config_id.version, &content)
         .unwrap_or_else(|| panic!("Failed to parse configuration file at {path:?}"))
 }

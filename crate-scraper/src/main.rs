@@ -1,7 +1,7 @@
 use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
 
 
-use clap::{Parser, command};
+use clap::Parser;
 use crate_scraper::scrape_popular;
 use postgres::NoTls;
 

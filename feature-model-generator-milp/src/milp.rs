@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use configuration::Configuration;
+use configuration_scraper::configuration::Configuration;
 use good_lp::{constraint, variable, Constraint, Expression, ProblemVariables, Variable};
 
 use crate::util::{binary, make_variables, n_choose_k, natural, VariableMap};
@@ -51,7 +51,7 @@ pub fn create_problem(features: &[&str], configurations: &[Configuration]) -> Fe
     let columns = features.len();
 
     let context = p!(0..rows, 0..columns)
-        .filter(|&(i, j)| configurations[i].features().contains(features[j]))
+        .filter(|&(i, j)| configurations[i].features.get(features[j]) == Some(&true))
         .collect::<HashSet<_>>();
 
     let n_choose_k_table = p!(0..columns, 0..columns)

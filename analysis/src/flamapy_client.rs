@@ -1,9 +1,8 @@
-use std::{io::{BufRead, BufReader, BufWriter, Read, Write, stdout}, num::{IntErrorKind, ParseFloatError, ParseIntError}, path::Path, process::{Child, ChildStdin, ChildStdout, Command, Stdio}, string::FromUtf8Error};
+use std::{io::{BufRead, BufReader, BufWriter, Write}, num::{ParseFloatError, ParseIntError}, path::Path, process::{ChildStdin, ChildStdout, Command, Stdio}};
 
 use which::which;
 
 pub struct Client {
-    command: Child,
     writer: BufWriter<ChildStdin>,
     reader: BufReader<ChildStdout>,
 }
@@ -28,7 +27,7 @@ impl Client {
         let writer = BufWriter::new(writer);
         let reader = BufReader::new(reader);
 
-        Ok(Client { command, writer, reader })
+        Ok(Client { writer, reader })
     }
 
     pub fn set_model(&mut self, path: &Path) -> Result<(), CommandError> {

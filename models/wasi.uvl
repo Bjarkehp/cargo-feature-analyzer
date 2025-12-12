@@ -1,9 +1,0 @@
-features
-	"wasi"
-		optional
-			"default"
-				mandatory
-					"wasip2"
-		optional // Unused features
-			"bitflags"
-			"std"

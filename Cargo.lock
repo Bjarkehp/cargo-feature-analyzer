@@ -356,24 +356,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 
 [[package]]
-name = "configuration"
-version = "1.0.1"
-dependencies = [
- "derive-new",
- "itertools 0.14.0",
- "petgraph",
- "thiserror",
- "toml 0.9.8",
- "walkdir",
-]
-
-[[package]]
 name = "configuration-scraper"
 version = "0.1.0"
 dependencies = [
  "cargo-toml",
  "clap",
- "configuration",
  "itertools 0.14.0",
  "petgraph",
  "postgres",
@@ -543,8 +530,10 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 name = "feature-model-generator-milp"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "cargo-toml",
  "clap",
- "configuration",
+ "configuration-scraper",
  "good_lp",
  "itertools 0.14.0",
  "petgraph",
@@ -607,7 +596,6 @@ version = "0.1.0"
 dependencies = [
  "cargo-toml",
  "clap",
- "configuration",
  "itertools 0.14.0",
  "petgraph",
  "thiserror",
