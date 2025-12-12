@@ -13,6 +13,7 @@ crate-scraper = { version = "0.1.0", path = "../crate-scraper" }
 fm-synthesizer-fca = { version = "1.0.1", path = "../fm-synthesizer-fca" }
 fm-synthesizer-flat = { version = "0.1.0", path = "../fm-synthesizer-flat" }
 itertools = "0.14.0"
+plotters = "0.3.7"
 semver = "1.0.27"
 sorted-iter = "0.1.11"
 thiserror = "2.0.17"

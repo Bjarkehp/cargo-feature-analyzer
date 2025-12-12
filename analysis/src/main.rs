@@ -9,32 +9,38 @@ use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
 use fm_synthesizer_fca::{concept, uvl};
 use itertools::Itertools;
+use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
 
 const CRATE_ENTRIES_PATH: &str = "data/crates.txt";
 const TOML_PATH: &str = "data/toml";
 const CONFIG_PATH: &str = "data/configuration";
 const FLAT_MODEL_PATH: &str = "data/model/flat";
 const FCA_MODEL_PATH: &str = "data/model/fca";
-const RESULT_PATH: &str = "data/result";
+const RESULT_ROOT_PATH: &str = "data/result";
 
 const POSTGRES_CONNECTION_STRING: &str = "postgres://crates:crates@localhost:5432/crates_io_db";
 
 fn main() -> anyhow::Result<()> {
-    for path in [TOML_PATH, CONFIG_PATH, FLAT_MODEL_PATH, FCA_MODEL_PATH, RESULT_PATH] {
+    for path in [TOML_PATH, CONFIG_PATH, FLAT_MODEL_PATH, FCA_MODEL_PATH, RESULT_ROOT_PATH] {
         std::fs::create_dir_all(path)
             .with_context(|| format!("Failed to create directory {path}"))?;
     }
 
-    let mut client = postgres::Client::connect(POSTGRES_CONNECTION_STRING, postgres::NoTls)
+    let mut postgres_client = postgres::Client::connect(POSTGRES_CONNECTION_STRING, postgres::NoTls)
         .with_context(|| anyhow!("Failed to create postgres client"))?;
 
-    let crate_entries = get_or_scrape_crate_entries(&mut client)?
-        .into_iter()
-        .map(|e| (e.id, e.data))
+    let flamapy_server = Path::new("analysis/src/flamapy_server.py");
+    let mut flamapy_client = flamapy_client::Client::new(flamapy_server)
+        .with_context(|| "Failed to create flamapy client")?;
+
+    let crate_entries_vec = get_or_scrape_crate_entries(&mut postgres_client)?;
+
+    let crate_entries = crate_entries_vec.iter()
+        .map(|e| (&e.id, &e.data))
         .collect::<BTreeMap<_, _>>();
 
     let cargo_tomls = crate_entries.keys()
-        .map(|id| get_or_scrape_cargo_toml(id).map(|table| (id, table)))
+        .map(|&id| get_or_scrape_cargo_toml(id).map(|table| (id, table)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
     let dependency_graphs = cargo_tomls.iter()
@@ -45,8 +51,8 @@ fn main() -> anyhow::Result<()> {
         })
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
-    let configurations = dependency_graphs.iter()
-        .map(|(id, graph)| get_or_scrape_configurations(id, graph, &mut client).map(|c| (*id, c)))
+    let configuration_sets = dependency_graphs.iter()
+        .map(|(id, graph)| get_or_scrape_configurations(id, graph, &mut postgres_client).map(|c| (*id, c)))
         .filter_ok(|(_, configs)| !configs.is_empty())
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
@@ -63,7 +69,7 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    for (id, configurations) in configurations.iter().filter(|(_id, configs)| configs.len() > 100) {
+    for (id, configurations) in configuration_sets.iter().filter(|(_id, configs)| configs.len() > 100) {
         let path = PathBuf::from(format!("{FCA_MODEL_PATH}/{id}.uvl"));
         if let Ok(file) = File::create_new(&path) {
             let train_configurations = &configurations[..configurations.len() / 10];
@@ -83,95 +89,103 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    let date_time = Local::now().naive_local();
-    let csv_path = PathBuf::from(format!("data/result/{}.csv", date_time));
-    let csv_file = File::create(&csv_path)
-        .with_context(|| format!("Failed to create file result table at {csv_path:?}"))?;
-    let mut csv_writer = BufWriter::new(csv_file);
-    
-    let columns = [
-        "Crate",
-        "Features",
-        "Feature dependencies",
-        "Configurations",
-        "Default only configurations",
-        "Unique configurations",
-        "Estimated number of configurations (flat)",
-        "Estimated number of configurations (FCA)",
-        "Configuration number (flat)",
-        "Configuration number (FCA)",
-        "FCA Quality",
-    ];
+    let feature_counts = dependency_graphs.iter()
+        .map(|(&id, graph)| (id, graph.node_count()))
+        .collect::<BTreeMap<_, _>>();
 
-    writeln!(csv_writer, "{}", columns.join(","))
-        .with_context(|| format!("Failed to write column names to {csv_path:?}"))?; 
+    let dependency_counts = dependency_graphs.iter()
+        .map(|(&id, graph)| (id, graph.edge_count()))
+        .collect::<BTreeMap<_, _>>();
 
-    let flamapy_server = Path::new("analysis/src/flamapy_server.py");
-    let mut flamapy_client = flamapy_client::Client::new(flamapy_server)
-        .with_context(|| "Failed to create flamapy client")?;
+    let configuration_counts = dependency_graphs.iter()
+        .left_join(configuration_sets.iter())
+        .map(|(&id, (graph, configs))| {
+            let default_features = implied_features::from_dependency_graph(std::iter::once("default"), graph);
+            let configs_slice = configs.map(|c| c.as_slice());
+            let stats = get_configuration_stats(configs_slice, &default_features);
+            (id, stats)
+        })
+        .collect::<BTreeMap<_, _>>();
 
-    for id in crate_entries.keys() {
-        println!("Writing {id} into result...");
+    let flat_model_config_stats = feature_counts.iter()
+        .filter(|&(_id, &features)| features < 300)
+        .map(|(id, _features)| (id, PathBuf::from(format!("data/model/flat/{id}.uvl"))))
+        .map(|(id, path)| get_model_configuration_stats(&mut flamapy_client, &path).map(|s| (id, s)))
+        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
-        let flat = PathBuf::from(format!("data/model/flat/{}.uvl", id));
-        let fca = PathBuf::from(format!("data/model/fca/{}.uvl", id));
+    let fca_models = || feature_counts.iter()
+        .filter(|&(_id, &features)| features < 300)
+        .map(|(id, _features)| (id, PathBuf::from(format!("data/model/fca/{id}.uvl"))))
+        .filter(|(_id, path)| path.exists())
+        .assume_sorted_by_key();
 
-        write!(csv_writer, "{id},")
-            .with_context(|| format!("Failed to write to {csv_path:?}"))?;
+    let fca_model_config_stats = fca_models()
+        .map(|(id, path)| get_model_configuration_stats(&mut flamapy_client, &path).map(|s| (id, s)))
+        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
-        let dependencies = dependency_graphs.get(id)
-            .with_context(|| format!("Expected a dependency graph for {id}"))?;
-        let features = dependencies.node_count();
-        let feature_dependencies = dependencies.edge_count();
-        write!(csv_writer, "{features},{feature_dependencies},")
-            .with_context(|| format!("Failed to write to {csv_path:?}"))?;
-
-        let configs = configurations.get(id).map(|v| v.as_slice());
-        let default_features = implied_features::from_dependency_graph(std::iter::once("default"), dependencies);
-        let config_stats = get_configuration_stats(configs, &default_features);
-
-        write!(csv_writer, "{},{},{},", 
-            config_stats.configuration_count, 
-            config_stats.default_configurations_count, 
-            config_stats.unique_configurations_count
-        ).with_context(|| format!("Failed to write to {csv_path:?}"))?;
-
-        if features < 300 {
-            flamapy_client.set_model(&flat)
-                .with_context(|| format!("Failed to set model to {flat:?}"))?;
-
-            let estimated_number_of_configurations_flat = flamapy_client.estimated_number_of_configurations()
-                .with_context(|| format!("Failed to get estimated number of configurations for {flat:?}"))?;
-
-            let configuration_number_flat = flamapy_client.configurations_number()
-                .with_context(|| format!("Failed to get configration number for {flat:?}"))?;
-
-            write!(csv_writer, "{estimated_number_of_configurations_flat},{configuration_number_flat},")
-        } else {
-            write!(csv_writer, ",,")
-        }.with_context(|| format!("Failed to write to {csv_path:?}"))?;
-
-        if let Some(configs) = configs && fca.exists() && features < 300 {
-            flamapy_client.set_model(&fca)
-                .with_context(|| format!("Failed to set model to {fca:?}"))?;
-
-            let estimated_number_of_configurations_fca = flamapy_client.estimated_number_of_configurations()
-                .with_context(|| format!("Failed to get estimated number of configurations for {fca:?}"))?;
-
-            let configuration_number_fca = flamapy_client.configurations_number()
-                .with_context(|| format!("Failed to get configuration number for {fca:?}"))?;
-
+    let fca_model_quality = fca_models()
+        .join(configuration_sets.iter())
+        .map(|(&id, (path, configs))| {
+            flamapy_client.set_model(&path)
+                .with_context(|| format!("Failed to set model to {path:?}"))?;
             let test_configs = &configs[configs.len() / 10..];
             let satified_configurations = number_of_satisfied_configurations(&mut flamapy_client, id, test_configs)?;
             let quality = satified_configurations as f64 / test_configs.len() as f64;
+            Ok((id, quality))
+        })
+        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
+    
+    let date_time = Local::now().naive_local();
+    let result_directory = PathBuf::from(format!("{RESULT_ROOT_PATH}/{date_time}"));
+    std::fs::create_dir(&result_directory)
+        .with_context(|| "Failed to create directory for results of this analysis")?;
 
-            writeln!(csv_writer, "{estimated_number_of_configurations_fca},{configuration_number_fca},{quality}")
-        } else {
-            writeln!(csv_writer, ",,")
-        }.with_context(|| format!("Failed to write to {csv_path:?}"))?;
-    }
+    write_to_csv(
+        &result_directory.join("feature_stats.csv"), 
+        feature_counts.iter().join(dependency_counts.iter()), 
+        &["Crate", "Features", "Feature dependencies"], 
+        |writer, (&id, (&features, &dependencies))| writeln!(writer, "{id},{features},{dependencies}")
+    )?;
 
-    csv_writer.flush().with_context(|| format!("Failed to flush {csv_path:?}"))?;
+    write_to_csv(
+        &result_directory.join("configuration_stats.csv"), 
+        configuration_counts.iter(), 
+        &["Crate", "Configurations", "Default configurations", "Unique Configurations"], 
+        |writer, (&id, stats)| writeln!(writer, "{id},{},{},{}", 
+            stats.configuration_count, 
+            stats.default_configurations_count,
+            stats.unique_configurations_count,
+        )
+    )?;
+
+    write_to_csv(
+        &result_directory.join("flat_model_config_stats.csv"), 
+        flat_model_config_stats.iter(), 
+        &["Crate", "Estimation", "Exact"], 
+        |writer, (&id, stats)| writeln!(writer, "{id},{},{}",
+            stats.estimation,
+            stats.exact,
+        )
+    )?;
+
+    write_to_csv(
+        &result_directory.join("fca_model_config_stats.csv"), 
+        fca_model_config_stats.iter(), 
+        &["Crate", "Estimation", "Exact"], 
+        |writer, (&id, stats)| writeln!(writer, "{id},{},{}",
+            stats.estimation,
+            stats.exact,
+        )
+    )?;
+
+    write_to_csv(
+        &result_directory.join("fca_model_quality.csv"), 
+        fca_model_quality.iter(), 
+        &["Crate", "Quality"], 
+        |writer, (&id, quality)| writeln!(writer, "{id},{quality}")
+    )?;
+
+    
 
     Ok(())
 }
@@ -301,6 +315,24 @@ fn get_configuration_stats(configs: Option<&[Configuration<'static>]>, default_f
     }
 }
 
+struct ModelConfigurationStats {
+    estimation: f64,
+    exact: f64,
+}
+
+fn get_model_configuration_stats(client: &mut flamapy_client::Client, path: &Path) -> anyhow::Result<ModelConfigurationStats> {
+    client.set_model(path)
+        .with_context(|| format!("Failed to set model to {path:?}"))?;
+
+    let estimation = client.estimated_number_of_configurations()
+        .with_context(|| format!("Failed to get estimated number of configurations for {path:?}"))?;
+
+    let exact = client.configurations_number()
+        .with_context(|| format!("Failed to get configration number for {path:?}"))?;
+
+    Ok(ModelConfigurationStats { estimation, exact })
+}
+
 fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &CrateId, configurations: &[Configuration<'static>]) -> anyhow::Result<usize> {
     configurations.iter()
         .map(|config| {
@@ -310,4 +342,30 @@ fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &
                 .with_context(|| format!("Failed to check for satisfiable configuration for {}@{} for {id}", config.name, config.version))
         })
         .fold_ok(0, |acc, x| acc + x)
+}
+
+fn write_to_csv<T>(
+    path: &Path, 
+    data: impl Iterator<Item = T>, 
+    columns: &[&str], 
+    write_fn: impl Fn(&mut BufWriter<File>, T) -> std::io::Result<()>
+) -> anyhow::Result<()> {
+    {
+        let file = File::create(path)?;
+        let mut writer = BufWriter::new(file);
+        
+        write!(writer, "{}", columns[0])?;
+        for column in &columns[1..] {
+            write!(writer, ",{}", column)?;
+        }
+        writeln!(writer)?;
+
+        for item in data {
+            write_fn(&mut writer, item)?;
+        }
+
+        writer.flush()?;
+
+        Ok::<(), std::io::Error>(())
+    }.with_context(|| format!("Failed to write results into {path:?}"))
 }
