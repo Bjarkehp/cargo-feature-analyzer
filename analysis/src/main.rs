@@ -9,6 +9,8 @@ use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
 use fm_synthesizer_fca::{concept, uvl};
 use itertools::Itertools;
+use ordered_float::OrderedFloat;
+use plotters::{chart::ChartBuilder, prelude::{BitMapBackend, Circle, EmptyElement, IntoDrawingArea, Text}, series::{LineSeries, PointSeries}, style::{IntoFont, RED, WHITE}};
 use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
 
 const CRATE_ENTRIES_PATH: &str = "data/crates.txt";
@@ -17,11 +19,12 @@ const CONFIG_PATH: &str = "data/configuration";
 const FLAT_MODEL_PATH: &str = "data/model/flat";
 const FCA_MODEL_PATH: &str = "data/model/fca";
 const RESULT_ROOT_PATH: &str = "data/result";
+const PLOT_ROOT_PATH: &str = "data/plot";
 
 const POSTGRES_CONNECTION_STRING: &str = "postgres://crates:crates@localhost:5432/crates_io_db";
 
 fn main() -> anyhow::Result<()> {
-    for path in [TOML_PATH, CONFIG_PATH, FLAT_MODEL_PATH, FCA_MODEL_PATH, RESULT_ROOT_PATH] {
+    for path in [TOML_PATH, CONFIG_PATH, FLAT_MODEL_PATH, FCA_MODEL_PATH, RESULT_ROOT_PATH, PLOT_ROOT_PATH] {
         std::fs::create_dir_all(path)
             .with_context(|| format!("Failed to create directory {path}"))?;
     }
@@ -89,6 +92,8 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
+    println!("Calculating feature and feature dependency counts...");
+
     let feature_counts = dependency_graphs.iter()
         .map(|(&id, graph)| (id, graph.node_count()))
         .collect::<BTreeMap<_, _>>();
@@ -96,6 +101,8 @@ fn main() -> anyhow::Result<()> {
     let dependency_counts = dependency_graphs.iter()
         .map(|(&id, graph)| (id, graph.edge_count()))
         .collect::<BTreeMap<_, _>>();
+
+    println!("Calculating configuration counts...");
 
     let configuration_counts = dependency_graphs.iter()
         .left_join(configuration_sets.iter())
@@ -107,11 +114,15 @@ fn main() -> anyhow::Result<()> {
         })
         .collect::<BTreeMap<_, _>>();
 
+    println!("Calculating config stats for flat models...");
+
     let flat_model_config_stats = feature_counts.iter()
         .filter(|&(_id, &features)| features < 300)
         .map(|(id, _features)| (id, PathBuf::from(format!("data/model/flat/{id}.uvl"))))
         .map(|(id, path)| get_model_configuration_stats(&mut flamapy_client, &path).map(|s| (id, s)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
+
+    println!("Calculating config stats for fca models...");
 
     let fca_models = || feature_counts.iter()
         .filter(|&(_id, &features)| features < 300)
@@ -122,6 +133,8 @@ fn main() -> anyhow::Result<()> {
     let fca_model_config_stats = fca_models()
         .map(|(id, path)| get_model_configuration_stats(&mut flamapy_client, &path).map(|s| (id, s)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
+
+    println!("Calculating fca quality...");
 
     let fca_model_quality = fca_models()
         .join(configuration_sets.iter())
@@ -140,6 +153,7 @@ fn main() -> anyhow::Result<()> {
     std::fs::create_dir(&result_directory)
         .with_context(|| "Failed to create directory for results of this analysis")?;
 
+    println!("Creating feature_stats.csv...");
     write_to_csv(
         &result_directory.join("feature_stats.csv"), 
         feature_counts.iter().join(dependency_counts.iter()), 
@@ -147,6 +161,7 @@ fn main() -> anyhow::Result<()> {
         |writer, (&id, (&features, &dependencies))| writeln!(writer, "{id},{features},{dependencies}")
     )?;
 
+    println!("Creating configuration_stats.csv...");
     write_to_csv(
         &result_directory.join("configuration_stats.csv"), 
         configuration_counts.iter(), 
@@ -158,6 +173,7 @@ fn main() -> anyhow::Result<()> {
         )
     )?;
 
+    println!("Creating flat_model_config_stats.csv...");
     write_to_csv(
         &result_directory.join("flat_model_config_stats.csv"), 
         flat_model_config_stats.iter(), 
@@ -168,6 +184,7 @@ fn main() -> anyhow::Result<()> {
         )
     )?;
 
+    println!("Creating fca_model_config_stats.csv...");
     write_to_csv(
         &result_directory.join("fca_model_config_stats.csv"), 
         fca_model_config_stats.iter(), 
@@ -178,6 +195,7 @@ fn main() -> anyhow::Result<()> {
         )
     )?;
 
+    println!("Creating fca_model_quality.csv...");
     write_to_csv(
         &result_directory.join("fca_model_quality.csv"), 
         fca_model_quality.iter(), 
@@ -185,7 +203,19 @@ fn main() -> anyhow::Result<()> {
         |writer, (&id, quality)| writeln!(writer, "{id},{quality}")
     )?;
 
-    
+    let plot_directory = PathBuf::from(format!("{PLOT_ROOT_PATH}/{date_time}"));
+    std::fs::create_dir(&plot_directory)
+        .with_context(|| "Failed to create directory for plots of this analysis")?;
+
+    println!("Creating features_and_dependencies.png...");
+    make_line_chart_plot(
+        &plot_directory.join("features_and_dependencies.png"),
+        "Features and dependencies",
+        feature_counts.iter()
+            .join(dependency_counts.iter())
+            .map(|(_id, (&f, &d))| (f as f64, d as f64))
+            .filter(|&(f, d)| f < 100.0 && d < 1000.0)
+    )?;
 
     Ok(())
 }
@@ -368,4 +398,53 @@ fn write_to_csv<T>(
 
         Ok::<(), std::io::Error>(())
     }.with_context(|| format!("Failed to write results into {path:?}"))
+}
+
+fn make_line_chart_plot(
+    path: &Path,
+    caption: &str,
+    data_iter: impl Iterator<Item = (f64, f64)>,
+) -> anyhow::Result<()> {
+    let data = data_iter.sorted_by_key(|&(x, _y)| OrderedFloat(x))
+        .collect::<Vec<_>>();
+
+    let x_min = *data.iter()
+        .map(|&(x, _y)| OrderedFloat(x))
+        .min()
+        .expect("Expected some data");
+    let x_max = *data.iter()
+        .map(|&(x, _y)| OrderedFloat(x))
+        .max()
+        .expect("Expected some data");
+    let y_min = *data.iter()
+        .map(|&(_x, y)| OrderedFloat(y))
+        .min()
+        .expect("Expected some data");
+    let y_max = *data.iter()
+        .map(|&(_x, y)| OrderedFloat(y))
+        .max()
+        .expect("Expected some data");
+
+    let root = BitMapBackend::new(path, (640, 480)).into_drawing_area();
+    root.fill(&WHITE)?;
+    let root = root.margin(10, 10, 10, 10);
+    let mut chart = ChartBuilder::on(&root)
+        .caption(caption, ("sans-serif", 20).into_font())
+        .x_label_area_size(20)
+        .y_label_area_size(40)
+        .build_cartesian_2d(x_min..x_max + 1.0, y_min..y_max + 1.0)?;
+    
+    chart.configure_mesh()
+        .x_labels(10)
+        .y_labels(10)
+        .draw()?;
+
+    chart.draw_series(LineSeries::new(
+        data.clone(),
+        &RED,
+    ))?;
+
+    root.present()?;
+
+    Ok(())
 }
