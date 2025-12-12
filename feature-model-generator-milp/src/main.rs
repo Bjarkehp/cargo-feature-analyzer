@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
                 .ok_or_else(|| anyhow!("Failed to parse file content as csv"))?;
             Ok(configuration)
         })
-        .collect::<Result<Vec<_>, anyhow::Error>>()?;
+        .collect::<anyhow::Result<Vec<_>>>()?;
 
     let features = configurations[0].features.keys()
         .filter(|&f| configurations.iter().any(|c| c.features.get(f) == Some(&true)))
