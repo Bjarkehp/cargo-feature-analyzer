@@ -1,4 +1,4 @@
-use std::{io::{BufRead, BufReader, BufWriter, Write}, num::{ParseFloatError, ParseIntError}, path::Path, process::{ChildStdin, ChildStdout, Command, Stdio}};
+use std::{io::{BufRead, BufReader, BufWriter, Write}, num::ParseFloatError, path::Path, process::{ChildStdin, ChildStdout, Command, Stdio}};
 
 use which::which;
 
@@ -8,7 +8,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(server: &Path) -> Result<Client, ConnectionError> {
+    pub fn new(server: impl AsRef<Path>) -> Result<Client, ConnectionError> {
         let flamapy_path = which("flamapy")?;
         let flamapy_script = std::fs::read_to_string(&flamapy_path)?;
         let python_environment_path = flamapy_script.lines()
@@ -18,7 +18,7 @@ impl Client {
             .ok_or(ConnectionError::NoShebang)?;
 
         let mut command = Command::new(python_environment_path)
-            .arg(server)
+            .arg(server.as_ref())
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()?;
@@ -83,10 +83,6 @@ pub enum ConnectionError {
 pub enum CommandError {
     #[error("IO error while calling flamapy")]
     Io(#[from] std::io::Error),
-    #[error("Flamapy error: {0}")]
-    Flamapy(String),
-    #[error("Unable to parse integer from flamapy output:\n\t{0}\nInput:\n\t{1}")]
-    ParseInt(ParseIntError, String),
     #[error("Unable to parse float from flamapy output:\n\t{0}\nInput:\n\t{1}")]
     ParseFloat(ParseFloatError, String),
     #[error("Unable to parse bool from flamapy output:\n\t{0}")]
