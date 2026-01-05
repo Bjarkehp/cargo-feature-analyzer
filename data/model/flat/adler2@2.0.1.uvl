@@ -8,5 +8,5 @@ features
                 optional
                     "default"
 constraints
-    "default" => "adler2"
     "rustc-dep-of-std" => "adler2"
+    "default" => "adler2"

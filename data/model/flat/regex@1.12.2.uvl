@@ -32,7 +32,7 @@ features
 constraints
     "perf" => "perf-onepass" & "perf-inline" & "perf-dfa" & "perf-cache" & "perf-backtrack" & "regex"
     "default" => "unicode" & "std" & "regex"
-    "unstable" => "pattern"
-    "perf-literal" => "aho-corasick" & "regex"
-    "unicode" => "unicode-script" & "unicode-perl" & "unicode-gencat" & "unicode-case" & "unicode-bool" & "unicode-age" & "regex"
     "use_std" => "std"
+    "unicode" => "unicode-script" & "unicode-perl" & "unicode-gencat" & "unicode-case" & "unicode-bool" & "unicode-age" & "regex"
+    "perf-literal" => "aho-corasick" & "regex"
+    "unstable" => "pattern"

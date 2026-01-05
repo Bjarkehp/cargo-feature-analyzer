@@ -10,6 +10,6 @@ features
             "nightly"
             "alloc"
 constraints
-    "std" => "alloc"
-    "loom" => "crossbeam-epoch"
     "default" => "crossbeam-epoch"
+    "loom" => "crossbeam-epoch"
+    "std" => "alloc"

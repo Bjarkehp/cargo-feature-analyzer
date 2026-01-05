@@ -22,8 +22,8 @@ features
             "alloc"
 constraints
     "default" => "os_rng" & "std_rng" & "std" & "small_rng" & "rand"
-    "std_rng" => "rand"
-    "thread_rng" => "std_rng" & "rand" & "std"
     "os_rng" => "rand"
     "chacha" => "rand"
+    "std_rng" => "rand"
     "std" => "alloc"
+    "thread_rng" => "std_rng" & "rand" & "std"

@@ -6,5 +6,5 @@ features
                     "default"
             "alloc"
 constraints
-    "default" => "form_urlencoded"
     "std" => "alloc"
+    "default" => "form_urlencoded"

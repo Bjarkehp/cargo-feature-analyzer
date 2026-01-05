@@ -10,6 +10,6 @@ features
                 optional
                     "core"
 constraints
-    "core" => "anstyle-parse"
     "utf8" => "anstyle-parse"
     "default" => "anstyle-parse"
+    "core" => "anstyle-parse"

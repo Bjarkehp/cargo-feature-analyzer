@@ -16,8 +16,8 @@ features
             "alloc"
 constraints
     "encryption" => "pkcs5" & "pkcs8" & "alloc"
-    "3des" => "pkcs5" & "pkcs8"
-    "std" => "alloc"
     "des-insecure" => "pkcs5" & "pkcs8"
-    "pem" => "alloc"
+    "std" => "alloc"
     "sha1-insecure" => "pkcs5" & "pkcs8"
+    "3des" => "pkcs5" & "pkcs8"
+    "pem" => "alloc"

@@ -9,5 +9,5 @@ features
                 optional
                     "default"
 constraints
-    "derive" => "strum"
     "default" => "strum"
+    "derive" => "strum"

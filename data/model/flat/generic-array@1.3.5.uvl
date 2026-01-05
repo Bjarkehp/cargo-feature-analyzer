@@ -15,5 +15,5 @@ features
             "internals"
             "alloc"
 constraints
-    "serde" => "generic-array"
     "compat-0_14" => "generic-array"
+    "serde" => "generic-array"

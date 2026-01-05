@@ -15,6 +15,6 @@ features
                     "default"
 constraints
     "serde_std" => "std" & "bit-vec"
-    "default" => "bit-vec"
     "serde_no_std" => "bit-vec"
+    "default" => "bit-vec"
     "borsh_std" => "bit-vec"

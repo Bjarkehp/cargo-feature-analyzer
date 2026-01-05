@@ -4,6 +4,7 @@ mod plot;
 mod paths;
 mod feature_model;
 mod tables;
+pub mod plots;
 
 use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
@@ -118,8 +119,9 @@ fn main() -> anyhow::Result<()> {
         })
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
     
-    println!("Creating csv files...");
     let date_time = Local::now().naive_local();
+    
+    println!("Creating csv files...");
     let result_directory = PathBuf::from(format!("{}/{}", paths::RESULT_ROOT, date_time));
     std::fs::create_dir(&result_directory)
         .with_context(|| "Failed to create directory for results of this analysis")?;
@@ -135,13 +137,9 @@ fn main() -> anyhow::Result<()> {
     std::fs::create_dir(&plot_directory)
         .with_context(|| "Failed to create directory for plots of this analysis")?;
 
-    plot::line_chart(
-        &plot_directory.join("features_and_dependencies.png"),
-        "Features and dependencies",
-        feature_stats.iter()
-            .map(|(_id, &(f, d))| (f as f64, d as f64))
-            .filter(|&(f, d)| f < MAX_FEATURES as f64 && d < MAX_DEPENDENCIES as f64)
-    )?;
+    plots::features_and_dependencies(&plot_directory, &feature_stats)?;
+
+    println!("\x07");
 
     Ok(())
 }
@@ -155,7 +153,7 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client) -> anyhow::Result<
     } else {
         println!("Scraping {} popular crates from crates.io...", NUMBER_OF_CRATES);
 
-        let entries = crate_scraper::scrape_popular(client, NUMBER_OF_CRATES as i64)
+        let entries = crate_scraper::scrape_popular_by_downloads(client, NUMBER_OF_CRATES as i64)
             .expect("Failed to scrape popular crates");
 
         let file = File::create(paths::CRATE_ENTRIES)

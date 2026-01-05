@@ -14,5 +14,5 @@ features
             "block-padding"
             "alloc"
 constraints
-    "dev" => "cipher"
     "stream-wrapper" => "cipher"
+    "dev" => "cipher"

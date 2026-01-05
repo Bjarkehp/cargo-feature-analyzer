@@ -10,6 +10,6 @@ features
             "serde"
             "alloc"
 constraints
+    "unicode" => "bstr"
     "default" => "std" & "bstr"
     "std" => "alloc"
-    "unicode" => "bstr"

@@ -15,8 +15,8 @@ features
             "pem"
             "alloc"
 constraints
+    "pem" => "alloc"
     "base64" => "spki"
     "arbitrary" => "spki"
     "fingerprint" => "digest" & "spki"
     "std" => "alloc"
-    "pem" => "alloc"

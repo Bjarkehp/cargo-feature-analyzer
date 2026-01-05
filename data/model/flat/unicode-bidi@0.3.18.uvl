@@ -16,6 +16,6 @@ features
             "hardcoded-data"
             "bench_it"
 constraints
-    "with_serde" => "unicode-bidi"
     "default" => "hardcoded-data" & "unicode-bidi"
     "flame_it" => "flame" & "unicode-bidi"
+    "with_serde" => "unicode-bidi"

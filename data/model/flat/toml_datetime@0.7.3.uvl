@@ -9,6 +9,6 @@ features
                     "default"
             "alloc"
 constraints
-    "default" => "toml_datetime"
     "std" => "alloc"
     "serde" => "toml_datetime"
+    "default" => "toml_datetime"

@@ -2,7 +2,7 @@ use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
 
 
 use clap::Parser;
-use crate_scraper::scrape_popular;
+use crate_scraper::scrape_popular_by_configurations;
 use postgres::NoTls;
 
 #[derive(Parser, Debug)]
@@ -16,7 +16,7 @@ fn main() {
 
     let connection_string = "postgres://crates:crates@localhost:5432/crates_io_db";
     let mut client = postgres::Client::connect(connection_string, NoTls).unwrap();
-    let popular_crates = scrape_popular(&mut client, 300).unwrap();
+    let popular_crates = scrape_popular_by_configurations(&mut client, 1000).unwrap();
 
     let file = File::create(&args.destination)
         .unwrap_or_else(|e| panic!("Failed to create file at {:?}: {e}", args.destination));

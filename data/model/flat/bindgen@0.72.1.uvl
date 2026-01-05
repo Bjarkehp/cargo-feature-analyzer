@@ -20,7 +20,7 @@ features
             "__testing_only_libclang_16"
             "__testing_only_extra_assertions"
 constraints
-    "logging" => "bindgen"
-    "__cli" => "clap" & "bindgen"
     "experimental" => "bindgen"
+    "logging" => "bindgen"
     "default" => "logging" & "runtime" & "bindgen"
+    "__cli" => "clap" & "bindgen"

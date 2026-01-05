@@ -9,6 +9,6 @@ features
             "std"
             "alloc"
 constraints
-    "default" => "std" & "powerfmt"
     "macros" => "powerfmt"
+    "default" => "std" & "powerfmt"
     "std" => "alloc"

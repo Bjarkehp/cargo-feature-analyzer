@@ -17,7 +17,7 @@ features
             "no-rng"
             "nightly-arm-aes"
 constraints
+    "runtime-rng" => "ahash"
+    "compile-time-rng" => "ahash"
     "atomic-polyfill" => "ahash"
     "default" => "std" & "ahash"
-    "compile-time-rng" => "ahash"
-    "runtime-rng" => "ahash"

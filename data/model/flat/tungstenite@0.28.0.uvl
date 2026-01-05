@@ -26,9 +26,9 @@ features
             "url"
 constraints
     "rustls-tls-native-roots" => "rustls-native-certs" & "tungstenite"
-    "handshake" => "httparse" & "http" & "data-encoding" & "tungstenite"
     "__rustls-tls" => "rustls" & "tungstenite"
-    "default" => "tungstenite"
-    "rustls-tls-webpki-roots" => "__rustls-tls" & "tungstenite"
     "native-tls-vendored" => "native-tls" & "tungstenite"
     "native-tls" => "tungstenite"
+    "rustls-tls-webpki-roots" => "__rustls-tls" & "tungstenite"
+    "handshake" => "httparse" & "http" & "data-encoding" & "tungstenite"
+    "default" => "tungstenite"

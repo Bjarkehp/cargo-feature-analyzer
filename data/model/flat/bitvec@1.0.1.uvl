@@ -9,5 +9,5 @@ features
             "atomic"
             "alloc"
 constraints
-    "std" => "alloc"
     "default" => "bitvec" & "atomic"
+    "std" => "alloc"

@@ -6,5 +6,5 @@ features
                     "default"
             "alloc"
 constraints
-    "std" => "alloc"
     "default" => "data-encoding"
+    "std" => "alloc"

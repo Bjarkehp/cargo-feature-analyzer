@@ -31,9 +31,9 @@ features
             "default"
             "capi"
 constraints
+    "http1" => "itoa" & "httparse" & "futures-core" & "futures-channel" & "atomic-waker" & "hyper"
+    "client" => "smallvec" & "pin-project-lite" & "hyper"
     "ffi" => "futures-util" & "hyper"
     "http2" => "futures-core" & "futures-channel" & "hyper"
-    "server" => "pin-project-lite" & "httpdate" & "hyper"
     "full" => "server" & "http1" & "http2" & "hyper"
-    "client" => "smallvec" & "pin-project-lite" & "hyper"
-    "http1" => "itoa" & "httparse" & "futures-core" & "futures-channel" & "atomic-waker" & "hyper"
+    "server" => "pin-project-lite" & "httpdate" & "hyper"

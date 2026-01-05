@@ -14,6 +14,6 @@ features
             "alloc"
 constraints
     "std" => "alloc"
-    "derive" => "zerocopy"
     "__internal_use_only_features_that_work_on_stable" => "std" & "simd" & "alloc" & "zerocopy"
+    "derive" => "zerocopy"
     "simd-nightly" => "simd"

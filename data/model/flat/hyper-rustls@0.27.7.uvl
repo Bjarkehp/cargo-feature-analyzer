@@ -20,8 +20,8 @@ features
             "fips"
             "aws-lc-rs"
 constraints
-    "native-tokio" => "hyper-rustls"
     "default" => "logging" & "tls12" & "http1" & "hyper-rustls" & "aws-lc-rs"
     "logging" => "hyper-rustls"
-    "fips" => "aws-lc-rs"
     "webpki-tokio" => "hyper-rustls"
+    "fips" => "aws-lc-rs"
+    "native-tokio" => "hyper-rustls"

@@ -13,6 +13,6 @@ features
                     "aws-lc-fips"
             "vendored"
 constraints
-    "unstable_boringssl" => "openssl-sys"
     "aws-lc-fips" => "openssl-sys"
     "aws-lc" => "openssl-sys"
+    "unstable_boringssl" => "openssl-sys"

@@ -33,9 +33,9 @@ features
             "kv"
 constraints
     "kv_unstable_std" => "kv_std" & "log"
-    "kv_serde" => "value-bag" & "serde" & "log"
-    "kv_std" => "std" & "log" & "kv"
-    "kv_unstable" => "log" & "kv"
-    "kv_unstable_sval" => "kv_sval" & "log"
     "kv_sval" => "sval_ref" & "sval" & "log" & "kv"
+    "kv_unstable" => "log" & "kv"
     "kv_unstable_serde" => "kv_serde" & "log"
+    "kv_std" => "std" & "log" & "kv"
+    "kv_serde" => "value-bag" & "serde" & "log"
+    "kv_unstable_sval" => "kv_sval" & "log"

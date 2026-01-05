@@ -10,6 +10,6 @@ features
                     "alloc"
             "serde"
 constraints
-    "default" => "alloc" & "yoke"
     "alloc" => "yoke"
     "derive" => "zerofrom" & "yoke"
+    "default" => "alloc" & "yoke"

@@ -7,5 +7,5 @@ features
                     "default"
             "alloc"
 constraints
-    "std" => "alloc"
     "default" => "hex"
+    "std" => "alloc"

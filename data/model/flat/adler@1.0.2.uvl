@@ -9,5 +9,5 @@ features
                 optional
                     "default"
 constraints
-    "rustc-dep-of-std" => "compiler_builtins" & "adler"
     "default" => "adler"
+    "rustc-dep-of-std" => "compiler_builtins" & "adler"

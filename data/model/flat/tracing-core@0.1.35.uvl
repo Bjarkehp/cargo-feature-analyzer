@@ -8,5 +8,5 @@ features
                         optional
                             "default"
 constraints
-    "default" => "tracing-core"
     "std" => "tracing-core"
+    "default" => "tracing-core"

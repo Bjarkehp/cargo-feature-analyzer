@@ -36,6 +36,7 @@ dependencies = [
  "clap",
  "configuration-scraper",
  "crate-scraper",
+ "derive-new",
  "fm-synthesizer-fca",
  "fm-synthesizer-flat",
  "itertools 0.14.0",

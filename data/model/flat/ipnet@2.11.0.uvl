@@ -12,6 +12,6 @@ features
                 optional
                     "default"
 constraints
-    "json" => "schemars" & "ipnet"
-    "ser_as_str" => "ipnet"
     "default" => "ipnet"
+    "ser_as_str" => "ipnet"
+    "json" => "schemars" & "ipnet"

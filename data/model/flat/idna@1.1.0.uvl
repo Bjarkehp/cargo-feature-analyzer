@@ -7,5 +7,5 @@ features
             "compiled_data"
             "alloc"
 constraints
-    "std" => "alloc"
     "default" => "idna" & "compiled_data"
+    "std" => "alloc"

@@ -17,5 +17,5 @@ features
 constraints
     "default" => "icu_properties"
     "compiled_data" => "icu_properties"
-    "datagen" => "serde" & "icu_properties"
     "unicode_bidi" => "icu_properties"
+    "datagen" => "serde" & "icu_properties"

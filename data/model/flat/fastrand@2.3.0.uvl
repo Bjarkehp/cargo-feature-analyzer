@@ -9,6 +9,6 @@ features
                     "default"
             "alloc"
 constraints
-    "std" => "alloc"
-    "default" => "fastrand"
     "js" => "std" & "fastrand"
+    "default" => "fastrand"
+    "std" => "alloc"

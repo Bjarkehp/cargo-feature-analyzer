@@ -32,5 +32,5 @@ features
             "bootparam"
             "auxvec"
 constraints
-    "rustc-dep-of-std" => "linux-raw-sys" & "no_std"
     "default" => "general" & "errno" & "linux-raw-sys"
+    "rustc-dep-of-std" => "linux-raw-sys" & "no_std"

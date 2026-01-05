@@ -12,6 +12,6 @@ features
             "pulldown-cmark"
             "prettyplease"
 constraints
+    "default" => "prost-build"
     "cleanup-markdown" => "pulldown-cmark" & "prost-build"
     "format" => "prettyplease" & "prost-build"
-    "default" => "prost-build"

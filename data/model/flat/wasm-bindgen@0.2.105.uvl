@@ -16,6 +16,6 @@ features
             "msrv"
             "gg-alloc"
 constraints
-    "default" => "wasm-bindgen"
-    "serde-serialize" => "serde" & "std" & "wasm-bindgen"
     "enable-interning" => "wasm-bindgen"
+    "serde-serialize" => "serde" & "std" & "wasm-bindgen"
+    "default" => "wasm-bindgen"

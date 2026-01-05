@@ -11,5 +11,5 @@ features
             "rc"
             "alloc"
 constraints
-    "derive" => "serde"
     "default" => "serde"
+    "derive" => "serde"

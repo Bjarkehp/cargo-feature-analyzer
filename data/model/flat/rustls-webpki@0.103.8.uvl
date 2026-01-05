@@ -10,7 +10,7 @@ features
             "aws-lc-rs"
             "alloc"
 constraints
-    "std" => "alloc"
     "aws-lc-rs-unstable" => "aws-lc-rs"
-    "aws-lc-rs-fips" => "aws-lc-rs"
     "default" => "rustls-webpki"
+    "std" => "alloc"
+    "aws-lc-rs-fips" => "aws-lc-rs"

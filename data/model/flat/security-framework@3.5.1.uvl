@@ -16,8 +16,8 @@ features
             "alpn"
             "OSX_10_12"
 constraints
-    "sync-keychain" => "OSX_10_13"
     "OSX_10_13" => "alpn" & "security-framework" & "OSX_10_12"
+    "sync-keychain" => "OSX_10_13"
     "OSX_10_14" => "security-framework"
     "default" => "OSX_10_12"
     "OSX_10_15" => "security-framework"

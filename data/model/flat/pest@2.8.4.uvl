@@ -15,5 +15,5 @@ features
             "const_prec_climber"
 constraints
     "pretty-print" => "serde" & "pest"
-    "default" => "std" & "pest"
     "miette-error" => "miette" & "std" & "pest"
+    "default" => "std" & "pest"

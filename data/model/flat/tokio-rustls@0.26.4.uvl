@@ -14,5 +14,5 @@ features
                 optional
                     "aws-lc-rs"
 constraints
-    "default" => "logging" & "tokio-rustls" & "aws_lc_rs"
     "aws-lc-rs" => "tokio-rustls"
+    "default" => "logging" & "tokio-rustls" & "aws_lc_rs"

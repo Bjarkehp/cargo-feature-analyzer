@@ -12,5 +12,5 @@ features
             "test"
 constraints
     "auto" => "anstream"
-    "default" => "auto" & "anstream"
     "wincon" => "anstream"
+    "default" => "auto" & "anstream"

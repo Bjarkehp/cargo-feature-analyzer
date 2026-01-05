@@ -17,7 +17,7 @@ features
             "icu_properties"
             "experimental"
 constraints
-    "compiled_data" => "icu_normalizer"
     "datagen" => "serde" & "icu_properties" & "icu_normalizer"
     "default" => "compiled_data" & "utf8_iter" & "icu_normalizer"
     "utf16_iter" => "icu_normalizer"
+    "compiled_data" => "icu_normalizer"

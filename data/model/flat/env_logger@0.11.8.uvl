@@ -17,7 +17,7 @@ features
             "kv"
 constraints
     "default" => "auto-color" & "regex" & "env_logger"
-    "unstable-kv" => "kv"
-    "auto-color" => "anstream" & "env_logger"
     "humantime" => "env_logger"
+    "auto-color" => "anstream" & "env_logger"
+    "unstable-kv" => "kv"
     "color" => "anstream" & "env_logger"

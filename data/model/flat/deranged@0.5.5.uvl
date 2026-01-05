@@ -19,8 +19,8 @@ features
             "default"
             "alloc"
 constraints
-    "serde" => "deranged"
     "quickcheck" => "alloc"
-    "rand" => "rand08" & "deranged"
     "num" => "deranged"
+    "serde" => "deranged"
+    "rand" => "rand08" & "deranged"
     "macros" => "deranged"

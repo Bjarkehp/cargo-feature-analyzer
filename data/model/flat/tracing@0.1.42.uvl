@@ -25,6 +25,6 @@ features
             "max_level_debug"
             "async-await"
 constraints
+    "default" => "std" & "tracing"
     "attributes" => "tracing"
     "log-always" => "tracing"
-    "default" => "std" & "tracing"

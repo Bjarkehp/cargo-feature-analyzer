@@ -21,9 +21,9 @@ features
                     "getrandom"
             "alloc"
 constraints
+    "default" => "digest"
     "block-api" => "digest"
     "oid" => "digest"
-    "dev" => "digest"
-    "default" => "digest"
-    "getrandom" => "digest"
     "mac" => "digest"
+    "getrandom" => "digest"
+    "dev" => "digest"

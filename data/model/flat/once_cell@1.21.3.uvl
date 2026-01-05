@@ -17,9 +17,9 @@ features
                         optional
                             "atomic-polyfill"
 constraints
-    "parking_lot" => "once_cell"
     "critical-section" => "once_cell"
-    "atomic-polyfill" => "once_cell"
-    "std" => "alloc"
     "alloc" => "once_cell"
+    "parking_lot" => "once_cell"
+    "std" => "alloc"
     "default" => "once_cell"
+    "atomic-polyfill" => "once_cell"

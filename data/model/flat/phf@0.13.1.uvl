@@ -11,5 +11,5 @@ features
                 optional
                     "default"
 constraints
-    "default" => "phf"
     "macros" => "phf"
+    "default" => "phf"

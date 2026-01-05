@@ -8,5 +8,5 @@ features
                 optional
                     "default"
 constraints
-    "thread-pool" => "futures-executor" & "std"
     "default" => "futures-executor"
+    "thread-pool" => "futures-executor" & "std"

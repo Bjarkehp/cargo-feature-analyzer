@@ -14,5 +14,5 @@ features
             "alloc"
 constraints
     "std" => "futures-io" & "fastrand" & "futures-lite" & "alloc"
-    "default" => "race" & "futures-lite"
     "race" => "futures-lite"
+    "default" => "race" & "futures-lite"

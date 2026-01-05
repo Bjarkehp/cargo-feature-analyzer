@@ -16,10 +16,10 @@ features
                                                         optional
                                                             "OSX_10_15"
 constraints
-    "OSX_10_14" => "security-framework-sys"
     "default" => "OSX_10_12"
-    "OSX_10_11" => "security-framework-sys"
-    "OSX_10_10" => "security-framework-sys"
-    "OSX_10_12" => "security-framework-sys"
-    "OSX_10_13" => "security-framework-sys"
     "OSX_10_15" => "security-framework-sys"
+    "OSX_10_14" => "security-framework-sys"
+    "OSX_10_13" => "security-framework-sys"
+    "OSX_10_11" => "security-framework-sys"
+    "OSX_10_12" => "security-framework-sys"
+    "OSX_10_10" => "security-framework-sys"

@@ -10,5 +10,5 @@ features
                     "default"
             "log-tracer"
 constraints
-    "interest-cache" => "ahash" & "tracing-log"
     "default" => "log-tracer" & "tracing-log"
+    "interest-cache" => "ahash" & "tracing-log"

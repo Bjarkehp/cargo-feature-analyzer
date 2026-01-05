@@ -19,9 +19,9 @@ features
             "async-await"
             "alloc"
 constraints
-    "executor" => "std" & "futures"
     "default" => "std" & "futures" & "async-await"
-    "io-compat" => "futures"
     "thread-pool" => "executor" & "futures"
+    "io-compat" => "futures"
     "compat" => "futures"
     "std" => "alloc"
+    "executor" => "std" & "futures"

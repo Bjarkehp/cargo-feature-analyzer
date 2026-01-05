@@ -7,5 +7,5 @@ features
                         optional
                             "default"
 constraints
-    "syn-error" => "proc-macro-error"
     "default" => "proc-macro-error"
+    "syn-error" => "proc-macro-error"

@@ -23,9 +23,9 @@ features
             "ber"
             "alloc"
 constraints
-    "derive" => "der"
     "std" => "alloc"
     "bytes" => "alloc"
     "pem" => "pem-rfc7468" & "der" & "alloc"
+    "derive" => "der"
     "oid" => "der"
     "arbitrary" => "der"

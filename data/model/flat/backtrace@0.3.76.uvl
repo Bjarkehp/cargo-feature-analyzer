@@ -17,5 +17,5 @@ features
             "dbghelp"
             "coresymbolication"
 constraints
-    "default" => "backtrace"
     "serialize-serde" => "backtrace"
+    "default" => "backtrace"

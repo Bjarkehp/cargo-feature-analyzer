@@ -12,6 +12,6 @@ features
             "ansi-parsing"
             "alloc"
 constraints
-    "std" => "libc" & "console" & "alloc"
     "default" => "std" & "console" & "ansi-parsing"
+    "std" => "libc" & "console" & "alloc"
     "windows-console-colors" => "ansi-parsing"

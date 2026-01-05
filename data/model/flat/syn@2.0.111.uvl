@@ -17,5 +17,5 @@ features
             "derive"
             "clone-impls"
 constraints
-    "default" => "proc-macro" & "parsing" & "derive" & "syn" & "clone-impls"
     "printing" => "syn"
+    "default" => "proc-macro" & "parsing" & "derive" & "syn" & "clone-impls"

@@ -21,7 +21,7 @@ features
             "nightly"
             "inline-more"
 constraints
-    "rustc-dep-of-std" => "alloc" & "rustc-internal-api" & "hashbrown" & "nightly"
     "serde" => "hashbrown"
+    "rustc-dep-of-std" => "alloc" & "rustc-internal-api" & "hashbrown" & "nightly"
     "default" => "equivalent" & "allocator-api2" & "raw-entry" & "inline-more" & "hashbrown"
     "default-hasher" => "hashbrown"

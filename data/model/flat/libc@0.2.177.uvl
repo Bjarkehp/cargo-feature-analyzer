@@ -12,6 +12,6 @@ features
             "const-extern-fn"
             "align"
 constraints
-    "rustc-dep-of-std" => "libc" & "align"
     "use_std" => "std"
+    "rustc-dep-of-std" => "libc" & "align"
     "default" => "libc"

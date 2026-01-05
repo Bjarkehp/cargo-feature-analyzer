@@ -14,5 +14,5 @@ features
                 optional
                     "default"
 constraints
-    "default" => "indexmap"
     "serde" => "indexmap"
+    "default" => "indexmap"

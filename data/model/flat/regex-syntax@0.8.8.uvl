@@ -15,5 +15,5 @@ features
             "std"
             "arbitrary"
 constraints
-    "default" => "std" & "regex-syntax"
     "unicode" => "unicode-script" & "unicode-perl" & "unicode-gencat" & "unicode-case" & "unicode-bool" & "unicode-age" & "regex-syntax"
+    "default" => "std" & "regex-syntax"

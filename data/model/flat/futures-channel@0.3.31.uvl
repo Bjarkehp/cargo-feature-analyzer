@@ -11,6 +11,6 @@ features
             "cfg-target-has-atomic"
             "alloc"
 constraints
-    "std" => "alloc"
-    "sink" => "futures-channel"
     "default" => "futures-channel"
+    "sink" => "futures-channel"
+    "std" => "alloc"

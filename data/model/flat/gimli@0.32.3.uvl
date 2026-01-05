@@ -23,7 +23,7 @@ features
 constraints
     "write" => "gimli"
     "default" => "write" & "gimli"
-    "read-all" => "std" & "read" & "gimli" & "fallible-iterator"
-    "endian-reader" => "read" & "gimli"
-    "read" => "gimli"
     "rustc-dep-of-std" => "alloc" & "gimli"
+    "read-all" => "std" & "read" & "gimli" & "fallible-iterator"
+    "read" => "gimli"
+    "endian-reader" => "read" & "gimli"

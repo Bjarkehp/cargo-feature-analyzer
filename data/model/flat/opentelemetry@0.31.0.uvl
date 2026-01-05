@@ -20,9 +20,9 @@ features
             "metrics"
             "logs"
 constraints
-    "spec_unstable_logs_enabled" => "logs"
-    "default" => "trace" & "futures" & "metrics" & "logs" & "opentelemetry"
-    "testing" => "opentelemetry"
-    "trace" => "futures" & "opentelemetry"
     "futures" => "futures-sink" & "futures-core" & "opentelemetry"
     "internal-logs" => "opentelemetry"
+    "testing" => "opentelemetry"
+    "trace" => "futures" & "opentelemetry"
+    "spec_unstable_logs_enabled" => "logs"
+    "default" => "trace" & "futures" & "metrics" & "logs" & "opentelemetry"

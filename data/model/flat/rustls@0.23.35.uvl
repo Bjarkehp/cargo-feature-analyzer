@@ -25,12 +25,12 @@ features
                 optional
                     "aws-lc-rs"
 constraints
+    "read_buf" => "rustls"
+    "aws-lc-rs" => "rustls"
+    "zlib" => "rustls"
+    "aws_lc_rs" => "aws-lc-rs"
     "default" => "tls12" & "std" & "prefer-post-quantum" & "rustls" & "aws_lc_rs"
+    "brotli" => "std" & "rustls"
+    "logging" => "rustls"
     "prefer-post-quantum" => "aws_lc_rs"
     "fips" => "aws_lc_rs"
-    "brotli" => "std" & "rustls"
-    "aws_lc_rs" => "aws-lc-rs"
-    "read_buf" => "rustls"
-    "logging" => "rustls"
-    "zlib" => "rustls"
-    "aws-lc-rs" => "rustls"

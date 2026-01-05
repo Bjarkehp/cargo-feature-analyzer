@@ -17,7 +17,7 @@ features
             "escape-html"
             "default"
 constraints
-    "serde-types" => "quick-xml"
     "async-tokio" => "quick-xml"
-    "serialize" => "quick-xml"
     "encoding" => "quick-xml"
+    "serialize" => "quick-xml"
+    "serde-types" => "quick-xml"

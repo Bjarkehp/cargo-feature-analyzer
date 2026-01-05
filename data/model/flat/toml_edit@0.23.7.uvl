@@ -20,8 +20,8 @@ features
             "anstream"
             "unbounded"
 constraints
-    "display" => "toml_edit"
     "debug" => "anstyle" & "anstream" & "toml_edit"
-    "parse" => "toml_parser" & "toml_edit"
     "default" => "display" & "toml_edit"
     "serde" => "serde_core" & "toml_edit"
+    "parse" => "toml_parser" & "toml_edit"
+    "display" => "toml_edit"

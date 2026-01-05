@@ -18,5 +18,5 @@ features
             "alloc"
 constraints
     "fast-legacy-encode" => "fast-kanji-encode" & "fast-hanja-encode" & "fast-hangul-encode" & "fast-gb-hanzi-encode" & "fast-big5-hanzi-encode"
-    "default" => "alloc"
     "simd-accel" => "encoding_rs"
+    "default" => "alloc"

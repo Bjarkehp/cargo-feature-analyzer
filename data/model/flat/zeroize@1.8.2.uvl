@@ -11,6 +11,6 @@ features
             "alloc"
             "aarch64"
 constraints
-    "derive" => "zeroize"
-    "std" => "alloc"
     "default" => "alloc"
+    "std" => "alloc"
+    "derive" => "zeroize"

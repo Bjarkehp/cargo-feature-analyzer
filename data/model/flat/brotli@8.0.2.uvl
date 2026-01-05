@@ -23,6 +23,6 @@ features
             "billing"
             "benchmark"
 constraints
-    "default" => "brotli"
     "validation" => "brotli"
+    "default" => "brotli"
     "std" => "brotli"

@@ -7,5 +7,5 @@ features
                     "default"
             "alloc"
 constraints
-    "default" => "wyz"
     "std" => "alloc"
+    "default" => "wyz"

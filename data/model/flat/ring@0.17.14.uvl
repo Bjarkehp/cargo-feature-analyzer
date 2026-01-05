@@ -14,5 +14,5 @@ features
                     "default"
             "alloc"
 constraints
-    "std" => "alloc"
     "default" => "ring" & "alloc"
+    "std" => "alloc"

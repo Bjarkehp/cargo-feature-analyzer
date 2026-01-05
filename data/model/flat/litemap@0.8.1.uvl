@@ -10,6 +10,6 @@ features
             "databake"
             "alloc"
 constraints
-    "serde" => "litemap" & "alloc"
-    "default" => "alloc"
     "testing" => "alloc"
+    "default" => "alloc"
+    "serde" => "litemap" & "alloc"

@@ -9,5 +9,5 @@ features
             "std"
             "no-recursion-limit"
 constraints
-    "default" => "std" & "prost"
     "derive" => "prost"
+    "default" => "std" & "prost"

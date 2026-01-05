@@ -24,6 +24,6 @@ features
             "debugger_visualizer"
 constraints
     "latest_stable_rust" => "tinyvec"
+    "rustc_1_61" => "rustc_1_57"
     "alloc" => "tinyvec"
     "std" => "tinyvec"
-    "rustc_1_61" => "rustc_1_57"

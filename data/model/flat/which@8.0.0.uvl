@@ -11,5 +11,5 @@ features
             "tracing"
             "regex"
 constraints
-    "real-sys" => "env_home" & "rustix" & "which"
     "default" => "which"
+    "real-sys" => "env_home" & "rustix" & "which"

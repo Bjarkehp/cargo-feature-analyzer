@@ -31,7 +31,7 @@ features
             "align_offset"
             "aarch64_simd"
 constraints
-    "derive" => "bytemuck"
     "must_cast_extra" => "must_cast"
-    "extern_crate_std" => "extern_crate_alloc"
     "latest_stable_rust" => "zeroable_unwind_fn" & "zeroable_maybe_uninit" & "zeroable_atomics" & "wasm_simd" & "transparentwrapper_extra" & "track_caller" & "pod_saturating" & "must_cast_extra" & "must_cast" & "min_const_generics" & "bytemuck" & "impl_core_error" & "const_zeroed" & "avx512_simd" & "alloc_uninit" & "align_offset" & "aarch64_simd"
+    "extern_crate_std" => "extern_crate_alloc"
+    "derive" => "bytemuck"

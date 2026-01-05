@@ -9,5 +9,5 @@ features
             "default"
             "cjk"
 constraints
-    "rustc-dep-of-std" => "core" & "unicode-width"
     "default" => "cjk"
+    "rustc-dep-of-std" => "core" & "unicode-width"

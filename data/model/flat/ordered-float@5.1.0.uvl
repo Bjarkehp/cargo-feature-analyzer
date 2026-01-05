@@ -27,7 +27,7 @@ features
 constraints
     "randtest" => "ordered-float"
     "default" => "ordered-float"
-    "rkyv_32" => "rkyv"
-    "rkyv_64" => "rkyv"
     "rkyv_16" => "ordered-float"
+    "rkyv_32" => "rkyv"
     "rkyv" => "ordered-float"
+    "rkyv_64" => "rkyv"

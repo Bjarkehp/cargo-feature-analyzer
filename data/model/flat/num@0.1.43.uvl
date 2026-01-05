@@ -19,5 +19,5 @@ constraints
     "complex" => "num"
     "bigint" => "num"
     "rustc-serialize" => "num-complex" & "num-bigint" & "num"
-    "rational" => "num"
     "serde" => "num-complex" & "num-bigint" & "num"
+    "rational" => "num"

@@ -10,5 +10,5 @@ features
                     "heapsize_impl"
             "nightly"
 constraints
-    "serde_impl" => "linked-hash-map"
     "heapsize_impl" => "linked-hash-map"
+    "serde_impl" => "linked-hash-map"

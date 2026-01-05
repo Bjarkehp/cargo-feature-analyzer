@@ -6,5 +6,5 @@ features
                     "default"
             "use_alloc"
 constraints
-    "default" => "itertools"
     "use_std" => "use_alloc"
+    "default" => "itertools"

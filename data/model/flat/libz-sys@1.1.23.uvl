@@ -11,5 +11,5 @@ features
             "asm"
 constraints
     "default" => "stock-zlib" & "libz-sys"
-    "zlib-ng" => "libz-sys"
     "zlib-ng-no-cmake-experimental-community-maintained" => "libz-sys"
+    "zlib-ng" => "libz-sys"

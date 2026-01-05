@@ -7,8 +7,18 @@ use semver::Version;
 
 use crate::{crate_data::CrateData, crate_entry::CrateEntry};  
 
-pub fn scrape_popular(client: &mut postgres::Client, count: i64) -> Result<Vec<CrateEntry>, Error> {
-    let query = include_str!("popular.sql");
+pub fn scrape_popular_by_configurations(client: &mut postgres::Client, count: i64) -> Result<Vec<CrateEntry>, Error> {
+    let query = include_str!("popular_by_configurations.sql");
+    let params: &[&(dyn ToSql + Sync)] = &[&count];
+    let crates = client.query(query, params)?
+        .into_iter()
+        .map(row_to_crate_id_and_data)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(crates)
+}
+
+pub fn scrape_popular_by_downloads(client: &mut postgres::Client, count: i64) -> Result<Vec<CrateEntry>, Error> {
+    let query = include_str!("popular_by_downloads.sql");
     let params: &[&(dyn ToSql + Sync)] = &[&count];
     let crates = client.query(query, params)?
         .into_iter()
