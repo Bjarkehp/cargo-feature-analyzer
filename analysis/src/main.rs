@@ -5,6 +5,7 @@ mod paths;
 mod feature_model;
 mod tables;
 pub mod plots;
+mod retry;
 
 use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
@@ -16,8 +17,10 @@ use crate_scraper::crate_entry::CrateEntry;
 use itertools::Itertools;
 use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
 
+use crate::retry::retry;
+
 const POSTGRES_CONNECTION_STRING: &str = "postgres://crates:crates@localhost:5432/crates_io_db";
-const NUMBER_OF_CRATES: usize = 300;
+const NUMBER_OF_CRATES: usize = 1000;
 const MAX_FEATURES: usize = 100;
 const MIN_CONFIGS: usize = 100;
 const MAX_CONFIGS: usize = 1000;
@@ -139,8 +142,6 @@ fn main() -> anyhow::Result<()> {
 
     plots::features_and_dependencies(&plot_directory, &feature_stats)?;
 
-    println!("\x07");
-
     Ok(())
 }
 
@@ -153,7 +154,7 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client) -> anyhow::Result<
     } else {
         println!("Scraping {} popular crates from crates.io...", NUMBER_OF_CRATES);
 
-        let entries = crate_scraper::scrape_popular_by_downloads(client, NUMBER_OF_CRATES as i64)
+        let entries = crate_scraper::scrape_popular_by_configurations(client, NUMBER_OF_CRATES as i64)
             .expect("Failed to scrape popular crates");
 
         let file = File::create(paths::CRATE_ENTRIES)
@@ -175,7 +176,9 @@ fn get_or_scrape_cargo_toml(id: &CrateId) -> anyhow::Result<toml::Table> {
     let path = PathBuf::from(format!("{}/{id}.toml", paths::TOML));
     let content = std::fs::read_to_string(&path).or_else(|_| {
         println!("Downloading Cargo.toml for {}", id);
-        let toml_content = cargo_toml::download(&id.name, &id.version.to_string())
+        let request = || cargo_toml::download(&id.name, &id.version.to_string());
+        let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
+        let toml_content = retry(5, request, error_reporter)
             .with_context(|| format!("Failed to download Cargo.toml for {id}"))?;
         std::fs::write(&path, &toml_content)
             .with_context(|| format!("Failed to write Cargo.toml for {id} to {path:?}"))?;

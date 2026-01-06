@@ -3,6 +3,7 @@ pub mod implied_features;
 pub mod toml_util;
 pub mod crate_id;
 
+use anyhow::anyhow;
 use crates_io_api::SyncClient as CratesIoClient;
 use crates_tools::CrateArchive;
 use itertools::Itertools;
@@ -18,7 +19,7 @@ pub enum Error {
     #[error("No versions found for crate")]
     NoVersionsFound,
     #[error("Could not download crate archive")]
-    DownloadCrateArchive,
+    DownloadCrateArchive(#[source] anyhow::Error),
     #[error("Could not extract Cargo.toml from crate archive")]
     Extract,
 }
@@ -27,7 +28,7 @@ pub enum Error {
 pub fn download(crate_name: &str, version: &str) -> Result<String, Error> {
     //let version = latest_version(crate_name, client)?;
     let crate_archive = CrateArchive::download_crates_io(crate_name, version)
-        .map_err(|_| Error::DownloadCrateArchive)?;
+        .map_err(|e| Error::DownloadCrateArchive(e.into()))?;
     let cargo_toml_path = format!("{}-{}/Cargo.toml", crate_name, version);
     let cargo_toml_bytes = crate_archive.content_bytes(cargo_toml_path)
         .ok_or(Error::Extract)?;

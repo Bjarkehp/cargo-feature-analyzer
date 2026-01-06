@@ -9,6 +9,7 @@ JOIN crate_downloads cd ON cd.crate_id = d.crate_id
 JOIN (
     SELECT DISTINCT ON (crate_id) *
     FROM versions
+    WHERE created_at < '2025-10-01'
     ORDER BY crate_id, created_at DESC
 ) v ON v.crate_id = c.id
 WHERE v.features <> '{}'
