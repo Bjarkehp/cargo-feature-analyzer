@@ -1,8 +1,0 @@
-features
-	"default"
-		mandatory
-			"vec_map"
-		optional
-			"serde"
-				optional
-					"eders"

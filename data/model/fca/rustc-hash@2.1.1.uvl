@@ -1,8 +1,0 @@
-features
-	"default"
-		mandatory
-			"rustc-hash"
-			"std"
-		optional // Unused features
-			"nightly"
-			"rand"

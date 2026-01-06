@@ -1,6 +1,0 @@
-features
-    "h2"
-        optional
-            "default"
-            "unstable"
-            "stream"

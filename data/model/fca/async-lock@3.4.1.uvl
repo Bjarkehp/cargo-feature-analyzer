@@ -1,8 +1,0 @@
-features
-	"async-lock"
-		optional
-			"default"
-				mandatory
-					"std"
-		optional // Unused features
-			"loom"

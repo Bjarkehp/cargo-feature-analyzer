@@ -1,6 +1,0 @@
-features
-	"unicase"
-		optional
-			"default"
-		optional // Unused features
-			"nightly"

@@ -1,9 +1,0 @@
-features
-	"winreg"
-		optional
-			"default"
-		optional // Unused features
-			"chrono"
-			"serde"
-			"serialization-serde"
-			"transactions"

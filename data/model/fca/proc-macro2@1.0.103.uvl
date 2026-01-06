@@ -1,9 +1,0 @@
-features
-	"default"
-		mandatory
-			"proc-macro"
-			"proc-macro2"
-		optional
-			"span-locations"
-		optional // Unused features
-			"nightly"

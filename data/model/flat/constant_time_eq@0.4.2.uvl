@@ -1,9 +1,0 @@
-features
-    "constant_time_eq"
-        optional
-            "std"
-                optional
-                    "default"
-            "count_instructions_test"
-constraints
-    "default" => "constant_time_eq"

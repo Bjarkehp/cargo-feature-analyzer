@@ -1,6 +1,0 @@
-features
-	"errno"
-		optional
-			"default"
-				mandatory
-					"std"

@@ -1,9 +1,0 @@
-features
-	"default"
-		mandatory
-			"serde"
-			"std"
-			"url"
-		optional // Unused features
-			"debugger_visualizer"
-			"expose_internals"

@@ -1,9 +1,0 @@
-features
-    "num-integer"
-        optional
-            "std"
-                optional
-                    "default"
-            "i128"
-constraints
-    "default" => "num-integer"

@@ -1,8 +1,0 @@
-features
-	"default"
-		mandatory
-			"pest_meta"
-		optional
-			"grammar-extras"
-		optional // Unused features
-			"not-bootstrap-in-src"

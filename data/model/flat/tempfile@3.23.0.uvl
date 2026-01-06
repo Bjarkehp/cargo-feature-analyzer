@@ -1,9 +1,0 @@
-features
-    "tempfile"
-        optional
-            "getrandom"
-                optional
-                    "default"
-            "nightly"
-constraints
-    "default" => "tempfile"

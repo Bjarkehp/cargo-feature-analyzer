@@ -1,7 +1,0 @@
-features
-	"anyhow"
-		mandatory
-			"default"
-			"std"
-		optional
-			"backtrace"

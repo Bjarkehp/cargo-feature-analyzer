@@ -1,9 +1,0 @@
-features
-	"default"
-		mandatory
-			"futures-executor"
-			"std"
-		optional
-			"num_cpus"
-				mandatory
-					"thread-pool"

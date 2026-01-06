@@ -1,5 +1,0 @@
-features
-    "socket2"
-        optional
-            "default"
-            "all"

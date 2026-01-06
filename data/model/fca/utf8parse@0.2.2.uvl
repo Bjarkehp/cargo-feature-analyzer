@@ -1,6 +1,0 @@
-features
-	"default"
-		mandatory
-			"utf8parse"
-		optional // Unused features
-			"nightly"

@@ -1,8 +1,0 @@
-features
-    "foreign-types"
-        optional
-            "std"
-                optional
-                    "default"
-constraints
-    "default" => "foreign-types"

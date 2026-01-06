@@ -1,6 +1,0 @@
-features
-	"crossbeam-channel"
-		optional
-			"default"
-				mandatory
-					"std"

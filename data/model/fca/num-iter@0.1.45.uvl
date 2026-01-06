@@ -1,8 +1,0 @@
-features
-	"num-iter"
-		optional
-			"default"
-				mandatory
-					"std"
-		optional // Unused features
-			"i128"

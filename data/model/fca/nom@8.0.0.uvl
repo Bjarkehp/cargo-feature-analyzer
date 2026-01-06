@@ -1,9 +1,0 @@
-features
-	"alloc"
-		mandatory
-			"nom"
-			"std"
-		optional
-			"default"
-		optional // Unused features
-			"docsrs"

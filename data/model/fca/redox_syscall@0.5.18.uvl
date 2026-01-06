@@ -1,9 +1,0 @@
-features
-	"default"
-		mandatory
-			"redox_syscall"
-			"userspace"
-		optional // Unused features
-			"core"
-			"rustc-dep-of-std"
-			"std"

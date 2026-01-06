@@ -1,6 +1,0 @@
-features
-    "native-tls"
-        optional
-            "default"
-            "vendored"
-            "alpn"

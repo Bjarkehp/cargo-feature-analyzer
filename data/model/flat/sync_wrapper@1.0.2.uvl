@@ -1,9 +1,0 @@
-features
-    "sync_wrapper"
-        optional
-            "default"
-            "futures-core"
-                optional
-                    "futures"
-constraints
-    "futures" => "sync_wrapper"

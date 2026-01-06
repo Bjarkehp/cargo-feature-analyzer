@@ -1,9 +1,0 @@
-features
-    "hashlink"
-        optional
-            "default"
-            "serde"
-                optional
-                    "serde_impl"
-constraints
-    "serde_impl" => "hashlink"

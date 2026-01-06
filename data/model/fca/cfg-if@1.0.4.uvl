@@ -1,7 +1,0 @@
-features
-	"cfg-if"
-		optional
-			"default"
-		optional // Unused features
-			"core"
-			"rustc-dep-of-std"

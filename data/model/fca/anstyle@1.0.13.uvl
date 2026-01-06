@@ -1,6 +1,0 @@
-features
-	"anstyle"
-		optional
-			"default"
-				mandatory
-					"std"

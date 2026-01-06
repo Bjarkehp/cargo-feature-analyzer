@@ -1,6 +1,0 @@
-features
-	"default"
-		mandatory
-			"tokio-native-tls"
-		optional // Unused features
-			"vendored"

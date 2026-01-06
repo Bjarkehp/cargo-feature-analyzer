@@ -1,8 +1,0 @@
-features
-	"slab"
-		optional
-			"default"
-				mandatory
-					"std"
-				optional
-					"serde"

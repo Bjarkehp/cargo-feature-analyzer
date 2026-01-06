@@ -1,7 +1,0 @@
-features
-    "serde_with_macros"
-        optional
-            "default"
-            "schemars_1"
-            "schemars_0_9"
-            "schemars_0_8"

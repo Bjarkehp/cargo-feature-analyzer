@@ -1,6 +1,0 @@
-features
-	"quote"
-		optional
-			"default"
-				mandatory
-					"proc-macro"

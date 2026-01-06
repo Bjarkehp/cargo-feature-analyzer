@@ -1,7 +1,0 @@
-features
-	"unicode-xid"
-		optional
-			"default"
-		optional // Unused features
-			"bench"
-			"no_std"

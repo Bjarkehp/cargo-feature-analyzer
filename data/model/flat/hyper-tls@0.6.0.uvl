@@ -1,6 +1,0 @@
-features
-    "hyper-tls"
-        optional
-            "default"
-            "vendored"
-            "alpn"

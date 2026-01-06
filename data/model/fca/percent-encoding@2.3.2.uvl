@@ -1,6 +1,0 @@
-features
-	"alloc"
-		mandatory
-			"default"
-			"percent-encoding"
-			"std"

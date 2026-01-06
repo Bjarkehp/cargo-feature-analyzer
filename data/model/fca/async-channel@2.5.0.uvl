@@ -1,9 +1,0 @@
-features
-	"async-channel"
-		optional
-			"std"
-				optional
-					"default"
-		optional // Unused features
-			"portable-atomic"
-			"portable-atomic-util"

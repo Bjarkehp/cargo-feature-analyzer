@@ -1,8 +1,0 @@
-features
-	"axum-core"
-		optional
-			"default"
-		optional // Unused features
-			"__private_docs"
-			"tower-http"
-			"tracing"

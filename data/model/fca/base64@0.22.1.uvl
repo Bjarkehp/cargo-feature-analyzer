@@ -1,7 +1,0 @@
-features
-	"alloc"
-		mandatory
-			"base64"
-			"std"
-		optional
-			"default"

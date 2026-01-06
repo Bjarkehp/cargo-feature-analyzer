@@ -1,6 +1,0 @@
-features
-	"thread_local"
-		optional
-			"default"
-		optional // Unused features
-			"nightly"

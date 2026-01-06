@@ -1,8 +1,0 @@
-features
-    "crossbeam-deque"
-        optional
-            "std"
-                optional
-                    "default"
-constraints
-    "default" => "crossbeam-deque"
