@@ -9,7 +9,7 @@ mod retry;
 
 use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
-use anyhow::{Context, anyhow};
+use anyhow::Context;
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use chrono::Local;
 use configuration_scraper::{configuration::Configuration, postgres};
@@ -30,10 +30,11 @@ fn main() -> anyhow::Result<()> {
     paths::prepare_directories()?;
 
     let mut postgres_client = postgres::Client::connect(POSTGRES_CONNECTION_STRING, postgres::NoTls)
-        .with_context(|| anyhow!("Failed to create postgres client"))?;
-
+        .with_context(|| "Failed to create postgres client")?;
     let mut flamapy_client = flamapy_client::Client::new(paths::FLAMAPY_SERVER)
         .with_context(|| "Failed to create flamapy client")?;
+    let reqwest_client = cargo_toml::default_reqwest_client()
+        .with_context(|| "Failed to create reqwest client")?;
 
     let crate_entries_vec = get_or_scrape_crate_entries(&mut postgres_client)?;
 
@@ -42,7 +43,7 @@ fn main() -> anyhow::Result<()> {
         .collect::<BTreeMap<_, _>>();
 
     let cargo_tomls = crate_entries.keys()
-        .map(|&id| get_or_scrape_cargo_toml(id).map(|table| (id, table)))
+        .map(|&id| get_or_scrape_cargo_toml(&reqwest_client, id).map(|table| (id, table)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
     let dependency_graphs = cargo_tomls.iter()
@@ -163,7 +164,6 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client) -> anyhow::Result<
         let mut writer = BufWriter::new(file);
 
         for entry in entries.iter() {
-            println!("{}", entry);
             writeln!(writer, "{}", entry)
                 .with_context(|| format!("Failed to write to file {}", paths::CRATE_ENTRIES))?;
         }
@@ -172,14 +172,15 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client) -> anyhow::Result<
     }
 }
 
-fn get_or_scrape_cargo_toml(id: &CrateId) -> anyhow::Result<toml::Table> {
+fn get_or_scrape_cargo_toml(client: &reqwest::blocking::Client, id: &CrateId) -> anyhow::Result<toml::Table> {
     let path = PathBuf::from(format!("{}/{id}.toml", paths::TOML));
     let content = std::fs::read_to_string(&path).or_else(|_| {
         println!("Downloading Cargo.toml for {}", id);
-        let request = || cargo_toml::download(&id.name, &id.version.to_string());
+        let request = || cargo_toml::download_cargo_toml(client, &id.name, &id.version.to_string());
         let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
         let toml_content = retry(5, request, error_reporter)
-            .with_context(|| format!("Failed to download Cargo.toml for {id}"))?;
+            .with_context(|| format!("Failed to download Cargo.toml for {id}"))?
+            .with_context(|| format!("{id} does not have a Cargo.toml"))?;
         std::fs::write(&path, &toml_content)
             .with_context(|| format!("Failed to write Cargo.toml for {id} to {path:?}"))?;
         Ok::<_, anyhow::Error>(toml_content)

@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use anyhow::{Context, anyhow};
+use cargo_toml::default_reqwest_client;
 use clap::Parser;
 
 #[derive(Parser)]
@@ -13,7 +15,7 @@ pub struct Args {
     destination: Option<PathBuf>
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     let destination = args.destination.unwrap_or_else(|| {
@@ -23,16 +25,14 @@ fn main() {
     });
 
     let crate_version = args.crate_version.unwrap_or_else(|| {
-        let client = cargo_toml::default_client().unwrap();
+        let client = cargo_toml::default_cargo_client().unwrap();
         let version = cargo_toml::latest_version(&args.name, &client).unwrap();
         version.num
     });
 
-    let content = cargo_toml::download(&args.name, &crate_version).unwrap();
-    if let Some(parent) = destination.parent() {
-        std::fs::create_dir_all(parent)
-            .unwrap_or_else(|_| panic!("Failed to create directories for {destination:?}"))
-    }
-    std::fs::write(&destination, content)
-        .unwrap_or_else(|_| panic!("Failed to write the content of {destination:?}"));
+    let client = default_reqwest_client()?;
+    cargo_toml::download_and_save(&client, &args.name, &crate_version, &destination)
+        .with_context(|| anyhow!("Unable to download and extract {}", args.name))?;
+
+    Ok(())
 }
