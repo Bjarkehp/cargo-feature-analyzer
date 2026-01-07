@@ -176,13 +176,25 @@ fn get_or_scrape_cargo_toml(client: &reqwest::blocking::Client, id: &CrateId) ->
     let path = PathBuf::from(format!("{}/{id}.toml", paths::TOML));
     let content = std::fs::read_to_string(&path).or_else(|_| {
         println!("Downloading Cargo.toml for {}", id);
-        let request = || cargo_toml::download_cargo_toml(client, &id.name, &id.version.to_string());
+        let version_str = id.version.to_string();
+        let request = || cargo_toml::download_cargo_toml(client, &id.name, &version_str);
         let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
         let toml_content = retry(5, request, error_reporter)
             .with_context(|| format!("Failed to download Cargo.toml for {id}"))?
             .with_context(|| format!("{id} does not have a Cargo.toml"))?;
         std::fs::write(&path, &toml_content)
             .with_context(|| format!("Failed to write Cargo.toml for {id} to {path:?}"))?;
+        
+        let request = || cargo_toml::download(client, &id.name, &version_str);
+        let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
+        let mut archive = retry(5, request, error_reporter)
+            .with_context(|| format!("Failed to download Cargo.toml for {id}"))?;
+        let crate_path = Path::new(paths::CRATE);
+        std::fs::create_dir_all(crate_path)
+            .with_context(|| format!("Failed to create crate directory for {id}"))?;
+        archive.unpack(crate_path)?;
+        std::fs::rename(crate_path.join(format!("{}-{}", id.name, id.version)), crate_path.join(format!("{id}")))?;
+
         Ok::<_, anyhow::Error>(toml_content)
     })?;
 

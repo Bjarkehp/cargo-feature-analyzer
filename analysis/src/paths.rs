@@ -2,6 +2,7 @@ use anyhow::Context;
 
 pub const CRATE_ENTRIES: &str = "data/crates.txt";
 pub const TOML: &str = "data/toml";
+pub const CRATE: &str = "data/crate";
 pub const CONFIG: &str = "data/configuration";
 pub const FLAT_MODEL: &str = "data/model/flat";
 pub const FCA_MODEL: &str = "data/model/fca";
