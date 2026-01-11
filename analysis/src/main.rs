@@ -9,13 +9,14 @@ mod retry;
 
 use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use chrono::Local;
 use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
 use itertools::Itertools;
 use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
+use tokei::{LanguageType, Languages};
 
 use crate::retry::retry;
 
@@ -42,8 +43,24 @@ fn main() -> anyhow::Result<()> {
         .map(|e| (&e.id, &e.data))
         .collect::<BTreeMap<_, _>>();
 
+    for id in crate_entries.keys() {
+        download_crate(&reqwest_client, id)?;
+    }
+
+    let line_counts = crate_entries.keys()
+        .map(|&id| {
+            let mut languages = Languages::new();
+            let config = tokei::Config::default();
+            languages.get_statistics(&[format!("{}/{id}", paths::CRATE)], &[], &config);
+            let stats = languages.get(&LanguageType::Rust)
+                .ok_or_else(|| anyhow!("Failed to get line count statistics for {id}"))?
+                .summarise();
+            Ok((id, stats))
+        })
+        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
+
     let cargo_tomls = crate_entries.keys()
-        .map(|&id| get_or_scrape_cargo_toml(&reqwest_client, id).map(|table| (id, table)))
+        .map(|&id| get_or_scrape_cargo_toml(id).map(|table| (id, table)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
     let dependency_graphs = cargo_tomls.iter()
@@ -136,12 +153,14 @@ fn main() -> anyhow::Result<()> {
     tables::write_fca_model_config_stats(&result_directory, &fca_model_config_stats)?;
     tables::write_fca_model_quality(&result_directory, &fca_model_quality)?;
 
-    println!("Creating features_and_dependencies.png...");
-    let plot_directory = PathBuf::from(format!("{}/{}", paths::PLOT_ROOT, date_time));
-    std::fs::create_dir(&plot_directory)
+    let plot_dir = PathBuf::from(format!("{}/{}", paths::PLOT_ROOT, date_time));
+    std::fs::create_dir(&plot_dir)
         .with_context(|| "Failed to create directory for plots of this analysis")?;
 
-    plots::features_and_dependencies(&plot_directory, &feature_stats)?;
+    println!("Creating features_and_dependencies.png...");
+    plots::features_and_dependencies(&plot_dir, &feature_stats)?;
+    println!("Creating line_count_and_features.png...");
+    plots::line_count_and_features(&plot_dir, &line_counts, &feature_stats)?;
 
     Ok(())
 }
@@ -172,33 +191,28 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client) -> anyhow::Result<
     }
 }
 
-fn get_or_scrape_cargo_toml(client: &reqwest::blocking::Client, id: &CrateId) -> anyhow::Result<toml::Table> {
-    let path = PathBuf::from(format!("{}/{id}.toml", paths::TOML));
-    let content = std::fs::read_to_string(&path).or_else(|_| {
-        println!("Downloading Cargo.toml for {}", id);
+fn download_crate(client: &reqwest::blocking::Client, id: &CrateId) -> anyhow::Result<()> {
+    let path = PathBuf::from(format!("{}/{id}", paths::CRATE));
+    if !std::fs::exists(&path)? {
+        println!("Downloading {}", id);
         let version_str = id.version.to_string();
-        let request = || cargo_toml::download_cargo_toml(client, &id.name, &version_str);
-        let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
-        let toml_content = retry(5, request, error_reporter)
-            .with_context(|| format!("Failed to download Cargo.toml for {id}"))?
-            .with_context(|| format!("{id} does not have a Cargo.toml"))?;
-        std::fs::write(&path, &toml_content)
-            .with_context(|| format!("Failed to write Cargo.toml for {id} to {path:?}"))?;
-        
         let request = || cargo_toml::download(client, &id.name, &version_str);
         let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
         let mut archive = retry(5, request, error_reporter)
             .with_context(|| format!("Failed to download Cargo.toml for {id}"))?;
-        let crate_path = Path::new(paths::CRATE);
-        std::fs::create_dir_all(crate_path)
-            .with_context(|| format!("Failed to create crate directory for {id}"))?;
-        archive.unpack(crate_path)?;
-        std::fs::rename(crate_path.join(format!("{}-{}", id.name, id.version)), crate_path.join(format!("{id}")))?;
+        archive.unpack(paths::CRATE)?;
+        let unpack_path = Path::new(paths::CRATE).join(format!("{}-{}", id.name, id.version));
+        std::fs::rename(unpack_path, path)?;
+    }
 
-        Ok::<_, anyhow::Error>(toml_content)
-    })?;
+    Ok(())
+}
 
-    content.parse().with_context(|| format!("Failed to parse Cargo.toml for {id}"))
+fn get_or_scrape_cargo_toml(id: &CrateId) -> anyhow::Result<toml::Table> {
+    let path = PathBuf::from(format!("{}/{id}/Cargo.toml", paths::CRATE));
+    let content = std::fs::read_to_string(&path)?;
+    content.parse()
+        .with_context(|| format!("Failed to parse Cargo.toml for {id}"))
 }
 
 fn get_or_scrape_configurations(id: &CrateId, dependency_graph: &feature_dependencies::Graph, client: &mut postgres::Client) -> anyhow::Result<Vec<Configuration<'static>>> {

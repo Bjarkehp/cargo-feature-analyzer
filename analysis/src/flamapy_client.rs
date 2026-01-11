@@ -16,12 +16,13 @@ impl Client {
             .ok_or(ConnectionError::EmptyFlamapy)?
             .strip_prefix("#!")
             .ok_or(ConnectionError::NoShebang)?;
-
         let mut command = Command::new(python_environment_path)
             .arg(server.as_ref())
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .spawn()?;
+            .spawn()
+            .map_err(|e| ConnectionError::MissingPythonEnv(python_environment_path.to_owned(), e))?;
+        
         let writer = command.stdin.take().unwrap();
         let reader = command.stdout.take().unwrap();
         let writer = BufWriter::new(writer);
@@ -73,6 +74,8 @@ pub enum ConnectionError {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Which(#[from] which::Error),
+    #[error("Python environment at {0} doesn't exist")]
+    MissingPythonEnv(String, #[source] std::io::Error),
     #[error("Flamapy script was empty")]
     EmptyFlamapy,
     #[error("Flamapy script did not contain a shebang")]
