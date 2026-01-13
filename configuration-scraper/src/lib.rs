@@ -1,7 +1,7 @@
 use std::{borrow::Cow, collections::{BTreeMap, BTreeSet}};
 
 use cargo_toml::{feature_dependencies, implied_features};
-use postgres::{Row, types::ToSql};
+use postgres::{Row, fallible_iterator::{FallibleIterator, IntoFallibleIterator}, types::{BorrowToSql, ToSql}};
 use semver::{Version, VersionReq};
 
 use crate::configuration::Configuration;
@@ -15,24 +15,19 @@ pub fn scrape(
     crate_version: &Version, 
     feature_dependencies: &feature_dependencies::Graph,
     client: &mut postgres::Client, 
-    offset: i64, 
-    limit: i64
+    limit: usize
 ) -> Result<Vec<Configuration<'static>>, Error> {
     let features = feature_dependencies.nodes()
         .collect::<Vec<_>>();
 
     let query = include_str!("query.sql");
-    let params: &[&(dyn ToSql + Sync)] = &[
-        &crate_name, 
-        &limit, 
-        &offset
-    ];
+    let params: &[&str] = &[crate_name];
 
-    let rows = client.query(query, params)?;
-    
-    let configurations = rows.iter()
-        .filter_map(|row| row_to_config(row, crate_version, &features, feature_dependencies))
-        .collect::<Vec<_>>();
+    let rows = client.query_raw(query, params)?;
+    let configurations = rows.into_fallible_iter()
+        .filter_map(|row| Ok(row_to_config(&row, crate_version, &features, feature_dependencies)))
+        .take(limit)
+        .collect::<Vec<_>>()?;
 
     Ok(configurations)
 }

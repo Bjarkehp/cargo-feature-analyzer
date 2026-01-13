@@ -16,9 +16,5 @@ WHERE d.crate_id = (
     FROM crates
     WHERE name = $1
 )
--- Ignore optional dependencies.
-AND d.kind = 0
 -- Order such that new crates are preferred over old.
 ORDER BY v.created_at DESC
-LIMIT $2
-OFFSET $3;

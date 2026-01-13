@@ -234,8 +234,7 @@ fn get_or_scrape_configurations(id: &CrateId, dependency_graph: &feature_depende
             &id.version, 
             dependency_graph, 
             client, 
-            0, 
-            MAX_CONFIGS as i64
+            MAX_CONFIGS
         ).with_context(|| format!("Failed to query for configuration for {id}"))?;
 
         println!("Found {} configurations", configurations.len());

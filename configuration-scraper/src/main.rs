@@ -16,10 +16,8 @@ struct Args {
 
     #[arg(short, long, default_value = None)]
     database_str: Option<String>,
-    #[arg(short, long, default_value_t = 0)]
-    offset: i64,
     #[arg(short, long, default_value_t = 100)]
-    limit: i64,
+    limit: usize,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -47,7 +45,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         &crate_version,
         &feature_dependencies,
         &mut client,
-        args.offset,
         args.limit,
     )?;
 

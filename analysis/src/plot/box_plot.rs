@@ -83,8 +83,6 @@ pub fn plot_log(
         .flat_map(|b| [(b.range.start, b.min), (b.range.end, b.max)])
         .collect::<BoundingBox>() * margin;
 
-    println!("{:?}", bounding_box.horizontal_range());
-
     let mut chart = ChartBuilder::on(&root)
         .caption(caption, ("sans-serif", 32).into_font())
         .margin(30)
