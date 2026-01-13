@@ -16,6 +16,7 @@ fm-synthesizer-flat = { version = "0.1.0", path = "../fm-synthesizer-flat" }
 itertools = "0.14.0"
 ordered-float = "5.1.0"
 plotters = "0.3.7"
+polyfit-rs = "0.2.2"
 reqwest = { version = "0.13.1", features = ["blocking"] }
 semver = "1.0.27"
 sorted-iter = "0.1.11"

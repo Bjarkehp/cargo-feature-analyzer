@@ -161,6 +161,8 @@ fn main() -> anyhow::Result<()> {
     plots::features_and_dependencies(&plot_dir, &feature_stats)?;
     println!("Creating line_count_and_features.png...");
     plots::line_count_and_features(&plot_dir, &line_counts, &feature_stats)?;
+    println!("Creating flat_vs_fca.png...");
+    plots::flat_vs_fca_exact(&plot_dir, &flat_model_config_stats, &fca_model_config_stats)?;
 
     Ok(())
 }
@@ -298,7 +300,7 @@ fn get_configuration_stats(configs: Option<&[Configuration<'static>]>, default_f
     }
 }
 
-struct ModelConfigurationStats {
+pub struct ModelConfigurationStats {
     estimation: f64,
     exact: f64,
 }
