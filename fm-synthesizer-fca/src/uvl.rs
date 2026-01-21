@@ -7,21 +7,21 @@ use crate::concept::Concept;
 
 /// Stores a feature and whether it is enabled or not.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-struct ConstraintItem<'a> {
+pub struct ConstraintItem<'a> {
     enabled: bool,
     feature: &'a str,
 }
 
 impl<'a> ConstraintItem<'a> {
-    fn new(enabled: bool, feature: &'a str) -> Self {
+    pub fn new(enabled: bool, feature: &'a str) -> Self {
         Self { enabled, feature }
     }
 
-    fn enabled(feature: &'a str) -> Self {
+    pub fn enabled(feature: &'a str) -> Self {
         Self::new(true, feature)
     }
 
-    fn disabled(feature: &'a str) -> Self {
+    pub fn disabled(feature: &'a str) -> Self {
         Self::new(false, feature)
     }
 }
@@ -77,7 +77,7 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
 }
 
 /// Find external concepts with no configurations and writes them directly as top-level features
-fn write_unused_features<W: Write>(writer: &mut W, features: &[&str]) -> std::io::Result<()> {
+pub fn write_unused_features<W: Write>(writer: &mut W, features: &[&str]) -> std::io::Result<()> {
     if features.is_empty() {
         return Ok(());
     }
@@ -95,7 +95,7 @@ fn write_unused_features<W: Write>(writer: &mut W, features: &[&str]) -> std::io
 /// Incompatible features are found by looking at each pair of minimal concepts.
 /// If the union of the configurations of any pair of minimal concepts is empty,
 /// then the first features of the two concepts are incompatible.
-fn incompatible_features<'a>(ac_poset: &'a DiGraph<Concept, ()>) -> impl Iterator<Item = (&'a str, &'a str)> {
+pub fn incompatible_features<'a>(ac_poset: &'a DiGraph<Concept, ()>) -> impl Iterator<Item = (&'a str, &'a str)> {
     ac_poset.externals(Direction::Incoming)
         .cartesian_product(ac_poset.externals(Direction::Incoming).collect::<Vec<_>>())
         .map(|(i, j)| (&ac_poset[i], &ac_poset[j]))
@@ -192,7 +192,7 @@ fn visit_ac_poset_node<'a, W: Write>(
 }
 
 /// Creates a histogram, counting the amount of times a configuration appears in a list of nodes.
-fn config_histogram<'a>(nodes: &[NodeIndex], ac_poset: &'a DiGraph<Concept, ()>) -> HashMap<&'a str, usize> {
+pub fn config_histogram<'a>(nodes: &[NodeIndex], ac_poset: &'a DiGraph<Concept, ()>) -> HashMap<&'a str, usize> {
     nodes.iter()
         .flat_map(|&child| ac_poset[child].inherited_configurations.iter())
         .map(|&x| (x, ()))

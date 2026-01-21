@@ -78,12 +78,16 @@ fn main() -> anyhow::Result<()> {
         .filter_ok(|(_, configs)| !configs.is_empty())
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
+    println!("Creating flat models...");
+
     for (id, table) in cargo_tomls.iter() {
         feature_model::create_flat(id, table)?;
     }
 
+    println!("Creating fca models...");
+
     for (id, configurations) in configuration_sets.iter().filter(|(_id, configs)| configs.len() >= MIN_CONFIGS) {
-        feature_model::create_fca(id, configurations)?
+        feature_model::create_fca_rng(id, configurations, &mut flamapy_client)?
     }
 
     println!("Calculating feature and feature dependency counts...");
