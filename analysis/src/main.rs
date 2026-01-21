@@ -7,6 +7,7 @@ mod tables;
 pub mod plots;
 mod retry;
 mod correlation;
+mod bounding_box;
 
 use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 

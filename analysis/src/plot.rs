@@ -1,15 +1,11 @@
 use std::{iter::successors, ops::Range, path::Path};
 
 use anyhow::anyhow;
-use plotters::{chart::{ChartBuilder, ChartContext}, coord::{Shift, ranged1d::ValueFormatter, types::RangedCoordf64}, prelude::{BitMapBackend, Cartesian2d, Circle, DiscreteRanged, DrawingArea, IntoDrawingArea, IntoLinspace, IntoLogRange, LogCoord, PathElement, Ranged}, series::LineSeries, style::{BLACK, BLUE, Color, IntoFont, WHITE}};
+use plotters::{chart::{ChartBuilder, ChartContext}, coord::{Shift, ranged1d::ValueFormatter, types::RangedCoordf64}, prelude::{BitMapBackend, Cartesian2d, Circle, DrawingArea, IntoDrawingArea, IntoLogRange, LogCoord, PathElement, Ranged}, series::LineSeries, style::{BLACK, BLUE, Color, IntoFont, WHITE}};
 
 use polyfit_rs::polyfit_rs;
 
 use crate::correlation;
-
-pub mod line_chart;
-pub mod box_plot;
-pub mod bounding_box;
 
 pub type DefaultRoot<'a> = DrawingArea<BitMapBackend<'a>, Shift>;
 pub type DefaultChartContext<'a> = ChartContext<'a, BitMapBackend<'a>, Cartesian2d<RangedCoordf64, RangedCoordf64>>;

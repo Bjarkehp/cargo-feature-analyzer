@@ -4,7 +4,7 @@ use cargo_toml::crate_id::CrateId;
 use sorted_iter::SortedPairIterator;
 use tokei::Language;
 
-use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelConfigurationStats, plot::{bounding_box::BoundingBox, default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
+use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelConfigurationStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
 
 pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>) -> anyhow::Result<()> {
     let caption = "Features and dependencies";
@@ -84,7 +84,6 @@ pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfiguratio
     let mut chart = default_log_chart(&root, caption, x_range.clone(), y_range)?;
     default_mesh(&mut chart, x_desc, y_desc)?;
     draw_points(&mut chart, &points)?;
-
     root.present()?;
 
     Ok(())

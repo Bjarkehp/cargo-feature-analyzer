@@ -18,10 +18,6 @@ pub struct BoundingBox {
 }
 
 impl BoundingBox {
-    pub fn all(f: f64) -> BoundingBox {
-        BoundingBox::new(f, f, f, f)
-    }
-
     pub fn with(self, (x, y): (f64, f64)) -> BoundingBox {
         let left = *min(OrderedFloat(self.left), OrderedFloat(x));
         let right = *max(OrderedFloat(self.right), OrderedFloat(x));
