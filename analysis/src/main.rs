@@ -87,7 +87,7 @@ fn main() -> anyhow::Result<()> {
     println!("Creating fca models...");
 
     for (id, configurations) in configuration_sets.iter().filter(|(_id, configs)| configs.len() >= MIN_CONFIGS) {
-        feature_model::create_fca_rng(id, configurations, &mut flamapy_client)?
+        feature_model::create_fca(id, configurations)?
     }
 
     println!("Calculating feature and feature dependency counts...");
@@ -169,6 +169,11 @@ fn main() -> anyhow::Result<()> {
     plots::line_count_and_features(&plot_dir, &line_counts, &feature_stats)?;
     println!("Creating flat_vs_fca.png...");
     plots::flat_vs_fca_exact(&plot_dir, &flat_model_config_stats, &fca_model_config_stats)?;
+
+    flat_model_config_stats.iter()
+        .join(fca_model_config_stats.iter())
+        .filter(|(_id, (flat, fca))| flat.exact > 1000000.0 && flat.exact < 10000000.0 && fca.exact > 10000000.0)
+        .for_each(|(id, _)| println!("{id}"));
 
     Ok(())
 }
@@ -319,7 +324,7 @@ fn get_model_configuration_stats(client: &mut flamapy_client::Client, path: &Pat
         .with_context(|| format!("Failed to get estimated number of configurations for {path:?}"))?;
 
     let exact = client.configurations_number()
-        .with_context(|| format!("Failed to get configration number for {path:?}"))?;
+        .with_context(|| format!("Failed to get configuration number for {path:?}"))?;
 
     Ok(ModelConfigurationStats { estimation, exact })
 }

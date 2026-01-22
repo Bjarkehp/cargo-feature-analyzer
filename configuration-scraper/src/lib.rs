@@ -1,7 +1,7 @@
 use std::{borrow::Cow, collections::{BTreeMap, BTreeSet}};
 
 use cargo_toml::{feature_dependencies, implied_features};
-use postgres::{Row, fallible_iterator::{FallibleIterator, IntoFallibleIterator}, types::{BorrowToSql, ToSql}};
+use postgres::{Row, fallible_iterator::{FallibleIterator, IntoFallibleIterator}};
 use semver::{Version, VersionReq};
 
 use crate::configuration::Configuration;
