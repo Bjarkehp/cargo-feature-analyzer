@@ -26,7 +26,7 @@ pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, 
 
     let root = default_root(&path)?;
     let mut chart = default_chart(&root, caption, x_range.clone(), y_range)?;
-    default_mesh(&mut chart, x_desc, y_desc)?;
+    default_mesh(&mut chart, x_desc, y_desc).draw()?;
     draw_points(&mut chart, &points)?;
     draw_linear_regression(&mut chart, &points, x_range)?;
     root.present()?;
@@ -54,7 +54,7 @@ pub fn line_count_and_features(dir: &Path, line_counts: &BTreeMap<&CrateId, Lang
 
     let root = default_root(&path)?;
     let mut chart = default_log_chart(&root, caption, x_range.clone(), y_range)?;
-    default_mesh(&mut chart, x_desc, y_desc)?;
+    default_mesh(&mut chart, x_desc, y_desc).draw()?;
     draw_points(&mut chart, &points)?;
     draw_linear_regression_log(&mut chart, &points, x_range)?;
     root.present()?;
@@ -82,7 +82,10 @@ pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfiguratio
 
     let root = default_root(&path)?;
     let mut chart = default_log_chart(&root, caption, x_range.clone(), y_range)?;
-    default_mesh(&mut chart, x_desc, y_desc)?;
+    default_mesh(&mut chart, x_desc, y_desc)
+        .x_label_formatter(&|x| format!("{x:e}"))
+        .y_label_formatter(&|y| format!("{y:e}"))
+        .draw()?;
     draw_points(&mut chart, &points)?;
     root.present()?;
 

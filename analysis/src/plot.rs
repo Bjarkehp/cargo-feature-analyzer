@@ -1,7 +1,7 @@
 use std::{iter::successors, ops::Range, path::Path};
 
 use anyhow::anyhow;
-use plotters::{chart::{ChartBuilder, ChartContext}, coord::{Shift, ranged1d::ValueFormatter, types::RangedCoordf64}, prelude::{BitMapBackend, Cartesian2d, Circle, DrawingArea, IntoDrawingArea, IntoLogRange, LogCoord, PathElement, Ranged}, series::LineSeries, style::{BLACK, BLUE, Color, IntoFont, WHITE}};
+use plotters::{chart::{ChartBuilder, ChartContext, MeshStyle}, coord::{Shift, ranged1d::ValueFormatter, types::RangedCoordf64}, prelude::{BitMapBackend, Cartesian2d, Circle, DrawingArea, DrawingBackend, IntoDrawingArea, IntoLogRange, LogCoord, PathElement, Ranged}, series::LineSeries, style::{BLACK, BLUE, Color, IntoFont, WHITE}};
 
 use polyfit_rs::polyfit_rs;
 
@@ -49,21 +49,21 @@ pub fn default_log_chart<'a>(
     Ok(chart)
 }
 
-pub fn default_mesh<X: Ranged<ValueType = f64> + ValueFormatter<f64>, Y: Ranged<ValueType = f64> + ValueFormatter<f64>>(
-    chart: &mut ChartContext<'_, BitMapBackend<'_>, Cartesian2d<X, Y>>,
+pub fn default_mesh<'a, 'b, X: Ranged<ValueType = f64> + ValueFormatter<f64>, Y: Ranged<ValueType = f64> + ValueFormatter<f64>, DB: DrawingBackend>(
+    chart: &'b mut ChartContext<'a, DB, Cartesian2d<X, Y>>,
     x_desc: &str,
     y_desc: &str,
-) -> anyhow::Result<()> {
-    chart.configure_mesh()
+) -> MeshStyle<'a, 'b, X, Y, DB> {
+    let mut mesh_style = chart.configure_mesh();
+    mesh_style
         .x_desc(x_desc)
         .y_desc(y_desc)
         .x_label_style(("sans-serif", 18).into_font())
         .y_label_style(("sans-serif", 18).into_font())
         .axis_desc_style(("sans-serif", 24).into_font())
-        .max_light_lines(0)
-        .draw()?;
-
-    Ok(())
+        .max_light_lines(0);
+    
+    mesh_style
 }
 
 pub fn draw_points<X: Ranged<ValueType = f64> + ValueFormatter<f64>, Y: Ranged<ValueType = f64> + ValueFormatter<f64>>(
