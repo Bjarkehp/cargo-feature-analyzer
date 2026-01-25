@@ -1,4 +1,4 @@
-use std::{collections::{BTreeSet, HashMap, HashSet}, io::Write};
+use std::{cmp::{max, min}, collections::{BTreeSet, HashMap, HashSet}, io::Write};
 
 use itertools::Itertools;
 use petgraph::{Direction, graph::{DiGraph, EdgeIndex, NodeIndex}, visit::EdgeRef};
@@ -67,32 +67,122 @@ fn write_tree_constraints<W: Write>(
         }
     }
 
-    let tree_neighbors = ac_poset.edges_directed(node, petgraph::Direction::Incoming)
+    let tree_neighbors = ac_poset.edges_directed(node, Direction::Incoming)
         .filter(|&e| tree_constraints.contains(&e.id()))
         .map(|e| e.source())
         .collect::<Vec<_>>();
+    let has_cross_tree_neighbors = tree_neighbors.len() != ac_poset.edges_directed(node, Direction::Incoming).count();
+    let min_is_0 = !ac_poset[node].configurations.is_empty() || has_cross_tree_neighbors;
 
     if tree_neighbors.is_empty() {
         return Ok(());
     }
 
-    if concept.configurations.is_empty() && tree_neighbors.len() > 1 {
-        let histogram = config_histogram(&tree_neighbors, ac_poset);
-        let min = *histogram.values().min().unwrap();
-        let max = *histogram.values().max().unwrap();
-        
-        match (min, max) {
-            (1, 1) => writeln!(writer, "{tab2}alternative")?,
-            (1, _) => writeln!(writer, "{tab2}or")?,
-            (_, _) => writeln!(writer, "{tab2}[{min}..{max}]")?,
+    type Mask = u32;
+    type Cost = u128;
+
+    let n = tree_neighbors.len() as Mask;
+
+    if n < 15 {
+        let tree_neighbors_reverse_map = (0..n)
+            .map(|i| (tree_neighbors[i as usize], i))
+            .collect::<HashMap<_, _>>();
+
+        let mut assignments: HashMap<&str, Mask> = HashMap::new();
+        for &node in tree_neighbors.iter() {
+            for config in ac_poset[node].inherited_configurations.iter() {
+                assignments.entry(config)
+                    .and_modify(|x| *x |= 1 << tree_neighbors_reverse_map[&node])
+                    .or_insert(1 << tree_neighbors_reverse_map[&node]);
+            }
+        }
+
+        let full: Mask = 1 << n;
+        let mut cost = vec![0; full as usize];
+
+        for s in 1..full {
+            let mut min_c = if min_is_0 {
+                0
+            } else {
+                n
+            };
+            let mut max_c = 0;
+            for &a in assignments.values() {
+                let c = (s & a).count_ones() as Mask;
+                min_c = min(min_c, c);
+                max_c = max(max_c, c);
+            }
+            let size = s.count_ones() as Mask;
+            cost[s as usize] = (min_c..=max_c)
+                .map(|k| n_choose_k(size, k))
+                .sum();
+        }
+
+        let mut dp = vec![Cost::MAX; full as usize];
+        let mut choice = vec![0; full as usize];
+        dp[0] = 1;
+
+        for mask in 1..full {
+            let lsb = mask & (!mask + 1);
+            let mut sub = mask;
+            while sub != 0 {
+                if sub & lsb != 0 {
+                    let val = dp[(mask ^ sub) as usize] * cost[sub as usize];
+                    if val < dp[mask as usize] {
+                        dp[mask as usize] = val;
+                        choice[mask as usize] = sub;
+                    }
+                }
+                sub = (sub - 1) & mask;
+            }
+        }
+
+        for mask in 1..full {
+            if choice[mask as usize] == 0 {
+                panic!("No choice for mask {:b}", mask);
+            }
+        }
+
+        let mut groups = vec![];
+        let mut mask = full - 1;
+        while mask != 0 {
+            let sub = choice[mask as usize];
+            groups.push(sub);
+            mask ^= sub;
+        };
+
+        for group_mask in groups {
+            let group_nodes = (0..Mask::BITS)
+                .filter(|i| group_mask & (1 << i) != 0)
+                .map(|i| tree_neighbors[i as usize])
+                .collect::<Vec<_>>();
+            let histogram = config_histogram(&group_nodes, ac_poset);
+            let min = if min_is_0 {
+                0
+            } else {
+                *histogram.values().min().unwrap()
+            };
+            let max = *histogram.values().max().unwrap();
+
+            match (min, max) {
+                (0, n) if n == group_nodes.len() => writeln!(writer, "{tab2}optional")?,
+                (1, n) if n == group_nodes.len() => writeln!(writer, "{tab2}or")?,
+                (1, 1) => writeln!(writer, "{tab2}alternative")?,
+                (m, n) => writeln!(writer, "{tab2}[{m}..{n}]")?,
+            }
+
+            for node in group_nodes {
+                write_tree_constraints(writer, ac_poset, node, tree_constraints, depth + 1)?;
+            }
         }
     } else {
         writeln!(writer, "{tab2}optional")?;
-    };
-
-    for neighbor in tree_neighbors {
-        write_tree_constraints(writer, ac_poset, neighbor, tree_constraints, depth + 1)?;
+        for node in tree_neighbors {
+            write_tree_constraints(writer, ac_poset, node, tree_constraints, depth + 1)?;
+        }
     }
+
+    
 
     Ok(())
 }
@@ -157,4 +247,10 @@ fn write_unused_features<W: Write>(writer: &mut W, features: &[&str]) -> std::io
     }
 
     Ok(())
+}
+
+pub fn n_choose_k(n: u32, k: u32) -> u128 {
+    (1..=k).map(|i| (n - k + i) / i)
+        .map(|n| n as u128)
+        .product::<u128>()
 }

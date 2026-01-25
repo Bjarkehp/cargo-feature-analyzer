@@ -17,6 +17,8 @@ use chrono::Local;
 use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
 use itertools::Itertools;
+use ordered_float::OrderedFloat;
+use rand::{Rng, SeedableRng, rngs::StdRng, seq::SliceRandom};
 use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
 use tokei::{LanguageType, Languages};
 
@@ -73,8 +75,9 @@ fn main() -> anyhow::Result<()> {
         })
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
+    let mut rng = StdRng::seed_from_u64(123);
     let configuration_sets = dependency_graphs.iter()
-        .map(|(id, graph)| get_or_scrape_configurations(id, graph, &mut postgres_client).map(|c| (*id, c)))
+        .map(|(id, graph)| get_or_scrape_configurations(id, graph, &mut postgres_client, &mut rng).map(|c| (*id, c)))
         .filter_ok(|(_, configs)| !configs.is_empty())
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
@@ -170,11 +173,6 @@ fn main() -> anyhow::Result<()> {
     println!("Creating flat_vs_fca.png...");
     plots::flat_vs_fca_exact(&plot_dir, &flat_model_config_stats, &fca_model_config_stats)?;
 
-    flat_model_config_stats.iter()
-        .join(fca_model_config_stats.iter())
-        .filter(|(_id, (flat, fca))| flat.exact > 1000000.0 && flat.exact < 10000000.0 && fca.exact > 10000000.0)
-        .for_each(|(id, _)| println!("{id}"));
-
     Ok(())
 }
 
@@ -228,14 +226,14 @@ fn get_or_scrape_cargo_toml(id: &CrateId) -> anyhow::Result<toml::Table> {
         .with_context(|| format!("Failed to parse Cargo.toml for {id}"))
 }
 
-fn get_or_scrape_configurations(id: &CrateId, dependency_graph: &feature_dependencies::Graph, client: &mut postgres::Client) -> anyhow::Result<Vec<Configuration<'static>>> {
+fn get_or_scrape_configurations<R: Rng>(id: &CrateId, dependency_graph: &feature_dependencies::Graph, client: &mut postgres::Client, rng: &mut R) -> anyhow::Result<Vec<Configuration<'static>>> {
     let path = PathBuf::from(format!("{}/{id}", paths::CONFIG));
-    if let Ok(entries) = std::fs::read_dir(&path) {
+    let mut configurations = if let Ok(entries) = std::fs::read_dir(&path) {
         println!("Collecting configurations for {id}...");
 
         entries.map(|r| r.with_context(|| format!("Failed to get entry in {path:?}")))
             .map(|r| r.and_then(|entry| read_configuration(&entry.path())))
-            .collect::<anyhow::Result<Vec<_>>>()
+            .collect::<anyhow::Result<Vec<_>>>()?
     } else {
         std::fs::create_dir(&path)
             .with_context(|| format!("Failed to create directory {path:?}"))?;
@@ -258,8 +256,12 @@ fn get_or_scrape_configurations(id: &CrateId, dependency_graph: &feature_depende
                 .with_context(|| format!("Failed to write to configuration file {path:?}"))?;
         }
 
-        Ok(configurations)
-    }
+        configurations
+    };
+
+    configurations.sort_by(|a, b| a.name.cmp(&b.name));
+    configurations.shuffle(rng);
+    Ok(configurations)
 }
 
 fn read_configuration(path: &Path) -> anyhow::Result<Configuration<'static>> {
