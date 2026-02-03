@@ -1,9 +1,9 @@
-use std::{cmp::{max, min}, collections::{BTreeSet, HashMap, HashSet}, io::Write};
+use std::{cmp::{max, min}, collections::{BTreeSet, HashMap, HashSet}, io::Write, iter::successors};
 
 use itertools::Itertools;
 use petgraph::{Direction, graph::{DiGraph, EdgeIndex, NodeIndex}, visit::EdgeRef};
 
-use crate::{concept::Concept};
+use crate::{concept::Concept, optimal_groups};
 
 /// Write an ac-poset into a UVL file.
 /// 
@@ -42,6 +42,12 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
     Ok(())
 }
 
+/// Writes the tree constraints of the UVL model.
+/// 
+/// The function recursively travels through the ac-poset only using edges in tree_constraints.
+/// Depth is used to indent the feature and group cardinality correctly.
+/// [optimal_groups::find] is used for parents with a reasonable low number of children (15),
+/// to partition the children into groups that locally minimize the number of configurations for the feature model.
 fn write_tree_constraints<W: Write>(
     writer: &mut W, 
     ac_poset: &DiGraph<Concept, ()>,
@@ -72,92 +78,18 @@ fn write_tree_constraints<W: Write>(
         .map(|e| e.source())
         .collect::<Vec<_>>();
     let has_cross_tree_neighbors = tree_neighbors.len() != ac_poset.edges_directed(node, Direction::Incoming).count();
-    let min_is_0 = !ac_poset[node].configurations.is_empty() || has_cross_tree_neighbors;
+    let empty_assignment = !ac_poset[node].configurations.is_empty() || has_cross_tree_neighbors;
 
     if tree_neighbors.is_empty() {
         return Ok(());
     }
 
-    type Mask = u32;
-    type Cost = u128;
-
-    let n = tree_neighbors.len() as Mask;
+    let n = tree_neighbors.len();
 
     if n < 15 {
-        let tree_neighbors_reverse_map = (0..n)
-            .map(|i| (tree_neighbors[i as usize], i))
-            .collect::<HashMap<_, _>>();
-
-        let mut assignments: HashMap<&str, Mask> = HashMap::new();
-        for &node in tree_neighbors.iter() {
-            for config in ac_poset[node].inherited_configurations.iter() {
-                assignments.entry(config)
-                    .and_modify(|x| *x |= 1 << tree_neighbors_reverse_map[&node])
-                    .or_insert(1 << tree_neighbors_reverse_map[&node]);
-            }
-        }
-
-        let full: Mask = 1 << n;
-        let mut cost = vec![0; full as usize];
-
-        for s in 1..full {
-            let mut min_c = if min_is_0 {
-                0
-            } else {
-                n
-            };
-            let mut max_c = 0;
-            for &a in assignments.values() {
-                let c = (s & a).count_ones() as Mask;
-                min_c = min(min_c, c);
-                max_c = max(max_c, c);
-            }
-            let size = s.count_ones() as Mask;
-            cost[s as usize] = (min_c..=max_c)
-                .map(|k| n_choose_k(size, k))
-                .sum();
-        }
-
-        let mut dp = vec![Cost::MAX; full as usize];
-        let mut choice = vec![0; full as usize];
-        dp[0] = 1;
-
-        for mask in 1..full {
-            let lsb = mask & (!mask + 1);
-            let mut sub = mask;
-            while sub != 0 {
-                if sub & lsb != 0 {
-                    let val = dp[(mask ^ sub) as usize] * cost[sub as usize];
-                    if val < dp[mask as usize] {
-                        dp[mask as usize] = val;
-                        choice[mask as usize] = sub;
-                    }
-                }
-                sub = (sub - 1) & mask;
-            }
-        }
-
-        for mask in 1..full {
-            if choice[mask as usize] == 0 {
-                panic!("No choice for mask {:b}", mask);
-            }
-        }
-
-        let mut groups = vec![];
-        let mut mask = full - 1;
-        while mask != 0 {
-            let sub = choice[mask as usize];
-            groups.push(sub);
-            mask ^= sub;
-        };
-
-        for group_mask in groups {
-            let group_nodes = (0..Mask::BITS)
-                .filter(|i| group_mask & (1 << i) != 0)
-                .map(|i| tree_neighbors[i as usize])
-                .collect::<Vec<_>>();
+        for group_nodes in optimal_groups::find(ac_poset, node, &tree_neighbors) {
             let histogram = config_histogram(&group_nodes, ac_poset);
-            let min = if min_is_0 {
+            let min = if empty_assignment {
                 0
             } else {
                 *histogram.values().min().unwrap()
@@ -187,6 +119,12 @@ fn write_tree_constraints<W: Write>(
     Ok(())
 }
 
+/// Writes the cross tree constraints found in the ac-poset into the model.
+/// 
+/// The function goes through every edge in the ac-poset that is not a tree constraint,
+/// and writes it into the model as an implication.
+/// Incompatible features, i.e. features where no configuration has both enabled,
+/// are also written using an implication statement.
 fn write_cross_tree_constraints<W: Write>(
     writer: &mut W,
     ac_poset: &DiGraph<Concept, ()>,
@@ -212,11 +150,14 @@ fn write_cross_tree_constraints<W: Write>(
     Ok(())
 }
 
-/// Return all pairs of incompatible features.
+/// Returns pairs of incompatible features.
 /// 
 /// Incompatible features are found by looking at each pair of minimal concepts.
 /// If the union of the configurations of any pair of minimal concepts is empty,
 /// then the first features of the two concepts are incompatible.
+/// 
+/// This implies that some redundant pairs aren't returned. If a => !b and b => c,
+/// then the pair (a, b) is returned, but not (a, c) because it is implied by the previous pair.
 fn incompatible_features<'a>(ac_poset: &'a DiGraph<Concept, ()>) -> impl Iterator<Item = (&'a str, &'a str)> {
     ac_poset.externals(Direction::Incoming)
         .cartesian_product(ac_poset.externals(Direction::Incoming).collect::<Vec<_>>())
@@ -247,10 +188,4 @@ fn write_unused_features<W: Write>(writer: &mut W, features: &[&str]) -> std::io
     }
 
     Ok(())
-}
-
-pub fn n_choose_k(n: u32, k: u32) -> u128 {
-    (1..=k).map(|i| (n - k + i) / i)
-        .map(|n| n as u128)
-        .product::<u128>()
 }
