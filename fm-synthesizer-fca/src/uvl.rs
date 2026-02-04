@@ -1,5 +1,6 @@
 use std::{cmp::{max, min}, collections::{BTreeSet, HashMap, HashSet}, io::Write, iter::successors};
 
+use cargo_toml::crate_id::CrateId;
 use itertools::Itertools;
 use petgraph::{Direction, graph::{DiGraph, EdgeIndex, NodeIndex}, visit::EdgeRef};
 
@@ -168,10 +169,10 @@ fn incompatible_features<'a>(ac_poset: &'a DiGraph<Concept, ()>) -> impl Iterato
 }
 
 /// Creates a histogram, counting the amount of times a configuration appears in a list of nodes.
-pub fn config_histogram<'a>(nodes: &[NodeIndex], ac_poset: &'a DiGraph<Concept, ()>) -> HashMap<&'a str, usize> {
+pub fn config_histogram<'a>(nodes: &[NodeIndex], ac_poset: &'a DiGraph<Concept, ()>) -> HashMap<&'a CrateId, usize> {
     nodes.iter()
         .flat_map(|&child| ac_poset[child].inherited_configurations.iter())
-        .map(|&x| (x, ()))
+        .map(|x| (x, ()))
         .into_grouping_map()
         .aggregate(|acc, _key, _val| Some(acc.unwrap_or(0) + 1))
 }

@@ -23,10 +23,10 @@ pub fn find<'a>(ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, tree_neighbors
         .map(|i| (tree_neighbors[i as usize], i))
         .collect::<HashMap<_, _>>();
 
-    let mut assignment_map: HashMap<&str, Mask> = HashMap::new();
+    let mut assignment_map: HashMap<String, Mask> = HashMap::new();
     for &node in tree_neighbors.iter() {
         for config in ac_poset[node].inherited_configurations.iter() {
-            assignment_map.entry(config)
+            assignment_map.entry(config.to_string())
                 .and_modify(|x| *x |= 1 << tree_neighbors_reverse_map[&node])
                 .or_insert(1 << tree_neighbors_reverse_map[&node]);
         }

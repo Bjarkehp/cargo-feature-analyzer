@@ -28,7 +28,7 @@ pub fn create_flat(id: &CrateId, table: &toml::Table) -> anyhow::Result<()> {
 pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>]) -> anyhow::Result<()> {
     let path = PathBuf::from(format!("{}/{}.uvl", paths::FCA_MODEL, id));
     if let Ok(file) = File::create_new(&path) {
-        let train_configurations = &configurations[..configurations.len() / 10];
+        let train_configurations = &configurations[..configurations.len()];
         let mut features = train_configurations.first()
             .expect("Crates are filtered above for number of configs")
             .features.keys()

@@ -1,5 +1,6 @@
 use std::{collections::{BTreeMap, BTreeSet}, fmt::Debug};
 
+use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;
 use derive_new::new;
 use itertools::Itertools;
@@ -12,8 +13,8 @@ use petgraph::{graph::DiGraph, visit::{Dfs, EdgeRef, VisitMap}};
 #[derive(PartialEq, Eq, PartialOrd, Ord, new, Default)]
 pub struct Concept<'a> {
     pub features: BTreeSet<&'a str>,
-    pub configurations: BTreeSet<&'a str>,
-    pub inherited_configurations: BTreeSet<&'a str>,
+    pub configurations: BTreeSet<CrateId>,
+    pub inherited_configurations: BTreeSet<CrateId>,
 }
 
 impl Debug for Concept<'_> {
@@ -47,7 +48,7 @@ fn extract_concepts<'a>(configurations: &'a [Configuration], features: &'a [&str
     let configurations_with_feature = |feature: &str| {
         configurations.iter()
             .filter(|config| config.is_enabled(feature) || feature == root)
-            .map(|config| config.name.as_str())
+            .map(|config| CrateId { name: config.name.clone(), version: config.version.clone() })
             .collect::<BTreeSet<_>>()
     };
 
@@ -75,7 +76,7 @@ fn subset_edges(concepts: &[Concept]) -> Vec<(u32, u32)> {
 
 /// Remove duplicate configurations from the concepts that are already inherited by parent concepts.
 fn remove_duplicate_configurations(concepts: &mut [Concept], edges: &[(u32, u32)]) {
-    let mut differences: BTreeMap<u32, BTreeSet<&str>> = BTreeMap::new();
+    let mut differences: BTreeMap<u32, BTreeSet<CrateId>> = BTreeMap::new();
     for &(i, j) in edges {
         let a = &concepts[i as usize];
         let b = &concepts[j as usize];

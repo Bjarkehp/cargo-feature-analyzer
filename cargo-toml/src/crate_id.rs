@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use semver::Version;
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CrateId {
     pub name: String,
     pub version: Version,
