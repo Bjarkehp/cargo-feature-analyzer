@@ -1,8 +1,9 @@
-use std::{cmp::{max, min}, collections::HashMap, iter::successors};
+use std::{collections::HashMap, iter::successors};
 
+use itertools::MultiUnzip;
 use petgraph::{Direction, graph::{DiGraph, NodeIndex}};
 
-use crate::concept::Concept;
+use crate::{concept::Concept, min_max::MinMaxExt};
 
 type Mask = u32;
 type Cost = u32;
@@ -14,9 +15,7 @@ type Cost = u32;
 /// Then the cost of all possible groups are calculated, and stored in the cost vector.
 /// Once the costs are calculated, the dp table can be constructed an populated.
 /// The core of the algorithm is the recurrence: dp(S) = mininimize for all subsets G in S : dp(S \ G) * cost(G).
-pub fn find<'a>(ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, tree_neighbors: &'a [NodeIndex]) -> impl Iterator<Item = Vec<NodeIndex>> + 'a {
-    let has_cross_tree_neighbors = tree_neighbors.len() != ac_poset.edges_directed(node, Direction::Incoming).count();
-    let empty_assignment = !ac_poset[node].configurations.is_empty() || has_cross_tree_neighbors;
+pub fn find<'a>(ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, tree_neighbors: &'a [NodeIndex]) -> impl Iterator<Item = (Vec<NodeIndex>, usize, usize)> + 'a {
     let n = tree_neighbors.len() as Mask;
 
     let tree_neighbors_reverse_map = (0..n)
@@ -36,38 +35,29 @@ pub fn find<'a>(ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, tree_neighbors
         .cloned()
         .collect::<Vec<_>>();
 
+    let has_cross_tree_neighbors = tree_neighbors.len() != ac_poset.edges_directed(node, Direction::Incoming).count();
+    let empty_assignment = !ac_poset[node].configurations.is_empty() || has_cross_tree_neighbors;
     if empty_assignment {
         assignments.push(0);
     }
 
     let full: Mask = 1 << n;
-    let mut cost = vec![0; full as usize];
-    cost[0] = 1;
-
-    for s in 1..full {
-        let mut min_c = n;
-        let mut max_c = 0;
-        for &a in assignment_map.values() {
-            let c = (s & a).count_ones() as Mask;
-            min_c = min(min_c, c);
-            max_c = max(max_c, c);
-        }
-        let size = s.count_ones() as Mask;
-        cost[s as usize] = (min_c..=max_c)
-            .map(|k| n_choose_k(size, k))
-            .sum();
-    }
+    let (cost, group_min, group_max): (Vec<u32>, Vec<u32>, Vec<u32>) = (0..full)
+        .map(|group| (group, group_cardinality(group, &assignments)))
+        .map(|(group, (min, max))| (group_cost(group.count_ones(), min, max), min, max))
+        .multiunzip();
 
     let mut dp = vec![Cost::MAX; full as usize];
     let mut choice = vec![0; full as usize];
     dp[0] = 1;
 
-    for s in 1..full {
-        for group in enumerate_groups(s) {
-            let val = dp[(s ^ group) as usize] * cost[group as usize];
-            if val < dp[s as usize] {
-                dp[s as usize] = val;
-                choice[s as usize] = group;
+    for subset in 1..full {
+        for group in enumerate_groups(subset) {
+            let rest = (subset ^ group) as usize;
+            let val = dp[rest] * cost[group as usize];
+            if val < dp[subset as usize] {
+                dp[subset as usize] = val;
+                choice[subset as usize] = group;
             }
         }
     }
@@ -80,12 +70,33 @@ pub fn find<'a>(ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, tree_neighbors
         mask ^= sub;
     };
 
-    groups.into_iter().map(|group_mask| {
-        (0..Mask::BITS)
-            .filter(|i| group_mask & (1 << i) != 0)
+    groups.into_iter().map(move |group| {
+        let nodes = (0..Mask::BITS)
+            .filter(|i| group & (1 << i) != 0)
             .map(|i| tree_neighbors[i as usize])
-            .collect::<Vec<_>>()
+            .collect::<Vec<_>>();
+        
+        let min = group_min[group as usize] as usize;
+        let max = group_max[group as usize] as usize;
+        (nodes, min, max)
     })
+}
+
+/// Calculates the minimum and maximum cardinality of a group
+/// with regards to a set of assignments.
+fn group_cardinality(group: Mask, assignments: &[Mask]) -> (u32, u32) {
+    assignments.iter()
+        .map(|assignment| (group & assignment).count_ones() as Mask)
+        .min_max()
+        .expect("There is atleast one assignement")
+}
+
+/// Calculates the cost of a group with the specified size (n), 
+/// minimum cardinality and maximum cardinality.
+fn group_cost(n: u32, min: u32, max: u32) -> u32 {
+    (min..=max)
+        .map(|k| n_choose_k(n, k))
+        .sum()
 }
 
 /// Returns an iterator of bitmasks representing suubsets of the given bitmask.
@@ -94,14 +105,15 @@ pub fn find<'a>(ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, tree_neighbors
 /// the Least Significant Bit (LSB) is always in the subset.
 fn enumerate_groups(s: u32) -> impl Iterator<Item = u32> {
     let lsb = s & (!s + 1);
-    successors(Some(s), move |&g| {
-            if g != 0 {
-                Some((g - 1) & s)    
-            } else {
-                None
-            }
-        })
-        .filter(move |g| g & lsb != 0)
+    let groups = successors(Some(s), move |&g| {
+        if g != 0 {
+            Some((g - 1) & s)    
+        } else {
+            None
+        }
+    });
+    
+    groups.filter(move |g| g & lsb != 0)
 }
 
 /// Calculates n choose k of two u32's

@@ -1,10 +1,10 @@
-use std::{cmp::{max, min}, collections::{BTreeSet, HashMap, HashSet}, io::Write, iter::successors};
+use std::{collections::{BTreeSet, HashMap, HashSet}, io::Write};
 
 use cargo_toml::crate_id::CrateId;
 use itertools::Itertools;
 use petgraph::{Direction, graph::{DiGraph, EdgeIndex, NodeIndex}, visit::EdgeRef};
 
-use crate::{concept::Concept, optimal_groups};
+use crate::{concept::Concept, indent::tab, optimal_groups};
 
 /// Write an ac-poset into a UVL file.
 /// 
@@ -27,16 +27,15 @@ pub fn write_ac_poset<W: Write>(writer: &mut W, ac_poset: &DiGraph<Concept, ()>,
             .cloned()
             .collect::<Vec<_>>();
 
+        let mut abstract_feature_index = 1;
+
         writeln!(writer, "features")?;
-        write_tree_constraints(writer, ac_poset, maximal, tree_constraints, 0)?;
+        write_tree_constraints(writer, ac_poset, maximal, tree_constraints, &mut abstract_feature_index, 0)?;
         write_unused_features(writer, &unused_features)?;
 
-        if tree_constraints.len() < ac_poset.edge_count() || !unused_features.is_empty() {
+        if tree_constraints.len() < ac_poset.edge_count() {
             writeln!(writer, "constraints")?;
             write_cross_tree_constraints(writer, ac_poset, tree_constraints)?;
-            for f in unused_features {
-                writeln!(writer, "\t!\"{f}\"")?;
-            }
         }
     }
     
@@ -54,68 +53,145 @@ fn write_tree_constraints<W: Write>(
     ac_poset: &DiGraph<Concept, ()>,
     node: NodeIndex,
     tree_constraints: &HashSet<EdgeIndex>, 
+    abstract_feature_index: &mut usize,
     depth: usize,
 ) -> std::io::Result<()> {
-    let tab1 = "\t".repeat(2 * depth + 1);
-    let tab2 = "\t".repeat(2 * depth + 2);
-
-    let concept = &ac_poset[node];
-    let features = concept.features.iter()
-        .cloned()
-        .collect::<Vec<_>>();
-
-    let parent_feature = features[0];
-    writeln!(writer, "{tab1}\"{parent_feature}\"")?;
-    if features.len() > 1 {
-        let tab3 = "\t".repeat(2 * depth + 3);
-        writeln!(writer, "{tab2}mandatory")?;
-        for &child_feature in &features[1..] {
-            writeln!(writer, "{tab3}\"{child_feature}\"")?;
-        }
-    }
+    let mandatory_features_count = write_mandatory_features(writer, ac_poset, node, depth)?;
 
     let tree_neighbors = ac_poset.edges_directed(node, Direction::Incoming)
         .filter(|&e| tree_constraints.contains(&e.id()))
         .map(|e| e.source())
         .collect::<Vec<_>>();
-    let has_cross_tree_neighbors = tree_neighbors.len() != ac_poset.edges_directed(node, Direction::Incoming).count();
-    let empty_assignment = !ac_poset[node].configurations.is_empty() || has_cross_tree_neighbors;
-
-    if tree_neighbors.is_empty() {
-        return Ok(());
-    }
 
     let n = tree_neighbors.len();
 
-    if n < 15 {
-        for group_nodes in optimal_groups::find(ac_poset, node, &tree_neighbors) {
-            let histogram = config_histogram(&group_nodes, ac_poset);
-            let min = if empty_assignment {
-                0
-            } else {
-                *histogram.values().min().unwrap()
-            };
-            let max = *histogram.values().max().unwrap();
-
-            match (min, max) {
-                (0, n) if n == group_nodes.len() => writeln!(writer, "{tab2}optional")?,
-                (1, n) if n == group_nodes.len() => writeln!(writer, "{tab2}or")?,
-                (1, 1) => writeln!(writer, "{tab2}alternative")?,
-                (m, n) => writeln!(writer, "{tab2}[{m}..{n}]")?,
-            }
-
-            for node in group_nodes {
-                write_tree_constraints(writer, ac_poset, node, tree_constraints, depth + 1)?;
-            }
-        }
+    if n == 0 {
+        Ok(())
+    } else if n < 15 {
+        write_optimal_groups(writer, ac_poset, node, &tree_neighbors, tree_constraints, mandatory_features_count, abstract_feature_index, depth)
     } else {
-        writeln!(writer, "{tab2}optional")?;
-        for node in tree_neighbors {
-            write_tree_constraints(writer, ac_poset, node, tree_constraints, depth + 1)?;
+        write_group(writer, ac_poset, &tree_neighbors, tree_constraints, abstract_feature_index, 0, n, depth)
+    }    
+}
+
+/// Writes mandatory features of a concept into the feature model, if any exist.
+fn write_mandatory_features<W: Write>(
+    writer: &mut W,
+    ac_poset: &DiGraph<Concept, ()>,
+    node: NodeIndex,
+    depth: usize
+) -> std::io::Result<usize> {
+    let concept = &ac_poset[node];
+    let features = concept.features.iter()
+        .cloned()
+        .collect::<Vec<_>>();
+    let parent_feature = features[0];
+
+    tab(writer, 2 * depth + 1)?;
+    writeln!(writer, "\"{parent_feature}\"")?;
+
+    if features.len() > 1 {
+        tab(writer, 2 * depth + 2)?;
+        writeln!(writer, "mandatory")?;
+        for &child_feature in &features[1..] {
+            tab(writer, 2 * depth + 3)?;
+            writeln!(writer, "\"{child_feature}\"")?;
         }
     }
 
+    let mandatory_features_count = features.len() - 1;
+    Ok(mandatory_features_count)
+}
+
+/// Calculates and writes optimal groups of some concept into the feature model.
+/// 
+/// See [optimal_groups::find] for more info on optimal groups.
+#[allow(clippy::too_many_arguments)]
+fn write_optimal_groups<W: Write>(
+    writer: &mut W,
+    ac_poset: &DiGraph<Concept, ()>,
+    node: NodeIndex,
+    tree_neighbors: &[NodeIndex],
+    tree_constraints: &HashSet<EdgeIndex>,
+    mandatory_features_count: usize,
+    abstract_feature_index: &mut usize,
+    depth: usize,
+) -> std::io::Result<()> {
+    let optimal_groups = optimal_groups::find(ac_poset, node, tree_neighbors)
+        .collect::<Vec<_>>();
     
+    let (mut non_abstract_groups, mut abstract_groups) = optimal_groups.iter()
+        .partition::<Vec<_>, _>(|(nodes, min, max)| *min == 0 && *max == nodes.len());
+
+    if abstract_groups.len() == 1 {
+        let group = abstract_groups.pop()
+            .expect("Length of abstract groups is checked before hand");
+        non_abstract_groups.push(group);
+    }
+
+    // No need to create another mandatory group, if one already exists,
+    // or if there are no abstract groups.
+    if mandatory_features_count == 0 && !abstract_groups.is_empty() {
+        tab(writer, 2 * depth + 2)?;
+        writeln!(writer, "mandatory")?;
+    }
+
+    for (group_nodes, min, max) in abstract_groups {
+        write_abstract_group(writer, ac_poset, group_nodes, tree_constraints, abstract_feature_index, *min, *max, depth)?;
+    }
+
+    for (group_nodes, min, max) in non_abstract_groups {   
+        write_group(writer, ac_poset, group_nodes, tree_constraints, abstract_feature_index, *min, *max, depth)?;
+    }
+
+    Ok(())
+}
+
+/// Writes a group of concepts into the feature model. 
+#[allow(clippy::too_many_arguments)]
+fn write_group<W: Write>(
+    writer: &mut W,
+    ac_poset: &DiGraph<Concept, ()>,
+    group_nodes: &[NodeIndex],
+    tree_constraints: &HashSet<EdgeIndex>,
+    abstract_feature_index: &mut usize,
+    min: usize,
+    max: usize,
+    depth: usize,
+) -> std::io::Result<()> {
+    tab(writer, 2 * depth + 2)?;
+    match (min, max) {
+        (0, n) if n == group_nodes.len() => writeln!(writer, "optional")?,
+        (1, n) if n == group_nodes.len() => writeln!(writer, "or")?,
+        (1, 1) => writeln!(writer, "alternative")?,
+        (m, n) => writeln!(writer, "[{m}..{n}]")?,
+    }
+
+    for &node in group_nodes {
+        write_tree_constraints(writer, ac_poset, node, tree_constraints, abstract_feature_index, depth + 1)?;
+    }
+
+    Ok(())
+}
+
+/// Writes an abstract group (a group with an abstract parent).
+/// 
+/// This is used to make multiple groups in a feature model distinct in a visualization.
+#[allow(clippy::too_many_arguments)]
+fn write_abstract_group<W: Write>(
+    writer: &mut W,
+    ac_poset: &DiGraph<Concept, ()>,
+    group_nodes: &[NodeIndex],
+    tree_constraints: &HashSet<EdgeIndex>,
+    abstract_feature_index: &mut usize,
+    min: usize,
+    max: usize,
+    depth: usize,
+) -> std::io::Result<()> {
+    tab(writer, 2 * depth + 3)?;
+    writeln!(writer, "abstract_{} {{abstract}}", *abstract_feature_index)?;
+    *abstract_feature_index += 1;
+    write_group(writer, ac_poset, group_nodes, tree_constraints, abstract_feature_index, min, max, depth + 1)?;
 
     Ok(())
 }
@@ -166,6 +242,7 @@ fn incompatible_features<'a>(ac_poset: &'a DiGraph<Concept, ()>) -> impl Iterato
         .filter(|(a, b)| (&a.inherited_configurations & &b.inherited_configurations).is_empty())
         .filter_map(|(a, b)| Some((a.features.first()?, b.features.first()?)))
         .map(|(a, b)| (*a, *b))
+        .filter(|(a, b)| a < b) // Removes symmetric pairs
 }
 
 /// Creates a histogram, counting the amount of times a configuration appears in a list of nodes.
@@ -183,9 +260,18 @@ fn write_unused_features<W: Write>(writer: &mut W, features: &[&str]) -> std::io
         return Ok(());
     }
     
-    writeln!(writer, "\t\toptional // Unused features")?;
+    writeln!(writer, "\t\tmandatory")?;
+    writeln!(writer, "\t\t\tunused_features {{abstract}}")?;
+    writeln!(writer, "\t\t\t\t[0..0]")?;
     for feature in features {
-        writeln!(writer, "\t\t\t\"{}\"", feature)?;
+        writeln!(writer, "\t\t\t\t\t\"{}\"", feature)?;
+    }
+
+    // Flamapy, as of version 2.1.0.dev1, has a bug with feature models, 
+    // where a tree constraint of [0..0] only has one feature inside.
+    // To mitigate this, a dummy unused feature is added in those cases.
+    if features.len() == 1 {
+        writeln!(writer, "\t\t\t\t\tabstract_unused_feature {{abstract}}")?;
     }
 
     Ok(())
