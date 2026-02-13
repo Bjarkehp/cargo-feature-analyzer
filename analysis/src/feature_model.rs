@@ -3,7 +3,7 @@ use std::{fs::File, io::{BufReader, BufWriter, Write}, path::PathBuf};
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;
-use fm_synthesizer_fca::{concept, tree_constraints, uvl};
+use fm_synthesizer_fca::{concept, feature_model, tree_constraints, uvl, uvl_writer};
 use ordered_float::OrderedFloat;
 use petgraph::Direction;
 use rand::{SeedableRng, rngs::StdRng};
@@ -37,9 +37,12 @@ pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>]) -> any
         features.push(&id.name);
 
         let ac_poset = concept::ac_poset(train_configurations, &features, &id.name);
-        let mut writer = BufWriter::new(file);
         let tree_constraints = tree_constraints::max_depth::find(&ac_poset);
-        uvl::write_ac_poset(&mut writer, &ac_poset, &features, &tree_constraints)
+        let feature_model = feature_model::from_ac_poset(&ac_poset, &features, &tree_constraints);
+        let mut writer = BufWriter::new(file);
+        // uvl::write_ac_poset(&mut writer, &ac_poset, &features, &tree_constraints)
+        //     .with_context(|| format!("Failed to write fca feature model to {path:?}"))?;
+        uvl_writer::write(&mut writer, &feature_model)
             .with_context(|| format!("Failed to write fca feature model to {path:?}"))?;
         writer.flush()
             .with_context(|| format!("Failed to flush file {path:?}"))?;

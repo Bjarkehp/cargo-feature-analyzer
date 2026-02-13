@@ -3,7 +3,7 @@ use std::{collections::HashMap, iter::successors};
 use itertools::MultiUnzip;
 use petgraph::{Direction, graph::{DiGraph, NodeIndex}};
 
-use crate::{concept::Concept, min_max::MinMaxExt};
+use crate::{binomial::n_choose_k_u32, concept::Concept, min_max::MinMaxExt};
 
 type Mask = u32;
 type Cost = u32;
@@ -82,6 +82,49 @@ pub fn find<'a>(ac_poset: &DiGraph<Concept, ()>, node: NodeIndex, tree_neighbors
     })
 }
 
+pub fn find2(n: usize, assignments: &[Mask], weight: impl Fn(usize) -> f64) -> impl Iterator<Item = (Vec<usize>, usize, usize)> {
+    let full: Mask = 1 << n;
+    let (cost, group_min, group_max): (Vec<f64>, Vec<u32>, Vec<u32>) = (0..full)
+        .map(|group| (group, group_cardinality(group, assignments)))
+        .map(|(group, (min, max))| (group_cost2(group, min, max, &weight), min, max))
+        //.map(|(group, (min, max))| (group_cost(group.count_ones(), min, max) as f64, min, max))
+        .multiunzip();
+
+    let mut dp = vec![f64::MAX; full as usize];
+    let mut choice = vec![0; full as usize];
+    dp[0] = 1.0;
+
+    for subset in 1..full {
+        for group in enumerate_groups(subset) {
+            let rest = (subset ^ group) as usize;
+            let val = dp[rest] * cost[group as usize];
+            if val < dp[subset as usize] {
+                dp[subset as usize] = val;
+                choice[subset as usize] = group;
+            }
+        }
+    }
+
+    let mut groups = vec![];
+    let mut mask = full - 1;
+    while mask != 0 {
+        let sub = choice[mask as usize];
+        groups.push(sub);
+        mask ^= sub;
+    };
+
+    groups.into_iter().map(move |group| {
+        let nodes = (0..Mask::BITS)
+            .filter(|i| group & (1 << i) != 0)
+            .map(|i| i as usize)
+            .collect::<Vec<_>>();
+        
+        let min = group_min[group as usize] as usize;
+        let max = group_max[group as usize] as usize;
+        (nodes, min, max)
+    })
+}
+
 /// Calculates the minimum and maximum cardinality of a group
 /// with regards to a set of assignments.
 fn group_cardinality(group: Mask, assignments: &[Mask]) -> (u32, u32) {
@@ -95,7 +138,28 @@ fn group_cardinality(group: Mask, assignments: &[Mask]) -> (u32, u32) {
 /// minimum cardinality and maximum cardinality.
 fn group_cost(n: u32, min: u32, max: u32) -> u32 {
     (min..=max)
-        .map(|k| n_choose_k(n, k))
+        .map(|k| n_choose_k_u32(n, k))
+        .sum()
+}
+
+fn group_cost2(group: Mask, min: u32, max: u32, weight: impl Fn(usize) -> f64) -> f64 {
+    if group == 0 {
+        return 1.0;
+    }
+
+    let n = group.count_ones() as usize;
+
+    let mut dp = vec![0.0; n + 1];
+    dp[0] = 1.0;
+
+    for i in mask_indices(group) {
+        for k in (1..=n).rev() {
+            dp[k] += dp[k - 1] * weight(i);
+        }
+    }
+
+    (min..=max)
+        .map(|k| dp[k as usize])
         .sum()
 }
 
@@ -116,8 +180,8 @@ fn enumerate_groups(s: u32) -> impl Iterator<Item = u32> {
     groups.filter(move |g| g & lsb != 0)
 }
 
-/// Calculates n choose k of two u32's
-fn n_choose_k(n: u32, k: u32) -> u32 {
-    (1..=k).map(|i| (n - k + i) / i)
-        .product::<u32>()
+fn mask_indices(mask: Mask) -> impl Iterator<Item = usize> {
+    (0..Mask::BITS)
+        .filter(move |i| mask & (1 << i) != 0)
+        .map(|i| i as usize)
 }
