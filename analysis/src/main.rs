@@ -25,7 +25,7 @@ use tokei::{LanguageType, Languages};
 use crate::retry::retry;
 
 const POSTGRES_CONNECTION_STRING: &str = "postgres://crates:crates@localhost:5432/crates_io_db";
-const NUMBER_OF_CRATES: usize = 100;
+const NUMBER_OF_CRATES: usize = 2;
 const MAX_FEATURES: usize = 100;
 const MIN_CONFIGS: usize = 100;
 const MAX_CONFIGS: usize = 1000;
@@ -147,6 +147,10 @@ fn main() -> anyhow::Result<()> {
             let quality = satified_configurations as f64 / test_configs.len() as f64;
             Ok((id, quality))
         })
+        .map_ok(|(id, quality)| {
+            println!("{id}");
+            (id, quality)
+        })
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
     
     let date_time = Local::now().naive_local();
@@ -260,7 +264,7 @@ fn get_or_scrape_configurations<R: Rng>(id: &CrateId, dependency_graph: &feature
     };
 
     configurations.sort_by(|a, b| a.name.cmp(&b.name));
-    configurations.shuffle(rng);
+    // configurations.shuffle(rng);
     Ok(configurations)
 }
 
@@ -333,6 +337,7 @@ fn get_model_configuration_stats(client: &mut flamapy_client::Client, path: &Pat
 
 fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &CrateId, configurations: &[Configuration<'static>]) -> anyhow::Result<usize> {
     configurations.iter()
+        .inspect(|c| println!("\t{}@{}", c.name, c.version))
         .map(|config| {
             let path = PathBuf::from(format!("data/configuration/{id}/{}@{}.csvconf", config.name, config.version));
             client.satisfiable_configuration(&path)
