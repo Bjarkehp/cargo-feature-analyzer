@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 use petgraph::{Direction, graph::{DiGraph, EdgeIndex, NodeIndex}, visit::EdgeRef};
 
-use crate::{binomial::n_choose_k_usize, concept::Concept, optimal_groups};
+use crate::{concept::Concept, optimal_groups};
 
 #[derive(derive_new::new)]
 pub struct Feature {
@@ -68,6 +68,7 @@ impl Group {
 pub enum CrossTreeConstraint {
     Implies(String, String),
     Exclusive(String, String),
+    Not(String),
 }
 
 pub struct FeatureModel {
@@ -89,30 +90,11 @@ pub fn from_ac_poset(ac_poset: &DiGraph<Concept, ()>, features: &[&str], tree_co
         .cloned()
         .collect::<HashSet<_>>();
 
-    let mut unused_features = features.iter()
+    let unused_features = features.iter()
         .cloned()
         .filter(|f| !used_features.contains(f))
         .map(|name| Feature::new_leaf(name.to_owned(), false))
         .collect::<Vec<_>>();
-
-    // Flamapy, as of version 2.1.0.dev1, has a bug with feature models, 
-    // where a tree constraint of [0..0] only has one feature inside.
-    // To mitigate this, a dummy unused feature is added in those cases.
-    if unused_features.len() == 1 {
-        unused_features.push(Feature::new_leaf("abstract_unused_feature".to_owned(), true));
-    }
-
-    if !unused_features.is_empty() {
-        let unused_features_group = Group::new(unused_features, 0, 0);
-        let unused_features_abstract_feature = Feature::new(
-            "unused_features".to_owned(), 
-            vec![unused_features_group], 
-            1.0, 
-            true,
-        );
-        let mandatory_group = Group::mandatory(vec![unused_features_abstract_feature]);
-        root_feature.groups.push(mandatory_group);
-    }
 
     let cross_tree_constraints_from_edges = ac_poset.edge_indices()
         .filter(|e| !tree_constraints.contains(e))
@@ -128,9 +110,25 @@ pub fn from_ac_poset(ac_poset: &DiGraph<Concept, ()>, features: &[&str], tree_co
         .filter(|(a, b)| a < b)
         .map(|(l, r)| CrossTreeConstraint::Exclusive(l.to_owned(), r.to_owned()));
 
+    let cross_tree_constraints_unused_features = unused_features.iter()
+        .map(|feature| CrossTreeConstraint::Not(feature.name.to_owned()));
+
     let cross_tree_constraints = cross_tree_constraints_from_edges
         .chain(cross_tree_constraints_from_minimal_concepts)
+        .chain(cross_tree_constraints_unused_features)
         .collect::<Vec<_>>();
+
+    if !unused_features.is_empty() {
+        let unused_features_group = Group::optional(unused_features);
+        let unused_features_abstract_feature = Feature::new(
+            "unused_features".to_owned(), 
+            vec![unused_features_group], 
+            1.0, 
+            true,
+        );
+        let mandatory_group = Group::mandatory(vec![unused_features_abstract_feature]);
+        root_feature.groups.push(mandatory_group);
+    }
     
     FeatureModel { root_feature, cross_tree_constraints }
 }

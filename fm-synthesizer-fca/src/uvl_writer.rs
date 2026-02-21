@@ -65,6 +65,7 @@ fn write_constraints<W: Write>(writer: &mut W, constraints: &[CrossTreeConstrain
 fn write_constraint<W: Write>(writer: &mut W, constraint: &CrossTreeConstraint) -> std::io::Result<()> {
     match constraint {
         CrossTreeConstraint::Implies(l, r) => writeln!(writer, "\t\"{l}\" => \"{r}\""),
-        CrossTreeConstraint::Exclusive(l, r) => writeln!(writer, "\t!(\"{l}\" & \"{r}\")"),
+        CrossTreeConstraint::Exclusive(l, r) => writeln!(writer, "\t!\"{l}\" | !\"{r}\""),
+        CrossTreeConstraint::Not(feature) => writeln!(writer, "\t!\"{feature}\""),
     }
 }

@@ -177,6 +177,10 @@ fn main() -> anyhow::Result<()> {
     println!("Creating flat_vs_fca.png...");
     plots::flat_vs_fca_exact(&plot_dir, &flat_model_config_stats, &fca_model_config_stats)?;
 
+    println!("Average number of features: {}", feature_counts.values().sum::<usize>() as f64 / feature_counts.len() as f64);
+    println!("Average number of feature dependencies: {}", feature_stats.values().map(|x| x.1).sum::<usize>() as f64 / feature_stats.len() as f64);
+    println!("Average quality: {}", fca_model_quality.values().sum::<f64>() / fca_model_quality.len() as f64);
+
     Ok(())
 }
 
