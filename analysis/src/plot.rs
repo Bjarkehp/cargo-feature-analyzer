@@ -91,7 +91,7 @@ pub fn draw_linear_regression<'a, X: Ranged<ValueType = f64> + ValueFormatter<f6
     let b = parameters[0];
     let a = parameters[1];
     let r = correlation::pearson(points);
-    let ticks = ticks(x_range, 100);
+    let ticks = ticks(x_range, 500);
     let line = LineSeries::new(ticks.map(|x| (x, a * x + b)), BLUE);
 
     chart.draw_series(line)?
@@ -100,6 +100,7 @@ pub fn draw_linear_regression<'a, X: Ranged<ValueType = f64> + ValueFormatter<f6
 
     chart.configure_series_labels()
         .border_style(BLACK)
+        .label_font(("sans-serif", 18).into_font())
         .draw()?;
 
     Ok(())
@@ -117,7 +118,7 @@ pub fn draw_linear_regression_log<'a, X: Ranged<ValueType = f64> + ValueFormatte
     let b = parameters[0];
     let a = parameters[1];
     let r = correlation::pearson_log(points);
-    let ticks = log_ticks(x_range, 100);
+    let ticks = log_ticks(x_range, 500);
     let line = LineSeries::new(ticks.map(|x| (x, a * x + b)), BLUE);
 
     chart.draw_series(line)?
@@ -126,6 +127,7 @@ pub fn draw_linear_regression_log<'a, X: Ranged<ValueType = f64> + ValueFormatte
 
     chart.configure_series_labels()
         .border_style(BLACK)
+        .label_font(("sans-serif", 18).into_font())
         .draw()?;
 
     Ok(())

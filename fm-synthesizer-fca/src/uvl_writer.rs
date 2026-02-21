@@ -17,9 +17,9 @@ pub fn write<W: Write>(writer: &mut W, feature_model: &FeatureModel) -> std::io:
 fn write_feature<W: Write>(writer: &mut W, feature: &Feature, depth: usize) -> std::io::Result<()> {
     tab(writer, depth)?;
     if feature.is_abstract {
-        writeln!(writer, "\"{}\" {{abstract}} // {}", feature.name, feature.estimated_number_of_configurations)?;
+        writeln!(writer, "\"{}\" {{abstract}}", feature.name)?;
     } else {
-        writeln!(writer, "\"{}\" // {}", feature.name, feature.estimated_number_of_configurations)?;
+        writeln!(writer, "\"{}\"", feature.name)?;
     }
 
     for group in &feature.groups {
@@ -44,14 +44,14 @@ fn write_group_cardinality<W: Write>(writer: &mut W, group: &Group) -> std::io::
     let n = group.features.len();
 
     match (group.min, group.max) {
-        (a, b) if a == b && b == n => write!(writer, "mandatory")?,
-        (0, m) if m == n => write!(writer, "optional")?,
-        (1, m) if m == n => write!(writer, "or")?,
-        (1, 1) => write!(writer, "alternative")?,
-        (a, b) => write!(writer, "[{a}..{b}]")?,
+        (a, b) if a == b && b == n => writeln!(writer, "mandatory")?,
+        (0, m) if m == n => writeln!(writer, "optional")?,
+        (1, m) if m == n => writeln!(writer, "or")?,
+        (1, 1) => writeln!(writer, "alternative")?,
+        (a, b) => writeln!(writer, "[{a}..{b}]")?,
     }
 
-    writeln!(writer, " // {}", group.estimated_number_of_configurations)
+    Ok(())
 } 
 
 fn write_constraints<W: Write>(writer: &mut W, constraints: &[CrossTreeConstraint]) -> std::io::Result<()> {

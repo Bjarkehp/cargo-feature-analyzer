@@ -7,9 +7,9 @@ use tokei::Language;
 use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelConfigurationStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
 
 pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>) -> anyhow::Result<()> {
-    let caption = "Features and dependencies";
+    let caption = "Features and feature dependencies";
     let x_desc = "Features";
-    let y_desc = "Dependencies";
+    let y_desc = "Feature dependencies";
     let file_name = "features_and_dependencies.png";
     let path = dir.join(file_name);
     
@@ -63,9 +63,9 @@ pub fn line_count_and_features(dir: &Path, line_counts: &BTreeMap<&CrateId, Lang
 }
 
 pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfigurationStats>, fca: &BTreeMap<&CrateId, ModelConfigurationStats>) -> anyhow::Result<()> {
-    let caption = "Flat vs FCA";
-    let x_desc = "Flat";
-    let y_desc = "FCA";
+    let caption = "Configuration number (Flat & FCA)";
+    let x_desc = "Configuration number (Flat)";
+    let y_desc = "Configuration number (FCA)";
     let file_name = "flat_vs_fca_exact.png";
     let path = dir.join(file_name);
     

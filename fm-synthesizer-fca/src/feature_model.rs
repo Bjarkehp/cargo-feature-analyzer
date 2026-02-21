@@ -17,6 +17,14 @@ impl Feature {
     pub fn new_leaf(name: String, is_abstract: bool) -> Feature {
         Feature::new(name, vec![], 1.0, is_abstract)
     }
+
+    /// Counts the number of child features plus itself.
+    pub fn feature_count(&self) -> usize {
+        self.groups.iter()
+            .flat_map(|g| g.features.iter())
+            .map(|f| f.feature_count())
+            .sum::<usize>() + 1
+    }
 }
 
 pub struct Group {
@@ -74,6 +82,13 @@ pub enum CrossTreeConstraint {
 pub struct FeatureModel {
     pub root_feature: Feature,
     pub cross_tree_constraints: Vec<CrossTreeConstraint>,
+}
+
+impl FeatureModel {
+    /// Counts the number of features in the feature model.
+    pub fn feature_count(&self) -> usize {
+        self.root_feature.feature_count()
+    } 
 }
 
 pub fn from_ac_poset(ac_poset: &DiGraph<Concept, ()>, features: &[&str], tree_constraints: &HashSet<EdgeIndex>) -> FeatureModel {
