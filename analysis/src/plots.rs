@@ -4,7 +4,7 @@ use cargo_toml::crate_id::CrateId;
 use sorted_iter::SortedPairIterator;
 use tokei::Language;
 
-use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelConfigurationStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
+use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelConfigStats, ModelStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
 
 pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>) -> anyhow::Result<()> {
     let caption = "Features and feature dependencies";
@@ -54,7 +54,10 @@ pub fn line_count_and_features(dir: &Path, line_counts: &BTreeMap<&CrateId, Lang
 
     let root = default_root(&path)?;
     let mut chart = default_log_chart(&root, caption, x_range.clone(), y_range)?;
-    default_mesh(&mut chart, x_desc, y_desc).draw()?;
+    default_mesh(&mut chart, x_desc, y_desc)
+        .x_label_formatter(&log_label_formatter)
+        .y_label_formatter(&log_label_formatter)
+        .draw()?;
     draw_points(&mut chart, &points)?;
     draw_linear_regression_log(&mut chart, &points, x_range)?;
     root.present()?;
@@ -62,7 +65,7 @@ pub fn line_count_and_features(dir: &Path, line_counts: &BTreeMap<&CrateId, Lang
     Ok(())
 }
 
-pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfigurationStats>, fca: &BTreeMap<&CrateId, ModelConfigurationStats>) -> anyhow::Result<()> {
+pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfigStats>, fca: &BTreeMap<&CrateId, ModelStats>) -> anyhow::Result<()> {
     let caption = "Configuration number (Flat & FCA)";
     let x_desc = "Configuration number (Flat)";
     let y_desc = "Configuration number (FCA)";
@@ -71,7 +74,7 @@ pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfiguratio
     
     let points = flat.iter()
         .join(fca.iter())
-        .map(|(_, (flat, fca))| (flat.exact, fca.exact))
+        .map(|(_, (flat, fca))| (flat.exact, fca.config_exact))
         .collect::<Vec<_>>();
 
     let bounding_box = points.iter()
@@ -83,11 +86,42 @@ pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfiguratio
     let root = default_root(&path)?;
     let mut chart = default_log_chart(&root, caption, x_range.clone(), y_range)?;
     default_mesh(&mut chart, x_desc, y_desc)
-        .x_label_formatter(&|x| format!("{x:e}"))
-        .y_label_formatter(&|y| format!("{y:e}"))
+        .x_label_formatter(&log_label_formatter)
+        .y_label_formatter(&log_label_formatter)
         .draw()?;
     draw_points(&mut chart, &points)?;
     root.present()?;
 
     Ok(())
+}
+
+fn log_label_formatter(x: &f64) -> String {
+    let exponent = x.log10();
+    if (exponent - exponent.round()).abs() > 0.01 {
+        panic!("log_label_formatter received a number which isn't a power of 10");
+    }
+    let exponent_super_script = superscript(exponent.round() as i32);
+    format!("10{exponent_super_script}")
+}
+
+fn superscript(n: i32) -> String {
+    let superscript_map = |c: char| match c {
+        '0' => '⁰',
+        '1' => '¹', 
+        '2' => '²', 
+        '3' => '³',
+        '4' => '⁴', 
+        '5' => '⁵', 
+        '6' => '⁶', 
+        '7' => '⁷',
+        '8' => '⁸', 
+        '9' => '⁹', 
+        '-' => '⁻',
+        _ => panic!("Invalid character for superscript {c}")
+    };
+
+    n.to_string()
+        .chars()
+        .map(superscript_map)
+        .collect::<String>()
 }

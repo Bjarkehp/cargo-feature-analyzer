@@ -5,25 +5,26 @@ use petgraph::{Direction, graph::{DiGraph, EdgeIndex, NodeIndex}, visit::EdgeRef
 
 use crate::{concept::Concept, optimal_groups};
 
-#[derive(derive_new::new)]
 pub struct Feature {
     pub name: String,
     pub groups: Vec<Group>,
     pub estimated_number_of_configurations: f64,
     pub is_abstract: bool,
+    pub feature_count: usize,
 }
 
 impl Feature {
-    pub fn new_leaf(name: String, is_abstract: bool) -> Feature {
-        Feature::new(name, vec![], 1.0, is_abstract)
+    pub fn new(name: String, groups: Vec<Group>, estimated_number_of_configurations: f64, is_abstract: bool) -> Feature {
+        let feature_count = groups.iter()
+            .flat_map(|g| g.features.iter())
+            .map(|f| f.feature_count)
+            .sum::<usize>() + 1;
+
+        Feature { name, groups, estimated_number_of_configurations, is_abstract, feature_count }
     }
 
-    /// Counts the number of child features plus itself.
-    pub fn feature_count(&self) -> usize {
-        self.groups.iter()
-            .flat_map(|g| g.features.iter())
-            .map(|f| f.feature_count())
-            .sum::<usize>() + 1
+    pub fn new_leaf(name: String, is_abstract: bool) -> Feature {
+        Feature::new(name, vec![], 1.0, is_abstract)
     }
 }
 
@@ -87,7 +88,7 @@ pub struct FeatureModel {
 impl FeatureModel {
     /// Counts the number of features in the feature model.
     pub fn feature_count(&self) -> usize {
-        self.root_feature.feature_count()
+        self.root_feature.feature_count
     } 
 }
 

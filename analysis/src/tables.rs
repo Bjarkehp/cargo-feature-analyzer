@@ -4,7 +4,7 @@ use std::io::Write;
 
 use cargo_toml::crate_id::CrateId;
 
-use crate::{ConfigStats, ModelConfigurationStats, csv};
+use crate::{ConfigStats, ModelConfigStats, ModelStats, csv};
 
 pub fn write_feature_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, (usize, usize)>) -> anyhow::Result<()> {
     csv::write(
@@ -28,7 +28,7 @@ pub fn write_configuration_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId
     )
 }
 
-pub fn write_flat_model_config_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, ModelConfigurationStats>) -> anyhow::Result<()> {
+pub fn write_flat_model_config_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, ModelConfigStats>) -> anyhow::Result<()> {
     csv::write(
         &dir.as_ref().join("flat_model_config_stats.csv"), 
         data.iter(), 
@@ -40,14 +40,16 @@ pub fn write_flat_model_config_stats(dir: impl AsRef<Path>, data: &BTreeMap<&Cra
     )
 }
 
-pub fn write_fca_model_config_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, ModelConfigurationStats>) -> anyhow::Result<()> {
+pub fn write_fca_model_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, ModelStats>) -> anyhow::Result<()> {
     csv::write(
-        &dir.as_ref().join("fca_model_config_stats.csv"), 
+        &dir.as_ref().join("fca_model_stats.csv"), 
         data.iter(), 
-        &["Crate", "Estimation", "Exact"], 
-        |writer, (&id, stats)| writeln!(writer, "{id},{},{}",
-            stats.estimation,
-            stats.exact,
+        &["Crate", "Features", "Cross-tree constraints", "Estimated configurations", "Exact configurations"], 
+        |writer, (&id, stats)| writeln!(writer, "{id},{},{},{},{}",
+            stats.features,
+            stats.cross_tree_constraints,
+            stats.config_estimation,
+            stats.config_exact,
         )
     )
 }
