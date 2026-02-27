@@ -97,11 +97,15 @@ pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfigStats>
 
 fn log_label_formatter(x: &f64) -> String {
     let exponent = x.log10();
-    if (exponent - exponent.round()).abs() > 0.01 {
-        panic!("log_label_formatter received a number which isn't a power of 10");
+    let int_exponent = exponent.round() as u32;
+    let exponent_super_script = superscript(int_exponent as i32);
+
+    if (exponent - int_exponent as f64).abs() < 0.01 {
+        format!("10{exponent_super_script}")
+    } else {
+        let coefficient = x / 10_i32.pow(int_exponent) as f64;
+        format!("{coefficient} × 10{exponent_super_script}")
     }
-    let exponent_super_script = superscript(exponent.round() as i32);
-    format!("10{exponent_super_script}")
 }
 
 fn superscript(n: i32) -> String {
