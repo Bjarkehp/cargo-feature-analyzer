@@ -26,7 +26,7 @@ use tokei::{LanguageType, Languages};
 use crate::retry::retry;
 
 const POSTGRES_CONNECTION_STRING: &str = "postgres://crates:crates@localhost:5432/crates_io_db";
-const NUMBER_OF_CRATES: usize = 2;
+const NUMBER_OF_CRATES: usize = 100;
 const MAX_FEATURES: usize = 100;
 const MIN_CONFIGS: usize = 100;
 const MAX_CONFIGS: usize = 1000;
