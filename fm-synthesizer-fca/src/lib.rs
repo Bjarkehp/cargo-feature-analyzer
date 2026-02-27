@@ -4,5 +4,4 @@ pub mod optimal_groups;
 pub mod min_max;
 pub mod indent;
 pub mod feature_model;
-pub mod binomial;
 pub mod uvl_writer;
