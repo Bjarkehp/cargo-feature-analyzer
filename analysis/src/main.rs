@@ -18,7 +18,6 @@ use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
 use fm_synthesizer_fca::feature_model::FeatureModel;
 use itertools::Itertools;
-use ordered_float::OrderedFloat;
 use rand::{Rng, SeedableRng, rngs::StdRng, seq::SliceRandom};
 use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
 use tokei::{LanguageType, Languages};

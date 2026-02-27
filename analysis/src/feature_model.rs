@@ -3,7 +3,7 @@ use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;
-use fm_synthesizer_fca::{concept, feature_model::{self, FeatureModel}, tree_constraints, uvl, uvl_writer};
+use fm_synthesizer_fca::{concept, feature_model::{self, FeatureModel}, tree_constraints, uvl_writer};
 
 use crate::paths;
 

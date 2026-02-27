@@ -4,7 +4,7 @@ use cargo_toml::crate_id::{self, CrateId};
 use clap::Parser;
 use concept::Concept;
 use configuration_scraper::configuration::Configuration;
-use fm_synthesizer_fca::{concept, tree_constraints, uvl};
+use fm_synthesizer_fca::{concept, feature_model, tree_constraints, uvl_writer};
 use itertools::Itertools;
 use petgraph::{dot::Dot, graph::DiGraph};
 use walkdir::WalkDir;
@@ -63,10 +63,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let ac_poset = concept::ac_poset(&configurations, &features, &args.root);
 
     let uvl_file = File::create(args.destination)?;
-    let mut uvl_writer = BufWriter::new(uvl_file);
+    let mut writer = BufWriter::new(uvl_file);
     let tree_constraints = tree_constraints::max_depth::find(&ac_poset);
-    uvl::write_ac_poset(&mut uvl_writer, &ac_poset, &features, &tree_constraints)?;
-    uvl_writer.flush()?;
+    let feature_model = feature_model::from_ac_poset(&ac_poset, &features, &tree_constraints);
+    uvl_writer::write(&mut writer, &feature_model)?;
+    writer.flush()?;
 
     if let Some(path) = &args.ac_poset {
         write_ac_poset(&ac_poset, path)?;
