@@ -37,20 +37,8 @@ pub struct Group {
 
 impl Group {
     pub fn new(features: Vec<Feature>, min: usize, max: usize) -> Group {
-        let n = features.len();
-        let mut dp = vec![0.0; n + 1];
-        dp[0] = 1.0;
-
-        for feature in features.iter() {
-            for k in (1..=n).rev() {
-                dp[k] += dp[k - 1] * feature.estimated_number_of_configurations;
-            }
-        }
-
-        let estimated_number_of_configurations = (min..=max)
-            .map(|k| dp[k])
-            .sum();
-
+        let weight = |i: usize| features[i].estimated_number_of_configurations;
+        let estimated_number_of_configurations = optimal_groups::group_cost(0..features.len(), features.len(), min as u32, max as u32, weight);
         Group { features, min, max, estimated_number_of_configurations }
     }
 
@@ -191,7 +179,7 @@ fn construct_optimal_groups(
 
     let assignments = construct_assignment_masks(ac_poset, node, tree_neighbors);
     let weight = |i: usize| features[i].estimated_number_of_configurations;
-    let partition = optimal_groups::find2(features.len(), &assignments, weight)
+    let partition = optimal_groups::find(features.len(), &assignments, weight)
         .collect::<Vec<_>>();
 
     let mut groups_content = partition.iter()
