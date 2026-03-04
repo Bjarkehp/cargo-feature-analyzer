@@ -5,8 +5,8 @@ members = [
     "configuration-scraper", 
     "crate-scraper", 
     "crate-util", 
-    "feature-model-generator-milp", 
     "fm-synthesizer-fca", 
     "fm-synthesizer-flat", 
+    "fm-synthesizer-milp", 
     "uvl_converter"
 ]

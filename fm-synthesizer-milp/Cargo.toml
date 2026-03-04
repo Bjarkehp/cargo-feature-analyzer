@@ -1,5 +1,5 @@
 [package]
-name = "feature-model-generator-milp"
+name = "fm-synthesizer-milp"
 version = "0.1.0"
 edition = "2024"
 
