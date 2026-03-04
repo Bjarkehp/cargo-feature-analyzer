@@ -31,11 +31,11 @@ name = "analysis"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cargo-toml",
  "chrono",
  "clap",
  "configuration-scraper",
  "crate-scraper",
+ "crate-util",
  "derive-new",
  "fm-synthesizer-fca",
  "fm-synthesizer-flat",
@@ -295,24 +295,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
-name = "cargo-toml"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "crates_io_api",
- "flate2",
- "itertools 0.14.0",
- "petgraph",
- "reqwest 0.13.1",
- "semver",
- "tar",
- "thiserror 2.0.17",
- "tokio",
- "toml 0.9.8",
-]
-
-[[package]]
 name = "cc"
 version = "1.2.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -513,8 +495,8 @@ dependencies = [
 name = "configuration-scraper"
 version = "0.1.0"
 dependencies = [
- "cargo-toml",
  "clap",
+ "crate-util",
  "itertools 0.14.0",
  "petgraph",
  "postgres",
@@ -598,12 +580,30 @@ dependencies = [
 name = "crate-scraper"
 version = "0.1.0"
 dependencies = [
- "cargo-toml",
  "clap",
+ "crate-util",
  "itertools 0.14.0",
  "postgres",
  "semver",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "crate-util"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "crates_io_api",
+ "flate2",
+ "itertools 0.14.0",
+ "petgraph",
+ "reqwest 0.13.1",
+ "semver",
+ "tar",
+ "thiserror 2.0.17",
+ "tokio",
+ "toml 0.9.8",
 ]
 
 [[package]]
@@ -895,9 +895,9 @@ name = "feature-model-generator-milp"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cargo-toml",
  "clap",
  "configuration-scraper",
+ "crate-util",
  "good_lp",
  "itertools 0.14.0",
  "petgraph",
@@ -949,9 +949,9 @@ name = "fm-synthesizer-fca"
 version = "1.0.1"
 dependencies = [
  "anyhow",
- "cargo-toml",
  "clap",
  "configuration-scraper",
+ "crate-util",
  "derive-new",
  "itertools 0.14.0",
  "petgraph",
@@ -966,8 +966,8 @@ name = "fm-synthesizer-flat"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cargo-toml",
  "clap",
+ "crate-util",
  "itertools 0.14.0",
  "petgraph",
  "reqwest 0.13.1",

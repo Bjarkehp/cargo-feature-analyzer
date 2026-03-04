@@ -13,7 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.100"
-cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
+crate-util = { version = "0.1.0", path = "../crate-util" }
 clap = { version = "4.5.47", features = ["derive"] }
 itertools = "0.14.0"
 petgraph = "0.8.2"

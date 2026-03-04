@@ -15,6 +15,6 @@ path = "src/main.rs"
 postgres = { version = "0.19" }
 clap = { version = "4", features = ["derive"] }
 itertools = "0.14"
-cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
+crate-util = { version = "0.1.0", path = "../crate-util" }
 thiserror = "2.0.17"
 semver = "1"

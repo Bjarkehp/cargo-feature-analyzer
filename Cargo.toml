@@ -1,3 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["configuration-scraper", "fm-synthesizer-fca", "feature-model-generator-milp", "fm-synthesizer-flat", "cargo-toml", "analysis", "crate-scraper", "uvl_converter"]
+members = [
+    "analysis", 
+    "configuration-scraper", 
+    "crate-scraper", 
+    "crate-util", 
+    "feature-model-generator-milp", 
+    "fm-synthesizer-fca", 
+    "fm-synthesizer-flat", 
+    "uvl_converter"
+]

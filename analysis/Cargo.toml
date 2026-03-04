@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = { version = "1", features = ["backtrace"] }
-cargo-toml = { version = "0.1.0", path = "../cargo-toml" }
+crate-util = { version = "0.1.0", path = "../crate-util" }
 chrono = "0.4.42"
 clap = { version = "4.5.51", features = ["derive"] }
 configuration-scraper = { version = "0.1.0", path = "../configuration-scraper" }
