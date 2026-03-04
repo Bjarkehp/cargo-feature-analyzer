@@ -11,6 +11,7 @@ pub const PLOT_ROOT: &str = "data/plot";
 
 pub const FLAMAPY_SERVER: &str = "analysis/src/flamapy_server.py";
 
+/// Creates the data directory, and its children.
 pub fn prepare_directories() -> anyhow::Result<()> {
     for path in [TOML, CRATE, CONFIG, FLAT_MODEL, FCA_MODEL, RESULT_ROOT, PLOT_ROOT] {
         std::fs::create_dir_all(path)

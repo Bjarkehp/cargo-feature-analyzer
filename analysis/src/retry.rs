@@ -1,3 +1,5 @@
+/// Retries a given operation multiple times, 
+/// and returns the last error if operation fails every time.
 pub fn retry<T, E>(
     tries: usize, 
     mut request: impl FnMut() -> Result<T, E>, 
