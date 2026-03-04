@@ -68,8 +68,14 @@ fn construct_feature_diagram(dependency: &str, tree: &mut HashMap<&str, Vec<&str
         .into_iter()
         .map(|feature| construct_feature_diagram(feature, tree))
         .collect::<Vec<_>>();
-    let group = Group::optional(group_features);
-    Feature::new(dependency.to_owned(), vec![group], false)
+
+    let groups = if group_features.is_empty() {
+        vec![]
+    } else {
+        vec![Group::optional(group_features)]
+    };
+
+    Feature::new(dependency.to_owned(), groups, false)
 }
 
 fn feature_dependencies_implication(feature: &str, dependencies: &[&str]) -> CrossTreeConstraint {

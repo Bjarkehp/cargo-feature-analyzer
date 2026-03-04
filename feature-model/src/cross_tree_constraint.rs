@@ -53,7 +53,7 @@ impl Display for CrossTreeConstraint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CrossTreeConstraint::Feature(name) => write!(f, "\"{name}\""),
-            CrossTreeConstraint::And(a, b) => write!(f, "{a} | {b}"),
+            CrossTreeConstraint::And(a, b) => write!(f, "{a} & {b}"),
             CrossTreeConstraint::Or(a, b) => write!(f, "{a} | {b}"),
             CrossTreeConstraint::Implies(a, b) => write!(f, "{a} => {b}"),
             CrossTreeConstraint::Not(constraint) => write!(f, "!{constraint}"),

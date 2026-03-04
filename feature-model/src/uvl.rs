@@ -56,7 +56,7 @@ fn write_group_cardinality<W: Write>(writer: &mut W, group: &Group) -> std::io::
 
 fn write_constraints<W: Write>(writer: &mut W, constraints: &[CrossTreeConstraint]) -> std::io::Result<()> {
     for constraint in constraints {
-        writeln!(writer, "{constraint}")?;
+        writeln!(writer, "\t{constraint}")?;
     }
 
     Ok(())
