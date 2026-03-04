@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use feature_model::{FeatureModel, cross_tree_constraint::CrossTreeConstraint, feature::Feature, group::Group};
+use feature_model::{FeatureModel, cross_tree_constraint, feature::Feature, group::Group};
 use itertools::Itertools;
 use petgraph::{Direction, graph::{DiGraph, EdgeIndex, NodeIndex}, visit::EdgeRef};
 
@@ -34,7 +34,7 @@ pub fn fm_from_ac_poset(ac_poset: &DiGraph<Concept, ()>, features: &[&str], tree
         .filter(|e| !tree_constraints.contains(e))
         .map(|e| edge_to_concept_pair(ac_poset, e))
         .filter_map(|(a, b)| Some((*a.features.first()?, *b.features.first()?)))
-        .map(|(l, r)| CrossTreeConstraint::Implies(l.to_owned(), r.to_owned()));
+        .map(|(l, r)| cross_tree_constraint::implies(l, r));
 
     let cross_tree_constraints_from_minimal_concepts = ac_poset.externals(Direction::Incoming)
         .cartesian_product(ac_poset.externals(Direction::Incoming).collect::<Vec<_>>())
@@ -42,10 +42,10 @@ pub fn fm_from_ac_poset(ac_poset: &DiGraph<Concept, ()>, features: &[&str], tree
         .filter(|(a, b)| (&a.inherited_configurations & &b.inherited_configurations).is_empty())
         .filter_map(|(a, b)| Some((*a.features.first()?, *b.features.first()?)))
         .filter(|(a, b)| a < b)
-        .map(|(l, r)| CrossTreeConstraint::Exclusive(l.to_owned(), r.to_owned()));
+        .map(|(l, r)| cross_tree_constraint::exclusive(l, r));
 
     let cross_tree_constraints_unused_features = unused_features.iter()
-        .map(|feature| CrossTreeConstraint::Not(feature.name.to_owned()));
+        .map(|feature| cross_tree_constraint::not(feature.name.clone()));
 
     let cross_tree_constraints = cross_tree_constraints_from_edges
         .chain(cross_tree_constraints_from_minimal_concepts)

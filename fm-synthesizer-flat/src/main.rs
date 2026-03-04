@@ -1,8 +1,8 @@
 use std::{fs::File, io::BufWriter, path::PathBuf};
 
-use anyhow::{Context, anyhow, bail};
+use anyhow::{Context, bail};
 use clap::Parser;
-use fm_synthesizer_flat::write_uvl;
+use feature_model::uvl;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -24,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
         let reqwest_client = cargo_toml::default_reqwest_client()?;
         let version = cargo_toml::latest_version(&name, &cargo_client)?;
         cargo_toml::download_cargo_toml(&reqwest_client, &name, &version.num)?
-            .ok_or_else(|| anyhow!("Crate does not contain a Cargo.toml file"))?
+            .context("Crate does not contain a Cargo.toml file")?
     } else if let Some(path) = args.path {
         std::fs::read_to_string(path)?
     } else {
@@ -32,18 +32,11 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let table = cargo_toml_content.parse::<toml::Table>()?;
-
-    let name = table.get("package")
-        .and_then(|v| v.as_table())
-        .and_then(|t| t.get("name"))
-        .and_then(|v| v.as_str())
-        .with_context(|| "Failed to get crate name")?;
-
-    let constraints = fm_synthesizer_flat::from_cargo_toml(&table)?;
+    let feature_model = fm_synthesizer_flat::fm_from_cargo_toml(&table)?;
 
     let file = File::create(args.destination)?;
     let mut writer = BufWriter::new(file);
-    write_uvl(&mut writer, name, &constraints)?;
+    uvl::write(&mut writer, &feature_model)?;
 
     Ok(())
 }

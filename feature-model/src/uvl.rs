@@ -1,8 +1,6 @@
 use std::io::Write;
 
-use feature_model::{FeatureModel, cross_tree_constraint::CrossTreeConstraint, feature::Feature, group::Group};
-
-use crate::{indent::tab};
+use crate::{FeatureModel, cross_tree_constraint::CrossTreeConstraint, feature::Feature, group::Group, indent::tab};
 
 pub fn write<W: Write>(writer: &mut W, feature_model: &FeatureModel) -> std::io::Result<()> {
     writeln!(writer, "features")?;
@@ -58,16 +56,8 @@ fn write_group_cardinality<W: Write>(writer: &mut W, group: &Group) -> std::io::
 
 fn write_constraints<W: Write>(writer: &mut W, constraints: &[CrossTreeConstraint]) -> std::io::Result<()> {
     for constraint in constraints {
-        write_constraint(writer, constraint)?;
+        writeln!(writer, "{constraint}")?;
     }
 
     Ok(())
-}
-
-fn write_constraint<W: Write>(writer: &mut W, constraint: &CrossTreeConstraint) -> std::io::Result<()> {
-    match constraint {
-        CrossTreeConstraint::Implies(l, r) => writeln!(writer, "\t\"{l}\" => \"{r}\""),
-        CrossTreeConstraint::Exclusive(l, r) => writeln!(writer, "\t!\"{l}\" | !\"{r}\""),
-        CrossTreeConstraint::Not(feature) => writeln!(writer, "\t!\"{feature}\""),
-    }
 }

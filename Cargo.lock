@@ -960,6 +960,7 @@ dependencies = [
  "anyhow",
  "clap",
  "crate-util",
+ "feature-model",
  "itertools 0.14.0",
  "petgraph",
  "reqwest 0.13.1",

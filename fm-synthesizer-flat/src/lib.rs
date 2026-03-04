@@ -1,23 +1,20 @@
-use std::{collections::{HashMap, HashSet}, io::Write};
+use std::collections::{HashMap, HashSet};
 
 use cargo_toml::{feature_dependencies, toml_util};
+use feature_model::{FeatureModel, cross_tree_constraint::{self, CrossTreeConstraint}, feature::Feature, group::Group};
 use itertools::Itertools;
 use petgraph::{Direction, prelude::DiGraphMap};
 
-pub struct Constraints<'a> {
-    pub tree: HashMap<&'a str, Vec<&'a str>>,
-    pub cross_tree: HashMap<&'a str, Vec<&'a str>>,
-}
-
-pub fn from_cargo_toml(table: &toml::Table) -> Result<Constraints<'_>, toml_util::Error> {
-    let mut feature_dependencies = feature_dependencies::from_cargo_toml(table)?;
-
-    let name = table.get("package")
+pub fn fm_from_cargo_toml(table: &toml::Table) -> Result<FeatureModel, toml_util::Error> {
+    let name = table
+        .get("package")
         .and_then(|v| v.as_table())
         .and_then(|t| t.get("name"))
         .and_then(|v| v.as_str())
         .ok_or_else(|| toml_util::Error::KeyMissing("package.name is missing in toml".to_string()))?;
 
+    let mut feature_dependencies = feature_dependencies::from_cargo_toml(table)?;
+    
     feature_dependencies.add_node(name);
     for feature in feature_dependencies.nodes().collect::<Vec<_>>() {
         if feature != name {
@@ -25,76 +22,60 @@ pub fn from_cargo_toml(table: &toml::Table) -> Result<Constraints<'_>, toml_util
         }
     }
 
-    Ok(dependency_graph_constraints(&feature_dependencies, name))
+    Ok(construct_feature_model(&feature_dependencies, name))
 }
 
-fn dependency_graph_constraints<'a, E>(graph: &DiGraphMap<&'a str, E>, root: &'a str) -> Constraints<'a> {
+fn construct_feature_model<'a, E>(graph: &DiGraphMap<&'a str, E>, root: &'a str) -> FeatureModel {
     let mut tree_edges = vec![];
     let mut cross_tree_edges = vec![];
     let mut stack = graph.neighbors_directed(root, Direction::Incoming)
-        .map(|neighbor| (root, neighbor))
+        .map(|neighbor| (neighbor, root))
         .collect::<Vec<_>>();
     let mut visited = HashSet::new();
 
     while let Some((feature, dependency)) = stack.pop() {
-        if visited.insert(dependency) {
+        if visited.insert(feature) {
             tree_edges.push((feature, dependency));
-            for neighbor in graph.neighbors_directed(dependency, Direction::Incoming) {
-                stack.push((dependency, neighbor));
+            for neighbor in graph.neighbors_directed(feature, Direction::Incoming) {
+                stack.push((neighbor, feature));
             }
         } else {
-            cross_tree_edges.push((dependency, feature));
+            cross_tree_edges.push((feature, dependency));
         }
     }
 
-    let tree = tree_edges.into_iter().into_group_map();
-    let cross_tree = cross_tree_edges.into_iter().into_group_map();
+    let mut tree = tree_edges
+        .into_iter()
+        .map(|(feature, dependency)| (dependency, feature))
+        .into_group_map();
 
-    Constraints { tree, cross_tree }
+    let root_feature = construct_feature_diagram(root, &mut tree);
+
+    let cross_tree_constraints = cross_tree_edges
+        .into_iter()
+        .into_group_map()
+        .into_iter()
+        .map(|(feature, dependencies)| feature_dependencies_implication(feature, &dependencies))
+        .collect::<Vec<_>>();
+
+    FeatureModel::new(root_feature, cross_tree_constraints)
 }
 
-pub fn write_uvl<W: Write>(writer: &mut W, root: &str, constraints: &Constraints) -> std::io::Result<()> {
-    writeln!(writer, "features")?;
-    let mut visited_features = HashSet::new();
-    write_tree_constraints(writer, root, &constraints.tree, &mut visited_features, 1)?;
-    write_cross_tree_constraints(writer, &constraints.cross_tree)?;
-    Ok(())
+fn construct_feature_diagram(dependency: &str, tree: &mut HashMap<&str, Vec<&str>>) -> Feature {
+    let group_features = tree
+        .remove(dependency)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|feature| construct_feature_diagram(feature, tree))
+        .collect::<Vec<_>>();
+    let group = Group::optional(group_features);
+    Feature::new(dependency.to_owned(), vec![group], false)
 }
 
-fn write_tree_constraints<'a, W: Write>(
-    writer: &mut W, 
-    current: &'a str, 
-    constraints: &'a HashMap<&str, Vec<&str>>, 
-    visited: &mut HashSet<&'a str>,
-    indentation: usize,
-) -> std::io::Result<()> {
-    if !visited.insert(current) {
-        return Ok(());
+fn feature_dependencies_implication(feature: &str, dependencies: &[&str]) -> CrossTreeConstraint {
+    let mut dependency_constraint = CrossTreeConstraint::Feature(dependencies[0].to_owned());
+    for &dependency in &dependencies[1..] {
+        dependency_constraint = cross_tree_constraint::and(dependency_constraint, dependency);
     }
-
-    writeln!(writer, "{}\"{}\"", " ".repeat(4 * indentation), current)?;
-    if let Some(dependents) = constraints.get(current) {
-        writeln!(writer, "{}optional", " ".repeat(4 * (indentation + 1)))?;
-        for feature in dependents {
-            write_tree_constraints(writer, feature, constraints, visited, indentation + 2)?;
-        }
-    }
-    
-    Ok(())
-}
-
-fn write_cross_tree_constraints<W: Write>(writer: &mut W, constraints: &HashMap<&str, Vec<&str>>) -> std::io::Result<()> {
-    if constraints.is_empty() {
-        return Ok(())
-    }
-    
-    writeln!(writer, "constraints")?;
-    for (feature, dependencies) in constraints {
-        let dependencies_str = dependencies.iter()
-            .map(|s| format!("\"{}\"", s))
-            .join(" & ");
-        writeln!(writer, "    \"{}\" => {}", feature, dependencies_str)?;
-    }
-
-    Ok(())
+    cross_tree_constraint::implies(feature, dependency_constraint)
 }
