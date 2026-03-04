@@ -7,7 +7,7 @@ The analysis checks for correlation between several properties of the crates (e.
 
 ## Packages
 * **analysis**: Scrapes crates and configurations for a specified number of crates, and builds plots showing showing the correlation of several properties of those crates.
-* **cargo-toml**: Contains several utility types and functions for handling Rust crates.
+* **crates-util**: Contains several utility types and functions for handling Rust crates.
 * **configuration-scraper**: Connects to a postgres database containing the crates.io dump, and queries for crates that have a specific dependency.
 * **crate-scraper**: Connects to a postgres database containing the crates.io dump, and finds popular crates determined by different parameters.
 * **feature-model-generator-milp**: Experiment on synthesizing feature models using a MILP solver (SCIP).
