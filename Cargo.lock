@@ -37,6 +37,7 @@ dependencies = [
  "crate-scraper",
  "crate-util",
  "derive-new",
+ "feature-model",
  "fm-synthesizer-fca",
  "fm-synthesizer-flat",
  "itertools 0.14.0",
@@ -891,6 +892,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "feature-model"
+version = "0.1.0"
+
+[[package]]
 name = "filetime"
 version = "0.2.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -939,6 +944,7 @@ dependencies = [
  "configuration-scraper",
  "crate-util",
  "derive-new",
+ "feature-model",
  "itertools 0.14.0",
  "petgraph",
  "rand 0.9.2",

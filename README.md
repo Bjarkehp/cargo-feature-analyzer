@@ -7,10 +7,11 @@ The analysis checks for correlation between several properties of the crates (e.
 
 ## Packages
 * **analysis**: Scrapes crates and configurations for a specified number of crates, and builds plots showing showing the correlation of several properties of those crates.
-* **crates-util**: Contains several utility types and functions for handling Rust crates.
 * **configuration-scraper**: Connects to a postgres database containing the crates.io dump, and queries for crates that have a specific dependency.
 * **crate-scraper**: Connects to a postgres database containing the crates.io dump, and finds popular crates determined by different parameters.
-* **feature-model-generator-milp**: Experiment on synthesizing feature models using a MILP solver (SCIP).
+* **crate-util**: Contains several utility types and functions for handling Rust crates.
+* **feature-model**: Contains data structure for constructing a feature model.
+* **fm-synthesizer-milp**: Experiment on synthesizing feature models using a MILP solver (SCIP).
 * **fm-synthesizer-fca**: Synthesizes a feature model based on a set of configurations. The crate using Formal Concept Analysis to generate an Attribute-Concept Partially Ordered Set (AC-poset), which is then turned into a feature model. This feature model represents the practical configuration space of a crate, based on how it is used by other crates.
 * **fm-synthesizer-flat**: Synthesizes a feature model based on the Cargo.toml of a crate. This model represents the theoretical configuration space of a crate.
 

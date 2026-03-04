@@ -3,5 +3,5 @@ pub mod tree_constraints;
 pub mod optimal_groups;
 pub mod min_max;
 pub mod indent;
-pub mod feature_model;
+pub mod synthesizer;
 pub mod uvl_writer;

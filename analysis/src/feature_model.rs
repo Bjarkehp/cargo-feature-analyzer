@@ -3,7 +3,8 @@ use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;
-use fm_synthesizer_fca::{concept, feature_model::{self, FeatureModel}, tree_constraints, uvl_writer};
+use feature_model::FeatureModel;
+use fm_synthesizer_fca::{concept, synthesizer, tree_constraints, uvl_writer};
 
 use crate::paths;
 
@@ -37,7 +38,7 @@ pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>]) -> any
 
     let ac_poset = concept::ac_poset(train_configurations, &features, &id.name);
     let tree_constraints = tree_constraints::max_depth::find(&ac_poset);
-    let feature_model = feature_model::from_ac_poset(&ac_poset, &features, &tree_constraints);
+    let feature_model = synthesizer::fm_from_ac_poset(&ac_poset, &features, &tree_constraints);
     let mut writer = BufWriter::new(file);
     uvl_writer::write(&mut writer, &feature_model)
         .with_context(|| format!("Failed to write fca feature model to {path:?}"))?;

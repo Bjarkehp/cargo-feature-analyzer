@@ -1,6 +1,8 @@
 use std::io::Write;
 
-use crate::{feature_model::{CrossTreeConstraint, Feature, FeatureModel, Group}, indent::tab};
+use feature_model::{FeatureModel, cross_tree_constraint::CrossTreeConstraint, feature::Feature, group::Group};
+
+use crate::{indent::tab};
 
 pub fn write<W: Write>(writer: &mut W, feature_model: &FeatureModel) -> std::io::Result<()> {
     writeln!(writer, "features")?;

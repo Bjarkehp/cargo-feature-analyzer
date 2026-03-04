@@ -16,7 +16,7 @@ use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use chrono::Local;
 use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
-use fm_synthesizer_fca::feature_model::FeatureModel;
+use ::feature_model::FeatureModel;
 use itertools::Itertools;
 use rand::{Rng, SeedableRng, rngs::StdRng, seq::SliceRandom};
 use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
@@ -347,7 +347,7 @@ fn get_model_stats(client: &mut flamapy_client::Client, path: &Path, model: &Fea
     let config_exact = client.configurations_number()
         .with_context(|| format!("Failed to get configuration number for {path:?}"))?;
 
-    let features = model.feature_count();
+    let features = model.count_features();
     let cross_tree_constraints = model.cross_tree_constraints.len();
 
     Ok(ModelStats { config_estimation, config_exact, features, cross_tree_constraints })
