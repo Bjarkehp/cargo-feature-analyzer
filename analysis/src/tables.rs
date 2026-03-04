@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::io::Write;
 
+use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 
 use crate::{ConfigStats, ModelConfigStats, ModelStats, csv};
@@ -12,7 +13,7 @@ pub fn write_feature_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, (usi
         data.iter(), 
         &["Crate", "Features", "Feature dependencies"], 
         |writer, (id, (features, dependencies))| writeln!(writer, "{id},{features},{dependencies}")
-    )
+    ).context("Failed to create feature_stats.csv")
 }
 
 pub fn write_configuration_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, ConfigStats>) -> anyhow::Result<()> {
@@ -25,7 +26,7 @@ pub fn write_configuration_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId
             stats.default_configurations_count,
             stats.unique_configurations_count,
         )
-    )
+    ).context("Failed to create configuration_stats.csv")
 }
 
 pub fn write_flat_model_config_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, ModelConfigStats>) -> anyhow::Result<()> {
@@ -37,7 +38,7 @@ pub fn write_flat_model_config_stats(dir: impl AsRef<Path>, data: &BTreeMap<&Cra
             stats.estimation,
             stats.exact,
         )
-    )
+    ).context("Failed to create flat_model_config_stats.csv")
 }
 
 pub fn write_fca_model_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, ModelStats>) -> anyhow::Result<()> {
@@ -51,7 +52,7 @@ pub fn write_fca_model_stats(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, Mo
             stats.config_estimation,
             stats.config_exact,
         )
-    )
+    ).context("Failed to create fca_model_stats.csv")
 }
 
 pub fn write_fca_model_quality(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, f64>) -> anyhow::Result<()> {
@@ -60,5 +61,5 @@ pub fn write_fca_model_quality(dir: impl AsRef<Path>, data: &BTreeMap<&CrateId, 
         data.iter(), 
         &["Crate", "Quality"], 
         |writer, (&id, quality)| writeln!(writer, "{id},{quality}")
-    )
+    ).context("Failed to create fca_model_quality.csv")
 }

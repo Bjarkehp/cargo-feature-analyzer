@@ -9,6 +9,7 @@ const REVERSE_INFINITE: BoundingBox = BoundingBox {
     top: f64::NEG_INFINITY,
 };
 
+/// Stores the left, right, bottom and top distance of a bounding box.
 #[derive(Debug, derive_new::new)]
 pub struct BoundingBox {
     pub left: f64,
@@ -18,6 +19,8 @@ pub struct BoundingBox {
 }
 
 impl BoundingBox {
+    /// Constructs the smallest bounding box 
+    /// that contains the previous bounding box, and the given point.
     pub fn with(self, (x, y): (f64, f64)) -> BoundingBox {
         let left = *min(OrderedFloat(self.left), OrderedFloat(x));
         let right = *max(OrderedFloat(self.right), OrderedFloat(x));
@@ -26,10 +29,12 @@ impl BoundingBox {
         BoundingBox { left, right, bottom, top }
     }
 
+    /// Returns the horizontal range of the bounding box.
     pub fn horizontal_range(&self) -> Range<f64> {
         self.left..self.right
     }
 
+    /// Returns the vertical range of the bounding box.
     pub fn vertical_range(&self) -> Range<f64> {
         self.bottom..self.top
     }

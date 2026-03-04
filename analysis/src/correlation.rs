@@ -1,3 +1,4 @@
+/// Calculates the pearson correlation of a series of points.
 pub fn pearson(points: &[(f64, f64)]) -> f64 {
     let n = points.len() as f64;
 
@@ -19,6 +20,7 @@ pub fn pearson(points: &[(f64, f64)]) -> f64 {
     cov / (dx.sqrt() * dy.sqrt())
 }
 
+/// Calculates the pearson correlation of a series of points with log10 applied to x and y.
 pub fn pearson_log(points: &[(f64, f64)]) -> f64 {
     let mut log_points = points.to_owned();
     for (x, y) in log_points.iter_mut() {

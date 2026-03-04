@@ -7,6 +7,7 @@ use fm_synthesizer_fca::{concept, feature_model::{self, FeatureModel}, tree_cons
 
 use crate::paths;
 
+/// Create a flat feature model for a crate with the given crate id and Cargo.toml content.
 pub fn create_flat(id: &CrateId, table: &toml::Table) -> anyhow::Result<()> {
     let path = PathBuf::from(format!("{}/{}.uvl", paths::FLAT_MODEL, id));
     if let Ok(file) = File::create_new(&path) {
@@ -22,6 +23,7 @@ pub fn create_flat(id: &CrateId, table: &toml::Table) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Create an FCA feature model for a crate with the given crate id and set of configurations.
 pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>]) -> anyhow::Result<FeatureModel> {
     let path = PathBuf::from(format!("{}/{}.uvl", paths::FCA_MODEL, id));
     let file = File::create(&path)?;

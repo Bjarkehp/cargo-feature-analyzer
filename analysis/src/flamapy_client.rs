@@ -2,12 +2,15 @@ use std::{io::{BufRead, BufReader, BufWriter, Write}, num::ParseFloatError, path
 
 use which::which;
 
+/// Provides an interface to communicate with flamapy using flamapy_server.py.
 pub struct Client {
     writer: BufWriter<ChildStdin>,
     reader: BufReader<ChildStdout>,
 }
 
 impl Client {
+    /// Starts the flamapy server at the given path, 
+    /// and sets up stdin and stdout for communication.
     pub fn new(server: impl AsRef<Path>) -> Result<Client, ConnectionError> {
         let flamapy_path = which("flamapy")?;
         let flamapy_script = std::fs::read_to_string(&flamapy_path)?;
@@ -31,12 +34,14 @@ impl Client {
         Ok(Client { writer, reader })
     }
 
+    /// Sets the current model to apply the other commands to.
     pub fn set_model(&mut self, path: &Path) -> Result<(), CommandError> {
         writeln!(self.writer, "set_model {:?}", path)?;
         self.writer.flush()?;
         Ok(())
     }
 
+    /// Sends a request for the estimated number of configurations of the current model.
     pub fn estimated_number_of_configurations(&mut self) -> Result<f64, CommandError> {
         writeln!(self.writer, "estimated_number_of_configurations")?;
         self.writer.flush()?;
@@ -46,6 +51,7 @@ impl Client {
             .map_err(|e| CommandError::ParseFloat(e, output))
     }
 
+    /// Sends a request for the configurations number of the current model.
     pub fn configurations_number(&mut self) -> Result<f64, CommandError> {
         writeln!(self.writer, "configurations_number")?;
         self.writer.flush()?;
@@ -55,6 +61,7 @@ impl Client {
             .map_err(|e| CommandError::ParseFloat(e, output))
     }
 
+    /// Sends a request for determining if the current model satisfies the given configuration.
     pub fn satisfiable_configuration(&mut self, configuration_path: &Path) -> Result<bool, CommandError> {
         writeln!(self.writer, "satisfiable_configuration {:?}", configuration_path)?;
         self.writer.flush()?;
@@ -68,6 +75,7 @@ impl Client {
     }
 }
 
+/// Error that might happen when starting and connecting to the server.
 #[derive(Debug, thiserror::Error)]
 pub enum ConnectionError {
     #[error(transparent)]
@@ -82,6 +90,7 @@ pub enum ConnectionError {
     NoShebang,
 }
 
+/// Error that might happen when sending a command to the server.
 #[derive(Debug, thiserror::Error)]
 pub enum CommandError {
     #[error("IO error while calling flamapy")]
