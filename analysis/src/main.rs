@@ -120,7 +120,7 @@ fn main() -> anyhow::Result<()> {
 
     let flat_model_paths = feature_counts.iter()
         .filter(|&(_id, &features)| features < MAX_FEATURES)
-        .map(|(id, _features)| (id, PathBuf::from(format!("data/model/fca/{id}.uvl"))))
+        .map(|(id, _features)| (id, PathBuf::from(format!("data/model/flat/{id}.uvl"))))
         .filter(|(_id, path)| path.exists())
         .assume_sorted_by_key();
 
