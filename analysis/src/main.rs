@@ -83,15 +83,15 @@ fn main() -> anyhow::Result<()> {
 
     println!("Creating flat models...");
 
-    for (id, table) in cargo_tomls.iter() {
-        feature_model::create_flat(id, table)?;
-    }
+    let flat_models = cargo_tomls.iter()
+        .map(|(&id, table)| Ok((id, feature_model::create_flat(id, table)?)))
+        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
     println!("Creating fca models...");
 
     let fca_models = configuration_sets.iter()
         .filter(|(_id, configs)| configs.len() >= MIN_CONFIGS)
-        .map(|(id, configs)| Ok((*id, feature_model::create_fca(id, configs)?)))
+        .map(|(&id, configs)| Ok((id, feature_model::create_fca(id, configs)?)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
     println!("Calculating feature and feature dependency counts...");
@@ -118,10 +118,15 @@ fn main() -> anyhow::Result<()> {
 
     println!("Calculating config stats for flat models...");
 
-    let flat_model_config_stats = feature_counts.iter()
+    let flat_model_paths = feature_counts.iter()
         .filter(|&(_id, &features)| features < MAX_FEATURES)
-        .map(|(&id, _features)| (id, PathBuf::from(format!("data/model/flat/{id}.uvl"))))
-        .map(|(id, path)| get_model_config_stats(&mut flamapy_client, &path).map(|s| (id, s)))
+        .map(|(id, _features)| (id, PathBuf::from(format!("data/model/fca/{id}.uvl"))))
+        .filter(|(_id, path)| path.exists())
+        .assume_sorted_by_key();
+
+    let flat_model_stats = flat_model_paths
+        .join(flat_models.iter())
+        .map(|(&id, (path, model))| get_model_stats(&mut flamapy_client, &path, model).map(|s| (id, s)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
     println!("Calculating config stats for fca models...");
@@ -160,7 +165,7 @@ fn main() -> anyhow::Result<()> {
 
     tables::write_feature_stats(&result_directory, &feature_stats)?;
     tables::write_configuration_stats(&result_directory, &configuration_counts)?;
-    tables::write_flat_model_config_stats(&result_directory, &flat_model_config_stats)?;
+    tables::write_flat_model_stats(&result_directory, &flat_model_stats)?;
     tables::write_fca_model_stats(&result_directory, &fca_model_stats)?;
     tables::write_fca_model_quality(&result_directory, &fca_model_quality)?;
 
@@ -173,7 +178,9 @@ fn main() -> anyhow::Result<()> {
     println!("Creating line_count_and_features.png...");
     plots::line_count_and_features(&plot_dir, &line_counts, &feature_stats)?;
     println!("Creating flat_vs_fca.png...");
-    plots::flat_vs_fca_exact(&plot_dir, &flat_model_config_stats, &fca_model_stats)?;
+    plots::flat_vs_fca_exact(&plot_dir, &flat_model_stats, &fca_model_stats)?;
+    println!("Creating cross_tree_constraints_comparison.png...");
+    plots::cross_tree_constraints(&plot_dir, &flat_model_stats, &fca_model_stats)?;
 
     println!(
         "Average number of features: {}", 
@@ -351,24 +358,6 @@ fn get_model_stats(client: &mut flamapy_client::Client, path: &Path, model: &Fea
     let cross_tree_constraints = model.cross_tree_constraints.len();
 
     Ok(ModelStats { config_estimation, config_exact, features, cross_tree_constraints })
-}
-
-pub struct ModelConfigStats {
-    estimation: f64,
-    exact: f64,
-}
-
-fn get_model_config_stats(client: &mut flamapy_client::Client, path: &Path) -> anyhow::Result<ModelConfigStats> {
-    client.set_model(path)
-        .with_context(|| format!("Failed to set model to {path:?}"))?;
-
-    let estimation = client.estimated_number_of_configurations()
-        .with_context(|| format!("Failed to get estimated number of configurations for {path:?}"))?;
-
-    let exact = client.configurations_number()
-        .with_context(|| format!("Failed to get configuration number for {path:?}"))?;
-
-    Ok(ModelConfigStats { estimation, exact })
 }
 
 fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &CrateId, configurations: &[Configuration<'static>]) -> anyhow::Result<usize> {

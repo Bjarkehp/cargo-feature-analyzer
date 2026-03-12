@@ -4,7 +4,7 @@ use cargo_toml::crate_id::CrateId;
 use sorted_iter::SortedPairIterator;
 use tokei::Language;
 
-use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelConfigStats, ModelStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
+use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
 
 pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>) -> anyhow::Result<()> {
     let caption = "Features and feature dependencies";
@@ -65,7 +65,7 @@ pub fn line_count_and_features(dir: &Path, line_counts: &BTreeMap<&CrateId, Lang
     Ok(())
 }
 
-pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfigStats>, fca: &BTreeMap<&CrateId, ModelStats>) -> anyhow::Result<()> {
+pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelStats>, fca: &BTreeMap<&CrateId, ModelStats>) -> anyhow::Result<()> {
     let caption = "Configuration number (Flat & FCA)";
     let x_desc = "Configuration number (Flat)";
     let y_desc = "Configuration number (FCA)";
@@ -74,7 +74,7 @@ pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfigStats>
     
     let points = flat.iter()
         .join(fca.iter())
-        .map(|(_, (flat, fca))| (flat.exact, fca.config_exact))
+        .map(|(_, (flat, fca))| (flat.config_exact, fca.config_exact))
         .collect::<Vec<_>>();
 
     let bounding_box = points.iter()
@@ -89,6 +89,33 @@ pub fn flat_vs_fca_exact(dir: &Path, flat: &BTreeMap<&CrateId, ModelConfigStats>
         .x_label_formatter(&log_label_formatter)
         .y_label_formatter(&log_label_formatter)
         .draw()?;
+    draw_points(&mut chart, &points)?;
+    root.present()?;
+
+    Ok(())
+}
+
+pub fn cross_tree_constraints(dir: &Path, flat: &BTreeMap<&CrateId, ModelStats>, fca: &BTreeMap<&CrateId, ModelStats>) -> anyhow::Result<()> {
+    let caption = "Cross-tree constraints (Flat & FCA)";
+    let x_desc = "Cross-tree constraints (Flat)";
+    let y_desc = "Cross-tree constraints (FCA)";
+    let file_name = "cross_tree_constraints_comparison.png";
+    let path = dir.join(file_name);
+    
+    let points = flat.iter()
+        .join(fca.iter())
+        .map(|(_, (flat, fca))| (flat.cross_tree_constraints as f64, fca.cross_tree_constraints as f64))
+        .collect::<Vec<_>>();
+
+    let bounding_box = points.iter()
+        .cloned()
+        .collect::<BoundingBox>();
+    let x_range = bounding_box.horizontal_range();
+    let y_range = bounding_box.vertical_range();
+
+    let root = default_root(&path)?;
+    let mut chart = default_chart(&root, caption, x_range.clone(), y_range)?;
+    default_mesh(&mut chart, x_desc, y_desc).draw()?;
     draw_points(&mut chart, &points)?;
     root.present()?;
 

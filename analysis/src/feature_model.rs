@@ -9,19 +9,19 @@ use fm_synthesizer_fca::{concept, synthesizer, tree_constraints};
 use crate::paths;
 
 /// Create a flat feature model for a crate with the given crate id and Cargo.toml content.
-pub fn create_flat(id: &CrateId, table: &toml::Table) -> anyhow::Result<()> {
-    let path = PathBuf::from(format!("{}/{}.uvl", paths::FLAT_MODEL, id));
-    if let Ok(file) = File::create_new(&path) {
-        let feature_model = fm_synthesizer_flat::fm_from_cargo_toml(table)
-            .with_context(|| format!("Failed to create flat constraints from {path:?}"))?;
-        let mut writer = BufWriter::new(file);
-        uvl::write(&mut writer, &feature_model)
-            .with_context(|| format!("Failed to write flat feature model to {path:?}"))?;
-        writer.flush()
-            .with_context(|| format!("Failed to flush file {path:?}"))?;
-    }
+pub fn create_flat(id: &CrateId, table: &toml::Table) -> anyhow::Result<FeatureModel> {
+    let feature_model = fm_synthesizer_flat::fm_from_cargo_toml(table)
+        .with_context(|| format!("Failed to create flat constraints for {id}"))?;
 
-    Ok(())
+    let path = PathBuf::from(format!("{}/{}.uvl", paths::FLAT_MODEL, id));
+    let file = File::create(&path)?;
+    let mut writer = BufWriter::new(file);
+    uvl::write(&mut writer, &feature_model)
+        .with_context(|| format!("Failed to write flat feature model to {path:?}"))?;
+    writer.flush()
+        .with_context(|| format!("Failed to flush file {path:?}"))?;
+
+    Ok(feature_model)
 }
 
 /// Create an FCA feature model for a crate with the given crate id and set of configurations.
