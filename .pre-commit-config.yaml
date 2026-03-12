@@ -3,4 +3,6 @@ repos:
     rev: v1.0
     hooks:
       - id: cargo-check
+        args: ["--workspace", "--exclude", "fm-synthesizer-milp"]
       - id: clippy
+        args: ["--workspace", "--exclude", "fm-synthesizer-milp"]
