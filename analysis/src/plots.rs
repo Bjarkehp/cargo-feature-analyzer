@@ -4,9 +4,9 @@ use cargo_toml::crate_id::CrateId;
 use sorted_iter::SortedPairIterator;
 use tokei::Language;
 
-use crate::{MAX_DEPENDENCIES, MAX_FEATURES, ModelStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
+use crate::{ModelStats, bounding_box::BoundingBox, plot::{default_chart, default_log_chart, default_mesh, default_root, draw_linear_regression, draw_linear_regression_log, draw_points}};
 
-pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>) -> anyhow::Result<()> {
+pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>, max_features: usize, max_dependencies: usize) -> anyhow::Result<()> {
     let caption = "Features and feature dependencies";
     let x_desc = "Features";
     let y_desc = "Feature dependencies";
@@ -15,7 +15,7 @@ pub fn features_and_dependencies(dir: &Path, feature_stats: &BTreeMap<&CrateId, 
     
     let points = feature_stats.iter()
         .map(|(_id, &(f, d))| (f as f64, d as f64))
-        .filter(|&(f, d)| f < MAX_FEATURES as f64 && d < MAX_DEPENDENCIES as f64)
+        .filter(|&(f, d)| f < max_features as f64 && d < max_dependencies as f64)
         .collect::<Vec<_>>();
 
     let bounding_box = points.iter()

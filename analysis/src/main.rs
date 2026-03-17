@@ -8,12 +8,15 @@ pub mod plots;
 mod retry;
 mod correlation;
 mod bounding_box;
+pub mod args;
+pub mod config;
 
 use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
 use anyhow::{Context, anyhow};
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use chrono::Local;
+use clap::Parser;
 use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
 use ::feature_model::FeatureModel;
@@ -22,26 +25,22 @@ use rand::{Rng, SeedableRng, rngs::StdRng, seq::SliceRandom};
 use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
 use tokei::{LanguageType, Languages};
 
-use crate::retry::retry;
-
-const POSTGRES_CONNECTION_STRING: &str = "postgres://crates:crates@localhost:5432/crates_io_db";
-const NUMBER_OF_CRATES: usize = 100;
-const MAX_FEATURES: usize = 100;
-const MIN_CONFIGS: usize = 100;
-const MAX_CONFIGS: usize = 1000;
-const MAX_DEPENDENCIES: usize = 1000;
+use crate::{args::Args, config::config_from_args, retry::retry};
 
 fn main() -> anyhow::Result<()> {
+    let args = Args::parse();
+    let config = config_from_args(args)?;
+
     paths::prepare_directories()?;
 
-    let mut postgres_client = postgres::Client::connect(POSTGRES_CONNECTION_STRING, postgres::NoTls)
+    let mut postgres_client = postgres::Client::connect(&config.connection_string, postgres::NoTls)
         .with_context(|| "Failed to create postgres client")?;
     let mut flamapy_client = flamapy_client::Client::new(paths::FLAMAPY_SERVER)
         .with_context(|| "Failed to create flamapy client")?;
     let reqwest_client = cargo_toml::default_reqwest_client()
         .with_context(|| "Failed to create reqwest client")?;
 
-    let crate_entries_vec = get_or_scrape_crate_entries(&mut postgres_client)?;
+    let crate_entries_vec = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates)?;
 
     let crate_entries = crate_entries_vec.iter()
         .map(|e| (&e.id, &e.data))
@@ -77,7 +76,7 @@ fn main() -> anyhow::Result<()> {
 
     let mut rng = StdRng::seed_from_u64(123);
     let configuration_sets = dependency_graphs.iter()
-        .map(|(id, graph)| get_or_scrape_configurations(id, graph, &mut postgres_client, &mut rng).map(|c| (*id, c)))
+        .map(|(id, graph)| get_or_scrape_configurations(&mut postgres_client, id, graph, config.max_configs, &mut rng).map(|c| (*id, c)))
         .filter_ok(|(_, configs)| !configs.is_empty())
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
@@ -90,7 +89,7 @@ fn main() -> anyhow::Result<()> {
     println!("Creating fca models...");
 
     let fca_models = configuration_sets.iter()
-        .filter(|(_id, configs)| configs.len() >= MIN_CONFIGS)
+        .filter(|(_id, configs)| configs.len() >= config.min_configs)
         .map(|(&id, configs)| Ok((id, feature_model::create_fca(id, configs)?)))
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
@@ -119,7 +118,7 @@ fn main() -> anyhow::Result<()> {
     println!("Calculating config stats for flat models...");
 
     let flat_model_paths = feature_counts.iter()
-        .filter(|&(_id, &features)| features < MAX_FEATURES)
+        .filter(|&(_id, &features)| features < config.max_features)
         .map(|(id, _features)| (id, PathBuf::from(format!("data/model/flat/{id}.uvl"))))
         .filter(|(_id, path)| path.exists())
         .assume_sorted_by_key();
@@ -132,7 +131,7 @@ fn main() -> anyhow::Result<()> {
     println!("Calculating config stats for fca models...");
 
     let fca_model_paths = || feature_counts.iter()
-        .filter(|&(_id, &features)| features < MAX_FEATURES)
+        .filter(|&(_id, &features)| features < config.max_features)
         .map(|(id, _features)| (id, PathBuf::from(format!("data/model/fca/{id}.uvl"))))
         .filter(|(_id, path)| path.exists())
         .assume_sorted_by_key();
@@ -174,7 +173,7 @@ fn main() -> anyhow::Result<()> {
         .with_context(|| "Failed to create directory for plots of this analysis")?;
 
     println!("Creating features_and_dependencies.png...");
-    plots::features_and_dependencies(&plot_dir, &feature_stats)?;
+    plots::features_and_dependencies(&plot_dir, &feature_stats, config.max_features, config.max_dependencies)?;
     println!("Creating line_count_and_features.png...");
     plots::line_count_and_features(&plot_dir, &line_counts, &feature_stats)?;
     println!("Creating flat_vs_fca.png...");
@@ -200,16 +199,16 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_or_scrape_crate_entries(client: &mut postgres::Client) -> anyhow::Result<Vec<CrateEntry>> {
+fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: usize) -> anyhow::Result<Vec<CrateEntry>> {
     if let Ok(content) = std::fs::read_to_string(paths::CRATE_ENTRIES) {
         content.lines()
             .map(|line| line.parse())
             .collect::<Result<Vec<_>, _>>()
             .with_context(|| format!("Expected to parse {} as a list of crates", paths::CRATE_ENTRIES))
     } else {
-        println!("Scraping {} popular crates from crates.io...", NUMBER_OF_CRATES);
+        println!("Scraping {} popular crates from crates.io...", number_of_crates);
 
-        let entries = crate_scraper::scrape_popular_by_configurations(client, NUMBER_OF_CRATES as i64)
+        let entries = crate_scraper::scrape_popular_by_configurations(client, number_of_crates as i64)
             .expect("Failed to scrape popular crates");
 
         let file = File::create(paths::CRATE_ENTRIES)
@@ -250,7 +249,13 @@ fn get_or_scrape_cargo_toml(id: &CrateId) -> anyhow::Result<toml::Table> {
         .with_context(|| format!("Failed to parse Cargo.toml for {id}"))
 }
 
-fn get_or_scrape_configurations<R: Rng>(id: &CrateId, dependency_graph: &feature_dependencies::Graph, client: &mut postgres::Client, rng: &mut R) -> anyhow::Result<Vec<Configuration<'static>>> {
+fn get_or_scrape_configurations<R: Rng>(
+    client: &mut postgres::Client, 
+    id: &CrateId, 
+    dependency_graph: &feature_dependencies::Graph, 
+    max_configs: usize,
+    rng: &mut R
+) -> anyhow::Result<Vec<Configuration<'static>>> {
     let path = PathBuf::from(format!("{}/{id}", paths::CONFIG));
     let mut configurations = if let Ok(entries) = std::fs::read_dir(&path) {
         println!("Collecting configurations for {id}...");
@@ -269,7 +274,7 @@ fn get_or_scrape_configurations<R: Rng>(id: &CrateId, dependency_graph: &feature
             &id.version, 
             dependency_graph, 
             client, 
-            MAX_CONFIGS
+            max_configs
         ).with_context(|| format!("Failed to query for configuration for {id}"))?;
 
         println!("Found {} configurations", configurations.len());

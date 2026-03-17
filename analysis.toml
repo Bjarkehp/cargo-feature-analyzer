@@ -1,0 +1,6 @@
+connection_string = "postgres://crates:crates@localhost:5432/crates_io_db"
+number_of_crates = 100
+max_features = 100
+min_configs = 100
+max_configs = 1000
+max_dependencies = 1000

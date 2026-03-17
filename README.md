@@ -46,6 +46,10 @@ To run the analysis, simply run the following command:
 cargo run --bin analysis
 ```
 
+To configure parameters of the analysis, you can either use CLI args (check --help for a list of arguments), or you can provide a configuration file in the toml format. 
+
+**Notice**: The separator character used for names in CLI arguments and config arguments differ. For CLI arguments, use '-'. For a config file, use '_'.
+
 ## Running other crates
 All other crates provide a nice list of parameters when passing the ```-h``` or ```--help``` argument. If you use cargo to compile and run the crates, there are a few things to keep in mind. First, the name of the binary crate doesn't always match the name of the package. For example, to run the binary crate inside fm-synthesizer-fca, you must use the name fm_synthesizer_fca_bin, which can be found in the package's Cargo.toml. Second, you must seperate the cargo arguments from the arguments provided to the crate using ```--```. This example shows how to compile and run the fm_synthesizer_fca_bin crate, assuming you have configurations for tokio stored in the directory ```configurations/tokio```:
 
