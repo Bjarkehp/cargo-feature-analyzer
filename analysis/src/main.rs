@@ -180,6 +180,8 @@ fn main() -> anyhow::Result<()> {
     plots::flat_vs_fca_exact(&plot_dir, &flat_model_stats, &fca_model_stats)?;
     println!("Creating cross_tree_constraints_comparison.png...");
     plots::cross_tree_constraints(&plot_dir, &flat_model_stats, &fca_model_stats)?;
+    println!("Creating box_plots.png...");
+    plots::box_plots(&plot_dir, &feature_stats)?;
 
     println!(
         "Average number of features: {}", 
