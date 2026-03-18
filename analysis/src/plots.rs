@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, path::Path};
 
 use cargo_toml::crate_id::CrateId;
-use plotters::{chart::ChartBuilder, data::{Quartiles, fitting_range}, prelude::{Boxplot, Circle, IntoSegmentedCoord, SegmentValue}, style::{BLACK, Color, IntoFont, WHITE}};
+use plotters::{chart::ChartBuilder, data::Quartiles, prelude::{Boxplot, Circle, IntoSegmentedCoord, SegmentValue}, style::{BLACK, IntoFont, WHITE}};
 use sorted_iter::SortedPairIterator;
 use tokei::Language;
 
@@ -123,24 +123,28 @@ pub fn cross_tree_constraints(dir: &Path, flat: &BTreeMap<&CrateId, ModelStats>,
     Ok(())
 }
 
-pub fn box_plots(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>) -> anyhow::Result<()> {
-    let caption = "Global stats";
-    let file_name = "box_plots.png";
+pub fn feature_stats(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>, max_features: usize) -> anyhow::Result<()> {
+    let caption = "Feature stats";
+    let file_name = "feature_stats.png";
     let x_axis = ["Features", "Feature Dependencies"];
     let path = dir.join(file_name);
 
     let (feature_counts, feature_dependency_counts): (Vec<_>, Vec<_>) = feature_stats
         .values()
         .map(|(f, d)| (*f as f32, *d as f32))
+        .filter(|(f, _d)| *f <= max_features as f32)
         .unzip();
-    
-    let y_range = fitting_range(
-        feature_counts.iter()
-            .chain(feature_dependency_counts.iter())
-    );
 
-    println!("{:#?}", feature_counts);
-    println!("{:#?}", feature_dependency_counts);
+    let feature_quartiles = Quartiles::new(&feature_counts);
+    let feature_dependency_quartiles = Quartiles::new(&feature_dependency_counts);
+    let min = feature_quartiles.values()[0]
+        .min(feature_dependency_quartiles.values()[0])
+        .min(feature_counts.iter().cloned().min_by(f32::total_cmp).unwrap())
+        .min(feature_dependency_counts.iter().cloned().min_by(f32::total_cmp).unwrap());
+    let max = feature_quartiles.values()[4]
+        .max(feature_dependency_quartiles.values()[4])
+        .min(feature_counts.iter().cloned().max_by(f32::total_cmp).unwrap())
+        .max(feature_dependency_counts.iter().cloned().max_by(f32::total_cmp).unwrap());
 
     let root = default_root(&path)?;
     
@@ -149,7 +153,7 @@ pub fn box_plots(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>)
         .y_label_area_size(40)
         .caption(caption, ("sans-serif", 32).into_font())
         .margin(30)
-        .build_cartesian_2d(x_axis.into_segmented(), y_range.start - 10.0..y_range.end + 10.0)?;
+        .build_cartesian_2d(x_axis.into_segmented(), min - 10.0..max + 10.0)?;
     
     chart.configure_mesh()
         .x_label_style(("sans-serif", 18).into_font())
@@ -157,13 +161,26 @@ pub fn box_plots(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usize)>)
         .light_line_style(WHITE)
         .draw()?;
 
-    let a_quartiles = Quartiles::new(&feature_counts);
-    let b_quartiles = Quartiles::new(&feature_dependency_counts);
+    let feature_quartiles = Quartiles::new(&feature_counts);
+    let feature_dependency_quartiles = Quartiles::new(&feature_dependency_counts);
 
     chart.draw_series(vec![
-        Boxplot::new_vertical(SegmentValue::CenterOf(&"Features"), &a_quartiles),
-        Boxplot::new_vertical(SegmentValue::CenterOf(&"Feature Dependencies"), &b_quartiles),
+        Boxplot::new_vertical(SegmentValue::CenterOf(&"Features"), &feature_quartiles),
+        Boxplot::new_vertical(SegmentValue::CenterOf(&"Feature Dependencies"), &feature_dependency_quartiles),
     ])?;
+
+    let feature_outliers = feature_counts
+        .iter()
+        .filter(|&&c| c < feature_quartiles.values()[0] || c > feature_quartiles.values()[4])
+        .map(|c| Circle::new((SegmentValue::CenterOf(&"Features"), *c), 2.0, BLACK));
+
+    let feature_dependency_outliers = feature_dependency_counts
+        .iter()
+        .filter(|&&c| c < feature_dependency_quartiles.values()[0] || c > feature_dependency_quartiles.values()[4])
+        .map(|c| Circle::new((SegmentValue::CenterOf(&"Feature Dependencies"), *c), 2.0, BLACK));
+
+    chart.draw_series(feature_outliers)?;
+    chart.draw_series(feature_dependency_outliers)?;
 
     Ok(())
 }

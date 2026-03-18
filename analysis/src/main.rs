@@ -181,7 +181,7 @@ fn main() -> anyhow::Result<()> {
     println!("Creating cross_tree_constraints_comparison.png...");
     plots::cross_tree_constraints(&plot_dir, &flat_model_stats, &fca_model_stats)?;
     println!("Creating box_plots.png...");
-    plots::box_plots(&plot_dir, &feature_stats)?;
+    plots::feature_stats(&plot_dir, &feature_stats, config.max_features)?;
 
     println!(
         "Average number of features: {}", 
