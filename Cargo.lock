@@ -31,6 +31,7 @@ name = "analysis"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "box-plotters",
  "chrono",
  "clap",
  "configuration-scraper",
@@ -260,6 +261,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71"
 dependencies = [
  "generic-array",
+]
+
+[[package]]
+name = "box-plotters"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4a42a259e241a807c015f097d0ef18a236dd9fc85240d319e21f816bf69b6c7"
+dependencies = [
+ "itertools 0.14.0",
+ "plotters",
+ "plotters-backend",
 ]
 
 [[package]]

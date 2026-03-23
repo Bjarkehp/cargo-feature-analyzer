@@ -1,7 +1,8 @@
 use std::{collections::BTreeMap, path::Path};
 
+use box_plotters::{box_plot::BoxPlot, quartiles::Quartiles};
 use cargo_toml::crate_id::CrateId;
-use plotters::{chart::ChartBuilder, data::Quartiles, prelude::{Boxplot, Circle, IntoSegmentedCoord, SegmentValue}, style::{BLACK, IntoFont, WHITE}};
+use plotters::{chart::ChartBuilder, prelude::{Circle, IntoSegmentedCoord, SegmentValue}, style::{BLACK, IntoFont, WHITE}};
 use sorted_iter::SortedPairIterator;
 use tokei::Language;
 
@@ -131,20 +132,20 @@ pub fn feature_stats(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usiz
 
     let (feature_counts, feature_dependency_counts): (Vec<_>, Vec<_>) = feature_stats
         .values()
-        .map(|(f, d)| (*f as f32, *d as f32))
-        .filter(|(f, _d)| *f <= max_features as f32)
+        .map(|(f, d)| (*f as f64, *d as f64))
+        .filter(|(f, _d)| *f <= max_features as f64)
         .unzip();
 
-    let feature_quartiles = Quartiles::new(&feature_counts);
-    let feature_dependency_quartiles = Quartiles::new(&feature_dependency_counts);
-    let min = feature_quartiles.values()[0]
-        .min(feature_dependency_quartiles.values()[0])
-        .min(feature_counts.iter().cloned().min_by(f32::total_cmp).unwrap())
-        .min(feature_dependency_counts.iter().cloned().min_by(f32::total_cmp).unwrap());
-    let max = feature_quartiles.values()[4]
-        .max(feature_dependency_quartiles.values()[4])
-        .min(feature_counts.iter().cloned().max_by(f32::total_cmp).unwrap())
-        .max(feature_dependency_counts.iter().cloned().max_by(f32::total_cmp).unwrap());
+    let feature_quartiles = Quartiles::new_iqr(&feature_counts);
+    let feature_dependency_quartiles = Quartiles::new_iqr(&feature_dependency_counts);
+    let min = feature_quartiles.lower_whisker
+        .min(feature_dependency_quartiles.lower_whisker)
+        .min(feature_counts.iter().cloned().min_by(f64::total_cmp).unwrap())
+        .min(feature_dependency_counts.iter().cloned().min_by(f64::total_cmp).unwrap());
+    let max = feature_quartiles.upper_whisker
+        .max(feature_dependency_quartiles.upper_whisker)
+        .min(feature_counts.iter().cloned().max_by(f64::total_cmp).unwrap())
+        .max(feature_dependency_counts.iter().cloned().max_by(f64::total_cmp).unwrap());
 
     let root = default_root(&path)?;
     
@@ -161,22 +162,19 @@ pub fn feature_stats(dir: &Path, feature_stats: &BTreeMap<&CrateId, (usize, usiz
         .light_line_style(WHITE)
         .draw()?;
 
-    let feature_quartiles = Quartiles::new(&feature_counts);
-    let feature_dependency_quartiles = Quartiles::new(&feature_dependency_counts);
-
     chart.draw_series(vec![
-        Boxplot::new_vertical(SegmentValue::CenterOf(&"Features"), &feature_quartiles),
-        Boxplot::new_vertical(SegmentValue::CenterOf(&"Feature Dependencies"), &feature_dependency_quartiles),
+        BoxPlot::vertical_from_key_quartiles(SegmentValue::CenterOf(&"Features"), feature_quartiles),
+        BoxPlot::vertical_from_key_quartiles(SegmentValue::CenterOf(&"Feature Dependencies"), feature_dependency_quartiles),
     ])?;
 
     let feature_outliers = feature_counts
         .iter()
-        .filter(|&&c| c < feature_quartiles.values()[0] || c > feature_quartiles.values()[4])
+        .filter(|&&c| c < feature_quartiles.lower_whisker || c > feature_quartiles.upper_whisker)
         .map(|c| Circle::new((SegmentValue::CenterOf(&"Features"), *c), 2.0, BLACK));
 
     let feature_dependency_outliers = feature_dependency_counts
         .iter()
-        .filter(|&&c| c < feature_dependency_quartiles.values()[0] || c > feature_dependency_quartiles.values()[4])
+        .filter(|&&c| c < feature_dependency_quartiles.lower_whisker || c > feature_dependency_quartiles.upper_whisker)
         .map(|c| Circle::new((SegmentValue::CenterOf(&"Feature Dependencies"), *c), 2.0, BLACK));
 
     chart.draw_series(feature_outliers)?;
