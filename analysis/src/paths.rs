@@ -1,7 +1,6 @@
 use anyhow::Context;
 
 pub const CRATE_ENTRIES: &str = "data/crates.txt";
-pub const TOML: &str = "data/toml";
 pub const CRATE: &str = "data/crate";
 pub const CONFIG: &str = "data/configuration";
 pub const FLAT_MODEL: &str = "data/model/flat";
@@ -13,7 +12,7 @@ pub const FLAMAPY_SERVER: &str = "analysis/src/flamapy_server.py";
 
 /// Creates the data directory, and its children.
 pub fn prepare_directories() -> anyhow::Result<()> {
-    for path in [TOML, CRATE, CONFIG, FLAT_MODEL, FCA_MODEL, RESULT_ROOT, PLOT_ROOT] {
+    for path in [CRATE, CONFIG, FLAT_MODEL, FCA_MODEL, RESULT_ROOT, PLOT_ROOT] {
         std::fs::create_dir_all(path)
             .with_context(|| format!("Failed to create directory {path}"))?;
     }
