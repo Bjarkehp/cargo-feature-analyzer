@@ -33,29 +33,27 @@ macro_rules! config_replace {
 }
 
 pub fn config_from_args(args: Args) -> anyhow::Result<Config> {
-    let maybe_toml_config = args.config
+    let mut config = Config::default();
+    let toml_config = args.config
         .as_ref()
         .map(std::fs::read_to_string)
         .transpose()?
         .map(|s| s.parse::<toml::Table>())
-        .transpose()?;
+        .transpose()?
+        .unwrap_or_default();
 
-    let mut config = Config::default();
+    let usize_map = |k: &str| toml_config.get(k)
+        .and_then(|v| v.as_integer().filter(|&i| i >= 0).map(|i| i as usize));
 
-    if let Some(toml_config) = maybe_toml_config {
-        let usize_map = |k: &str| toml_config.get(k)
-            .and_then(|v| v.as_integer().filter(|&i| i >= 0).map(|i| i as usize));
+    let str_map = |k: &str| toml_config.get(k)
+        .and_then(|v| v.as_str().map(str::to_string));
 
-        let str_map = |k: &str| toml_config.get(k)
-            .and_then(|v| v.as_str().map(str::to_string));
-
-        config_replace!(config, args, str_map, connection_string);
-        config_replace!(config, args, usize_map, number_of_crates);
-        config_replace!(config, args, usize_map, max_features);
-        config_replace!(config, args, usize_map, min_configs);
-        config_replace!(config, args, usize_map, max_configs);
-        config_replace!(config, args, usize_map, max_dependencies);
-    }
+    config_replace!(config, args, str_map, connection_string);
+    config_replace!(config, args, usize_map, number_of_crates);
+    config_replace!(config, args, usize_map, max_features);
+    config_replace!(config, args, usize_map, min_configs);
+    config_replace!(config, args, usize_map, max_configs);
+    config_replace!(config, args, usize_map, max_dependencies);
 
     Ok(config)
 }
