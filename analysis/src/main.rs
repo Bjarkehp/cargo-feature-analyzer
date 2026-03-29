@@ -203,28 +203,32 @@ fn main() -> anyhow::Result<()> {
 
 fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: usize) -> anyhow::Result<Vec<CrateEntry>> {
     if let Ok(content) = std::fs::read_to_string(paths::CRATE_ENTRIES) {
-        content.lines()
+        let crate_entries = content.lines()
             .map(|line| line.parse())
             .collect::<Result<Vec<_>, _>>()
-            .with_context(|| format!("Expected to parse {} as a list of crates", paths::CRATE_ENTRIES))
-    } else {
-        println!("Scraping {} popular crates from crates.io...", number_of_crates);
+            .with_context(|| format!("Expected to parse {} as a list of crates", paths::CRATE_ENTRIES))?;
 
-        let entries = crate_scraper::scrape_popular_by_configurations(client, number_of_crates as i64)
+        if number_of_crates == crate_entries.len() {
+            return Ok(crate_entries);
+        }
+    }
+
+    println!("Scraping {} popular crates from crates.io...", number_of_crates);
+
+    let entries = crate_scraper::scrape_popular_by_configurations(client, number_of_crates as i64)
             .expect("Failed to scrape popular crates");
 
-        let file = File::create(paths::CRATE_ENTRIES)
+    let file = File::create(paths::CRATE_ENTRIES)
             .with_context(|| format!("Failed to create file {}", paths::CRATE_ENTRIES))?;
 
-        let mut writer = BufWriter::new(file);
+    let mut writer = BufWriter::new(file);
 
-        for entry in entries.iter() {
-            writeln!(writer, "{}", entry)
-                .with_context(|| format!("Failed to write to file {}", paths::CRATE_ENTRIES))?;
-        }
-
-        Ok(entries)
+    for entry in entries.iter() {
+        writeln!(writer, "{}", entry)
+            .with_context(|| format!("Failed to write to file {}", paths::CRATE_ENTRIES))?;
     }
+
+    Ok(entries)
 }
 
 fn download_crate(client: &reqwest::blocking::Client, id: &CrateId) -> anyhow::Result<()> {
