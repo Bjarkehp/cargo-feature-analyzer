@@ -1,18 +1,16 @@
 mod flamapy_client;
 mod csv;
-mod plot;
 mod paths;
 mod feature_model;
 mod tables;
-pub mod plots;
 mod retry;
-mod correlation;
 mod bounding_box;
-pub mod args;
-pub mod config;
+mod args;
+mod config;
 
 use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
+use analysis::result::model_stats::ModelStats;
 use anyhow::{Context, anyhow};
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use chrono::Local;
@@ -171,17 +169,6 @@ fn main() -> anyhow::Result<()> {
     let plot_dir = PathBuf::from(format!("{}/{}", paths::PLOT_ROOT, date_time));
     std::fs::create_dir(&plot_dir)
         .with_context(|| "Failed to create directory for plots of this analysis")?;
-
-    println!("Creating features_and_dependencies.png...");
-    plots::features_and_dependencies(&plot_dir, &feature_stats, config.max_features, config.max_dependencies)?;
-    println!("Creating line_count_and_features.png...");
-    plots::line_count_and_features(&plot_dir, &line_counts, &feature_stats)?;
-    println!("Creating flat_vs_fca.png...");
-    plots::flat_vs_fca_exact(&plot_dir, &flat_model_stats, &fca_model_stats)?;
-    println!("Creating cross_tree_constraints_comparison.png...");
-    plots::cross_tree_constraints(&plot_dir, &flat_model_stats, &fca_model_stats)?;
-    println!("Creating box_plots.png...");
-    plots::feature_stats(&plot_dir, &feature_stats, config.max_features)?;
 
     println!(
         "Average number of features: {}", 
@@ -348,16 +335,12 @@ fn get_configuration_stats(configs: Option<&[Configuration<'static>]>, default_f
     }
 }
 
-pub struct ModelStats {
-    config_estimation: f64,
-    config_exact: f64,
-    features: usize,
-    cross_tree_constraints: usize,
-}
-
 fn get_model_stats(client: &mut flamapy_client::Client, path: &Path, model: &FeatureModel) -> anyhow::Result<ModelStats> {
     client.set_model(path)
         .with_context(|| format!("Failed to set model to {path:?}"))?;
+
+    let features = model.count_features();
+    let cross_tree_constraints = model.cross_tree_constraints.len();
 
     let config_estimation = client.estimated_number_of_configurations()
         .with_context(|| format!("Failed to get estimated number of configurations for {path:?}"))?;
@@ -365,10 +348,7 @@ fn get_model_stats(client: &mut flamapy_client::Client, path: &Path, model: &Fea
     let config_exact = client.configurations_number()
         .with_context(|| format!("Failed to get configuration number for {path:?}"))?;
 
-    let features = model.count_features();
-    let cross_tree_constraints = model.cross_tree_constraints.len();
-
-    Ok(ModelStats { config_estimation, config_exact, features, cross_tree_constraints })
+    Ok(ModelStats::new(features, cross_tree_constraints, config_estimation, config_exact))
 }
 
 fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &CrateId, configurations: &[Configuration<'static>]) -> anyhow::Result<usize> {

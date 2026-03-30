@@ -1,3 +1,9 @@
+pub mod features_and_dependencies;
+pub mod line_count_and_features;
+pub mod declared_vs_fca;
+pub mod cross_tree_constraints;
+pub mod feature_stats;
+
 use std::{iter::successors, ops::Range, path::Path};
 
 use anyhow::anyhow;
@@ -141,4 +147,39 @@ fn log_ticks(r: Range<f64>, count: usize) -> impl Iterator<Item = f64> {
 fn ticks(r: Range<f64>, count: usize) -> impl Iterator<Item = f64> {
     let step = (r.end - r.start) / (count - 1) as f64;
     successors(Some(r.start), move |x| Some(x + step)).take(count)
+}
+
+pub fn log_label_formatter(x: &f64) -> String {
+    let exponent = x.log10();
+    let int_exponent = exponent.round() as u32;
+    let exponent_super_script = superscript(int_exponent as i32);
+
+    if (exponent - int_exponent as f64).abs() < 0.01 {
+        format!("10{exponent_super_script}")
+    } else {
+        let coefficient = x / 10_i32.pow(int_exponent) as f64;
+        format!("{coefficient} × 10{exponent_super_script}")
+    }
+}
+
+fn superscript(n: i32) -> String {
+    let superscript_map = |c: char| match c {
+        '0' => '⁰',
+        '1' => '¹', 
+        '2' => '²', 
+        '3' => '³',
+        '4' => '⁴', 
+        '5' => '⁵', 
+        '6' => '⁶', 
+        '7' => '⁷',
+        '8' => '⁸', 
+        '9' => '⁹', 
+        '-' => '⁻',
+        _ => panic!("Invalid character for superscript {c}")
+    };
+
+    n.to_string()
+        .chars()
+        .map(superscript_map)
+        .collect::<String>()
 }
