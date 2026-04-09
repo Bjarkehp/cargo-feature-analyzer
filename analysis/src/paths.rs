@@ -30,6 +30,7 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
     std::fs::create_dir_all(&paths.data)?;
     std::fs::create_dir_all(&paths.result)?;
     std::fs::create_dir_all(&paths.crates)?;
+    std::fs::create_dir_all(&paths.config)?;
     std::fs::create_dir_all(&paths.declared_model)?;
     std::fs::create_dir_all(&paths.fca_model)?;
 
