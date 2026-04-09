@@ -5,7 +5,7 @@ edition = "2024"
 
 [[bin]]
 name = "plots"
-path = "src/plots_new.rs"
+path = "src/plots.rs"
 
 [[bin]]
 name = "analysis"

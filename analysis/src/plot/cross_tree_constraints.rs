@@ -17,7 +17,7 @@ pub fn plot(declared: &[ModelStats], fca: &[ModelStats], path: impl AsRef<Path>)
     let x_range = fitting_range(points.iter().map(|p| &p.0));
     let y_range = fitting_range(points.iter().map(|p| &p.1));
 
-    let root = default_root(path.as_ref())?;
+    let root = default_root(path.as_ref(), 1000, 600)?;
     let mut chart = default_chart(&root, caption, x_range, y_range)?;
     default_mesh(&mut chart, x_desc, y_desc).draw()?;
     draw_points(&mut chart, &points)?;

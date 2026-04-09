@@ -3,11 +3,13 @@ pub mod line_count_and_features;
 pub mod declared_vs_fca;
 pub mod cross_tree_constraints;
 pub mod feature_stats;
+pub mod default_configs;
+pub mod unique_configs;
 
 use std::{iter::successors, ops::Range, path::Path};
 
 use anyhow::anyhow;
-use plotters::{chart::{ChartBuilder, ChartContext, MeshStyle}, coord::{Shift, ranged1d::ValueFormatter, types::RangedCoordf64}, prelude::{BitMapBackend, Cartesian2d, Circle, DrawingArea, DrawingBackend, IntoDrawingArea, IntoLogRange, LogCoord, PathElement, Ranged}, series::LineSeries, style::{BLACK, BLUE, Color, IntoFont, WHITE}};
+use plotters::{chart::{ChartBuilder, ChartContext, MeshStyle}, coord::{Shift, ranged1d::ValueFormatter, types::RangedCoordf64}, prelude::{BitMapBackend, Cartesian2d, Circle, DrawingArea, DrawingBackend, IntoDrawingArea, IntoLogRange, LogCoord, PathElement, Ranged, SegmentValue}, series::LineSeries, style::{BLACK, BLUE, Color, IntoFont, WHITE}};
 
 use polyfit_rs::polyfit_rs;
 
@@ -17,8 +19,8 @@ pub type DefaultRoot<'a> = DrawingArea<BitMapBackend<'a>, Shift>;
 pub type DefaultChartContext<'a> = ChartContext<'a, BitMapBackend<'a>, Cartesian2d<RangedCoordf64, RangedCoordf64>>;
 pub type DefaultLogChartContext<'a> = ChartContext<'a, BitMapBackend<'a>, Cartesian2d<LogCoord<f64>, LogCoord<f64>>>;
 
-pub fn default_root(path: &Path) -> anyhow::Result<DefaultRoot<'_>> {
-    let root = BitMapBackend::new(path, (1000, 600)).into_drawing_area();
+pub fn default_root(path: &Path, width: u32, height: u32) -> anyhow::Result<DefaultRoot<'_>> {
+    let root = BitMapBackend::new(path, (width, height)).into_drawing_area();
     root.fill(&WHITE)?;
     Ok(root)
 }
@@ -159,6 +161,18 @@ pub fn log_label_formatter(x: &f64) -> String {
     } else {
         let coefficient = x / 10_i32.pow(int_exponent) as f64;
         format!("{coefficient} × 10{exponent_super_script}")
+    }
+}
+
+pub fn integer_formatter(x: &f64) -> String {
+    format!("{x:.0}")
+}
+
+pub fn segment_formatter(segment: &SegmentValue<&&str>) -> String {
+    match segment {
+        SegmentValue::Exact(s) => (**s).to_owned(),
+        SegmentValue::CenterOf(s) => (**s).to_owned(),
+        SegmentValue::Last => format!("{segment:?}"),
     }
 }
 

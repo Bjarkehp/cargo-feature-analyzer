@@ -1,4 +1,4 @@
-use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
+use std::{fs::File, io::{BufWriter, Write}};
 
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
@@ -6,14 +6,14 @@ use configuration_scraper::configuration::Configuration;
 use feature_model::{FeatureModel, uvl};
 use fm_synthesizer_fca::{concept, synthesizer, tree_constraints};
 
-use crate::paths;
+use crate::paths::Paths;
 
-/// Create a flat feature model for a crate with the given crate id and Cargo.toml content.
-pub fn create_flat(id: &CrateId, table: &toml::Table) -> anyhow::Result<FeatureModel> {
+/// Create a declared feature model for a crate with the given crate id and Cargo.toml content.
+pub fn create_declared(id: &CrateId, table: &toml::Table, paths: &Paths) -> anyhow::Result<FeatureModel> {
     let feature_model = fm_synthesizer_flat::fm_from_cargo_toml(table)
         .with_context(|| format!("Failed to create flat constraints for {id}"))?;
 
-    let path = PathBuf::from(format!("{}/{}.uvl", paths::FLAT_MODEL, id));
+    let path = paths.declared_model.join(format!("{id}.uvl"));
     let file = File::create(&path)?;
     let mut writer = BufWriter::new(file);
     uvl::write(&mut writer, &feature_model)
@@ -25,8 +25,8 @@ pub fn create_flat(id: &CrateId, table: &toml::Table) -> anyhow::Result<FeatureM
 }
 
 /// Create an FCA feature model for a crate with the given crate id and set of configurations.
-pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>]) -> anyhow::Result<FeatureModel> {
-    let path = PathBuf::from(format!("{}/{}.uvl", paths::FCA_MODEL, id));
+pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths: &Paths) -> anyhow::Result<FeatureModel> {
+    let path = paths.fca_model.join(format!("{id}.uvl"));
     let file = File::create(&path)?;
     let train_configurations = &configurations[..configurations.len() / 10];
     let mut features = train_configurations.first()

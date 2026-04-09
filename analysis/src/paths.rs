@@ -1,21 +1,37 @@
-use anyhow::Context;
+use std::path::PathBuf;
 
-pub const CRATE_ENTRIES: &str = "data/crates.txt";
-pub const CRATE: &str = "data/crate";
-pub const CONFIG: &str = "data/configuration";
-pub const FLAT_MODEL: &str = "data/model/flat";
-pub const FCA_MODEL: &str = "data/model/fca";
-pub const RESULT_ROOT: &str = "data/result";
-pub const PLOT_ROOT: &str = "data/plot";
+use analysis::config::Config;
 
-pub const FLAMAPY_SERVER: &str = "analysis/src/flamapy_server.py";
+pub struct Paths {
+    pub data: PathBuf,
+    pub result: PathBuf,
+    pub crate_entries: PathBuf,
+    pub crates: PathBuf,
+    pub config: PathBuf,
+    pub declared_model: PathBuf,
+    pub fca_model: PathBuf,
+    pub flamapy_server: PathBuf,
+}
 
-/// Creates the data directory, and its children.
-pub fn prepare_directories() -> anyhow::Result<()> {
-    for path in [CRATE, CONFIG, FLAT_MODEL, FCA_MODEL, RESULT_ROOT, PLOT_ROOT] {
-        std::fs::create_dir_all(path)
-            .with_context(|| format!("Failed to create directory {path}"))?;
-    }
+/// Ensures the relevant directories exist, 
+/// and returns a Paths instance which stores all relevant paths
+pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
+    let paths = Paths {
+        data: config.data.clone(),
+        result: config.result.clone(),
+        crate_entries: config.data.join("crates.txt"),
+        crates: config.data.join("crate"),
+        config: config.data.join("configuration"),
+        declared_model: config.data.join("model/declared"),
+        fca_model: config.data.join("model/fca_model"),
+        flamapy_server: PathBuf::from("analysis/src/flamapy_server.py")
+    };
 
-    Ok(())
+    std::fs::create_dir_all(&paths.data)?;
+    std::fs::create_dir_all(&paths.result)?;
+    std::fs::create_dir_all(&paths.crates)?;
+    std::fs::create_dir_all(&paths.declared_model)?;
+    std::fs::create_dir_all(&paths.fca_model)?;
+
+    Ok(paths)
 }

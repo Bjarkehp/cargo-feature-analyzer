@@ -1,199 +1,112 @@
 mod flamapy_client;
-mod csv;
 mod paths;
 mod feature_model;
-mod tables;
 mod retry;
-mod bounding_box;
-mod args;
-mod config;
 
-use std::{collections::{BTreeMap, BTreeSet}, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
+use std::{collections::BTreeSet, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
 
-use analysis::result::model_stats::ModelStats;
-use anyhow::{Context, anyhow};
+use analysis::{args::Args, config::config_from_args, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability::SatisfiabilityRow}};
+use anyhow::Context;
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
-use chrono::Local;
 use clap::Parser;
 use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
 use ::feature_model::FeatureModel;
 use itertools::Itertools;
 use rand::{Rng, SeedableRng, rngs::StdRng, seq::SliceRandom};
-use sorted_iter::{SortedPairIterator, assume::AssumeSortedByKeyExt};
 use tokei::{LanguageType, Languages};
 
-use crate::{args::Args, config::config_from_args, retry::retry};
+use crate::{paths::Paths, retry::retry};
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     let config = config_from_args(args)?;
-
-    paths::prepare_directories()?;
+    let paths = paths::prepare_paths(&config)?;
+    let tokei_config = tokei::Config::default();
+    let mut rng = StdRng::seed_from_u64(123);
 
     let mut postgres_client = postgres::Client::connect(&config.connection_string, postgres::NoTls)
         .with_context(|| "Failed to create postgres client")?;
-    let mut flamapy_client = flamapy_client::Client::new(paths::FLAMAPY_SERVER)
+    let mut flamapy_client = flamapy_client::Client::new(&paths.flamapy_server)
         .with_context(|| "Failed to create flamapy client")?;
     let reqwest_client = cargo_toml::default_reqwest_client()
         .with_context(|| "Failed to create reqwest client")?;
 
-    let crate_entries_vec = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates)?;
+    let mut feature_stats_writer = csv::Writer::from_path(paths.result.join("feature_stats.csv"))?;
+    let mut flat_model_stats_writer = csv::Writer::from_path(paths.result.join("flat_model_stats.csv"))?;
+    let mut fca_model_stats_writer = csv::Writer::from_path(paths.result.join("fca_model_stats.csv"))?;
+    let mut config_stats_writer = csv::Writer::from_path(paths.result.join("configuration_stats.csv"))?;
+    let mut satisfiability_writer = csv::Writer::from_path(paths.result.join("satisfiability.csv"))?;
+    let mut line_count_writer = csv::Writer::from_path(paths.result.join("line_count.csv"))?;
 
-    let crate_entries = crate_entries_vec.iter()
-        .map(|e| (&e.id, &e.data))
-        .collect::<BTreeMap<_, _>>();
+    let crate_entries = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates, &paths)?
+        .into_iter()
+        .sorted();
 
-    for id in crate_entries.keys() {
-        download_crate(&reqwest_client, id)?;
+    for entry in crate_entries {
+        let id = entry.id;
+        let id_str = id.to_string();
+
+        println!("Analyzing {id_str}");
+
+        download_crate(&reqwest_client, &id, &paths)?;
+
+        let line_count_row = get_line_count(&id, &tokei_config, &paths)?;
+        let cargo_toml = get_cargo_toml(&id, &paths)?;
+        let dependency_graph = feature_dependencies::from_cargo_toml(&cargo_toml)
+            .with_context(|| format!("Failed to create dependency graph for {id}"))?;
+        let feature_count = dependency_graph.node_count();
+        let feature_dependency_count = dependency_graph.edge_count();
+        let default_features = implied_features::from_dependency_graph(["default"].into_iter(), &dependency_graph);
+        let feature_stats = FeatureStats::new(id.clone(), feature_count, feature_dependency_count);
+
+        if feature_count > config.max_features {
+            continue;
+        }
+        
+        let crate_configs = get_or_scrape_configurations(&mut postgres_client, &id, &dependency_graph, &paths, config.max_configs, &mut rng)?;
+        let crate_test_configs = &crate_configs[crate_configs.len() / 10..];
+        let config_stats = get_configuration_stats(&id, &crate_configs, &default_features);
+
+        if crate_configs.len() < config.min_configs {
+            continue;
+        }
+
+        let flat_model = feature_model::create_declared(&id, &cargo_toml, &paths)?;
+        let fca_model = feature_model::create_fca(&id, &crate_configs, &paths)?;
+        let flat_model_path = paths.declared_model.join(format!("{id_str}.uvl"));
+        let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
+        let flat_model_stats = get_model_stats(&mut flamapy_client, &id, &flat_model_path, &flat_model)?;
+        let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
+
+        let satisfied_test_configurations = number_of_satisfied_configurations(&mut flamapy_client, &id, crate_test_configs)?;
+        let satisfiability = satisfied_test_configurations as f64 / crate_test_configs.len() as f64;
+        let satisfiability_row = SatisfiabilityRow::new(id.clone(), satisfiability);
+
+        feature_stats_writer.serialize(feature_stats)?;
+        flat_model_stats_writer.serialize(flat_model_stats)?;
+        fca_model_stats_writer.serialize(fca_model_stats)?;
+        config_stats_writer.serialize(config_stats)?;
+        satisfiability_writer.serialize(satisfiability_row)?;
+        line_count_writer.serialize(line_count_row)?;
     }
 
-    let line_counts = crate_entries.keys()
-        .map(|&id| {
-            let mut languages = Languages::new();
-            let config = tokei::Config::default();
-            languages.get_statistics(&[format!("{}/{id}", paths::CRATE)], &[], &config);
-            let stats = languages.get(&LanguageType::Rust)
-                .ok_or_else(|| anyhow!("Failed to get line count statistics for {id}"))?
-                .summarise();
-            Ok((id, stats))
-        })
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    let cargo_tomls = crate_entries.keys()
-        .map(|&id| get_or_scrape_cargo_toml(id).map(|table| (id, table)))
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    let dependency_graphs = cargo_tomls.iter()
-        .map(|(id, table)| {
-            feature_dependencies::from_cargo_toml(table)
-                .map(|table| (*id, table))
-                .with_context(|| format!("Failed to create dependency graph for {id}"))
-        })
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    let mut rng = StdRng::seed_from_u64(123);
-    let configuration_sets = dependency_graphs.iter()
-        .map(|(id, graph)| get_or_scrape_configurations(&mut postgres_client, id, graph, config.max_configs, &mut rng).map(|c| (*id, c)))
-        .filter_ok(|(_, configs)| !configs.is_empty())
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    println!("Creating flat models...");
-
-    let flat_models = cargo_tomls.iter()
-        .map(|(&id, table)| Ok((id, feature_model::create_flat(id, table)?)))
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    println!("Creating fca models...");
-
-    let fca_models = configuration_sets.iter()
-        .filter(|(_id, configs)| configs.len() >= config.min_configs)
-        .map(|(&id, configs)| Ok((id, feature_model::create_fca(id, configs)?)))
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    println!("Calculating feature and feature dependency counts...");
-
-    let feature_stats = dependency_graphs.iter()
-        .map(|(&id, graph)| (id, (graph.node_count(), graph.edge_count())))
-        .collect::<BTreeMap<_, _>>();
-
-    let feature_counts = dependency_graphs.iter()
-        .map(|(&id, graph)| (id, graph.node_count()))
-        .collect::<BTreeMap<_, _>>();
-
-    println!("Calculating configuration counts...");
-
-    let configuration_counts = dependency_graphs.iter()
-        .left_join(configuration_sets.iter())
-        .map(|(&id, (graph, configs))| {
-            let default_features = implied_features::from_dependency_graph(std::iter::once("default"), graph);
-            let configs_slice = configs.map(|c| c.as_slice());
-            let stats = get_configuration_stats(configs_slice, &default_features);
-            (id, stats)
-        })
-        .collect::<BTreeMap<_, _>>();
-
-    println!("Calculating config stats for flat models...");
-
-    let flat_model_paths = feature_counts.iter()
-        .filter(|&(_id, &features)| features < config.max_features)
-        .map(|(id, _features)| (id, PathBuf::from(format!("data/model/flat/{id}.uvl"))))
-        .filter(|(_id, path)| path.exists())
-        .assume_sorted_by_key();
-
-    let flat_model_stats = flat_model_paths
-        .join(flat_models.iter())
-        .map(|(&id, (path, model))| get_model_stats(&mut flamapy_client, &path, model).map(|s| (id, s)))
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    println!("Calculating config stats for fca models...");
-
-    let fca_model_paths = || feature_counts.iter()
-        .filter(|&(_id, &features)| features < config.max_features)
-        .map(|(id, _features)| (id, PathBuf::from(format!("data/model/fca/{id}.uvl"))))
-        .filter(|(_id, path)| path.exists())
-        .assume_sorted_by_key();
-
-    let fca_model_stats = fca_model_paths()
-        .join(fca_models.iter())
-        .map(|(&id, (path, model))| get_model_stats(&mut flamapy_client, &path, model).map(|s| (id, s)))
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-
-    println!("Calculating fca quality...");
-
-    let fca_model_quality = fca_model_paths()
-        .join(configuration_sets.iter())
-        .map(|(&id, (path, configs))| {
-            flamapy_client.set_model(&path)
-                .with_context(|| format!("Failed to set model to {path:?}"))?;
-            let test_configs = &configs[configs.len() / 10..];
-            let satified_configurations = number_of_satisfied_configurations(&mut flamapy_client, id, test_configs)?;
-            let quality = satified_configurations as f64 / test_configs.len() as f64;
-            Ok((id, quality))
-        })
-        .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
-    
-    let date_time = Local::now().naive_local();
-    
-    println!("Creating csv files...");
-    let result_directory = PathBuf::from(format!("{}/{}", paths::RESULT_ROOT, date_time));
-    std::fs::create_dir(&result_directory)
-        .with_context(|| "Failed to create directory for results of this analysis")?;
-
-    tables::write_feature_stats(&result_directory, &feature_stats)?;
-    tables::write_configuration_stats(&result_directory, &configuration_counts)?;
-    tables::write_flat_model_stats(&result_directory, &flat_model_stats)?;
-    tables::write_fca_model_stats(&result_directory, &fca_model_stats)?;
-    tables::write_fca_model_quality(&result_directory, &fca_model_quality)?;
-
-    let plot_dir = PathBuf::from(format!("{}/{}", paths::PLOT_ROOT, date_time));
-    std::fs::create_dir(&plot_dir)
-        .with_context(|| "Failed to create directory for plots of this analysis")?;
-
-    println!(
-        "Average number of features: {}", 
-        feature_counts.values().sum::<usize>() as f64 / feature_counts.len() as f64
-    );
-
-    println!(
-        "Average number of feature dependencies: {}", 
-        feature_stats.values().map(|x| x.1).sum::<usize>() as f64 / feature_stats.len() as f64
-    );
-    
-    println!(
-        "Average quality: {}", 
-        fca_model_quality.values().sum::<f64>() / fca_model_quality.len() as f64
-    );
+    feature_stats_writer.flush()?;
+    flat_model_stats_writer.flush()?;
+    fca_model_stats_writer.flush()?;
+    config_stats_writer.flush()?;
+    satisfiability_writer.flush()?;
+    line_count_writer.flush()?;
 
     Ok(())
 }
 
-fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: usize) -> anyhow::Result<Vec<CrateEntry>> {
-    if let Ok(content) = std::fs::read_to_string(paths::CRATE_ENTRIES) {
+fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: usize, paths: &Paths) -> anyhow::Result<Vec<CrateEntry>> {
+    if let Ok(content) = std::fs::read_to_string(&paths.crate_entries) {
         let crate_entries = content.lines()
             .map(|line| line.parse())
             .collect::<Result<Vec<_>, _>>()
-            .with_context(|| format!("Expected to parse {} as a list of crates", paths::CRATE_ENTRIES))?;
+            .with_context(|| format!("Expected to parse {:?} as a list of crates", paths.crate_entries))?;
 
         if number_of_crates == crate_entries.len() {
             return Ok(crate_entries);
@@ -203,23 +116,23 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: 
     println!("Scraping {} popular crates from crates.io...", number_of_crates);
 
     let entries = crate_scraper::scrape_popular_by_configurations(client, number_of_crates as i64)
-            .expect("Failed to scrape popular crates");
+        .expect("Failed to scrape popular crates");
 
-    let file = File::create(paths::CRATE_ENTRIES)
-            .with_context(|| format!("Failed to create file {}", paths::CRATE_ENTRIES))?;
+    let file = File::create(&paths.crate_entries)
+        .with_context(|| format!("Failed to create file {:?}", paths.crate_entries))?;
 
     let mut writer = BufWriter::new(file);
 
     for entry in entries.iter() {
         writeln!(writer, "{}", entry)
-            .with_context(|| format!("Failed to write to file {}", paths::CRATE_ENTRIES))?;
+            .with_context(|| format!("Failed to write to file {:?}", paths.crate_entries))?;
     }
 
     Ok(entries)
 }
 
-fn download_crate(client: &reqwest::blocking::Client, id: &CrateId) -> anyhow::Result<()> {
-    let path = PathBuf::from(format!("{}/{id}", paths::CRATE));
+fn download_crate(client: &reqwest::blocking::Client, id: &CrateId, paths: &Paths) -> anyhow::Result<()> {
+    let path = paths.crates.join(id.to_string());
     if !std::fs::exists(&path)? {
         println!("Downloading {}", id);
         let version_str = id.version.to_string();
@@ -227,16 +140,28 @@ fn download_crate(client: &reqwest::blocking::Client, id: &CrateId) -> anyhow::R
         let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
         let mut archive = retry(5, request, error_reporter)
             .with_context(|| format!("Failed to download Cargo.toml for {id}"))?;
-        archive.unpack(paths::CRATE)?;
-        let unpack_path = Path::new(paths::CRATE).join(format!("{}-{}", id.name, id.version));
+        archive.unpack(&paths.crates)?;
+        let unpack_path = paths.crates.join(format!("{}-{}", id.name, id.version));
         std::fs::rename(unpack_path, path)?;
     }
 
     Ok(())
 }
 
-fn get_or_scrape_cargo_toml(id: &CrateId) -> anyhow::Result<toml::Table> {
-    let path = PathBuf::from(format!("{}/{id}/Cargo.toml", paths::CRATE));
+fn get_line_count(id: &CrateId, config: &tokei::Config, paths: &Paths) -> anyhow::Result<LineCountRow> {
+    let mut tokei_language = Languages::new();
+    tokei_language.get_statistics(&[paths.crates.join(id.to_string())], &[], config);
+    let tokei_stats = tokei_language.get(&LanguageType::Rust)
+        .with_context(|| format!("Failed to get line count statistics for {id}"))?
+        .summarise();
+    let line_count = tokei_stats.lines();
+    Ok(LineCountRow::new(id.clone(), line_count))
+}
+
+fn get_cargo_toml(id: &CrateId, paths: &Paths) -> anyhow::Result<toml::Table> {
+    let path = paths.crates
+        .join(id.to_string())
+        .join("Cargo.toml");
     let content = std::fs::read_to_string(&path)?;
     content.parse()
         .with_context(|| format!("Failed to parse Cargo.toml for {id}"))
@@ -245,14 +170,13 @@ fn get_or_scrape_cargo_toml(id: &CrateId) -> anyhow::Result<toml::Table> {
 fn get_or_scrape_configurations<R: Rng>(
     client: &mut postgres::Client, 
     id: &CrateId, 
-    dependency_graph: &feature_dependencies::Graph, 
+    dependency_graph: &feature_dependencies::Graph,
+    paths: &Paths,
     max_configs: usize,
     rng: &mut R
 ) -> anyhow::Result<Vec<Configuration<'static>>> {
-    let path = PathBuf::from(format!("{}/{id}", paths::CONFIG));
+    let path = paths.config.join(id.to_string());
     let mut configurations = if let Ok(entries) = std::fs::read_dir(&path) {
-        println!("Collecting configurations for {id}...");
-
         entries.map(|r| r.with_context(|| format!("Failed to get entry in {path:?}")))
             .map(|r| r.and_then(|entry| read_configuration(&entry.path())))
             .collect::<anyhow::Result<Vec<_>>>()?
@@ -302,40 +226,22 @@ fn read_configuration(path: &Path) -> anyhow::Result<Configuration<'static>> {
         .with_context(|| format!("Failed to parse configuration file at {path:?}"))
 }
 
-struct ConfigStats {
-    configuration_count: usize,
-    default_configurations_count: usize, 
-    unique_configurations_count: usize,
+fn get_configuration_stats(id: &CrateId, configs: &[Configuration<'static>], default_features: &BTreeSet<&str>) -> ConfigStats {
+    let configuration_count = configs.len();
+
+    let default_configuration_count = configs
+        .iter()
+        .filter(|config| config.features.iter().all(|(feature, &enabled)| default_features.contains(feature.as_ref()) == enabled))
+        .count();
+
+    let unique_configuration_count = configs.iter()
+        .into_group_map_by(|config| &config.features)
+        .len();
+
+    ConfigStats::new(id.clone(), configuration_count, default_configuration_count, unique_configuration_count)
 }
 
-fn get_configuration_stats(configs: Option<&[Configuration<'static>]>, default_features: &BTreeSet<&str>) -> ConfigStats {
-    if let Some(configs) = configs {
-        let configuration_count = configs.len();
-
-        let default_configurations_count = configs
-            .iter()
-            .filter(|config| config.features.iter().all(|(feature, &enabled)| default_features.contains(feature.as_ref()) == enabled))
-            .count();
-
-        let unique_configurations_count = configs.iter()
-            .into_group_map_by(|config| &config.features)
-            .len();
-
-        ConfigStats { 
-            configuration_count, 
-            default_configurations_count, 
-            unique_configurations_count 
-        }
-    } else {
-        ConfigStats { 
-            configuration_count: 0, 
-            default_configurations_count: 0, 
-            unique_configurations_count: 0 
-        }
-    }
-}
-
-fn get_model_stats(client: &mut flamapy_client::Client, path: &Path, model: &FeatureModel) -> anyhow::Result<ModelStats> {
+fn get_model_stats(client: &mut flamapy_client::Client, id: &CrateId, path: &Path, model: &FeatureModel) -> anyhow::Result<ModelStats> {
     client.set_model(path)
         .with_context(|| format!("Failed to set model to {path:?}"))?;
 
@@ -348,7 +254,7 @@ fn get_model_stats(client: &mut flamapy_client::Client, path: &Path, model: &Fea
     let config_exact = client.configurations_number()
         .with_context(|| format!("Failed to get configuration number for {path:?}"))?;
 
-    Ok(ModelStats::new(features, cross_tree_constraints, config_estimation, config_exact))
+    Ok(ModelStats::new(id.clone(), features, cross_tree_constraints, config_estimation, config_exact))
 }
 
 fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &CrateId, configurations: &[Configuration<'static>]) -> anyhow::Result<usize> {

@@ -4,6 +4,14 @@ use std::path::PathBuf;
 pub struct Args {
     #[arg(short, long)]
     pub config: Option<PathBuf>,
+
+    #[arg(long)]
+    pub data: Option<PathBuf>,
+    #[arg(long)]
+    pub result: Option<PathBuf>,
+    #[arg(long)]
+    pub plot: Option<PathBuf>,
+
     #[arg(long)]
     pub connection_string: Option<String>,
     #[arg(short, long)]

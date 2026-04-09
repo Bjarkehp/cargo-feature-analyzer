@@ -2,11 +2,9 @@ use cargo_toml::crate_id::CrateId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, derive_new::new)]
-pub struct FeatureStats {
+pub struct SatisfiabilityRow {
     #[serde(rename = "Crate")]
     pub crate_id: CrateId,
-    #[serde(rename = "Features")]
-    pub features: usize, 
-    #[serde(rename = "Feature dependencies")]
-    pub feature_dependencies: usize,
+    #[serde(rename = "Satisfiability")]
+    pub satisfiability: f64,
 }

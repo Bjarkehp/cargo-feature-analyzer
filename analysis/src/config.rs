@@ -1,9 +1,14 @@
+use std::path::PathBuf;
+
 use nameof::name_of;
 
 use crate::args::Args;
 
 pub struct Config {
     pub connection_string: String,
+    pub data: PathBuf,
+    pub result: PathBuf,
+    pub plot: PathBuf,
     pub number_of_crates: usize,
     pub max_features: usize,
     pub min_configs: usize,
@@ -15,6 +20,9 @@ impl Default for Config {
     fn default() -> Self {
         Self { 
             connection_string: "postgres://crates:crates@localhost:5432/crates_io_db".to_owned(), 
+            data: PathBuf::from("data"),
+            result: PathBuf::from("data/result"),
+            plot: PathBuf::from("data/plot"),
             number_of_crates: 100, 
             max_features: 100, 
             min_configs: 100, 
@@ -48,7 +56,13 @@ pub fn config_from_args(args: Args) -> anyhow::Result<Config> {
     let str_map = |k: &str| toml_config.get(k)
         .and_then(|v| v.as_str().map(str::to_string));
 
+    let path_map = |k: &str| toml_config.get(k)
+        .and_then(|v| v.as_str().map(PathBuf::from));
+
     config_replace!(config, args, str_map, connection_string);
+    config_replace!(config, args, path_map, data);
+    config_replace!(config, args, path_map, result);
+    config_replace!(config, args, path_map, plot);
     config_replace!(config, args, usize_map, number_of_crates);
     config_replace!(config, args, usize_map, max_features);
     config_replace!(config, args, usize_map, min_configs);

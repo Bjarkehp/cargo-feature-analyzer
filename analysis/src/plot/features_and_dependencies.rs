@@ -17,7 +17,7 @@ pub fn plot(feature_stats: &[FeatureStats], path: impl AsRef<Path>) -> anyhow::R
     let x_range = fitting_range(points.iter().map(|p| &p.0));
     let y_range = fitting_range(points.iter().map(|p| &p.1));
 
-    let root = default_root(path.as_ref())?;
+    let root = default_root(path.as_ref(), 1000, 600)?;
     let mut chart = default_chart(&root, caption, x_range.clone(), y_range)?;
     default_mesh(&mut chart, x_desc, y_desc).draw()?;
     draw_points(&mut chart, &points)?;
