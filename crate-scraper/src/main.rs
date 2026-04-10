@@ -1,4 +1,4 @@
-use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
+use std::path::PathBuf;
 
 
 use clap::Parser;
@@ -18,12 +18,14 @@ fn main() {
     let mut client = postgres::Client::connect(connection_string, NoTls).unwrap();
     let popular_crates = scrape_popular_by_configurations(&mut client, 1000).unwrap();
 
-    let file = File::create(&args.destination)
-        .unwrap_or_else(|e| panic!("Failed to create file at {:?}: {e}", args.destination));
-    let mut writer = BufWriter::new(file);
+    let mut writer = csv::Writer::from_path(&args.destination)
+        .unwrap_or_else(|e| panic!("Failed to create csv writer at {:?}: {e}", args.destination));
+
 
     for entry in popular_crates {
-        writeln!(writer, "{}", entry)
+        writer.serialize(entry)
             .unwrap_or_else(|e| panic!("Failed to write into file at {:?}: {e}", args.destination));
     }
+
+    writer.flush().unwrap_or_else(|e| panic!("Failed to flush writer at {:?}: {e}", args.destination))
 }

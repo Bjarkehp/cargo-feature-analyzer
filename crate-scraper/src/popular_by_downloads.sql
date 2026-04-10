@@ -1,8 +1,9 @@
 SELECT
     c.name AS crate_name,
     v.num AS num,
+    v.has_lib AS has_lib,
+    v.bin_names AS bin_names,
     cd.downloads AS downloads
-    -- v.crate_size AS crate_size
 FROM crate_downloads cd
 JOIN crates c ON cd.crate_id = c.id
 JOIN (

@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
 
     let crate_entries = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates, &paths)?
         .into_iter()
-        .sorted();
+        .sorted_by(|a, b| a.id.cmp(&b.id));
 
     for entry in crate_entries {
         let id = entry.id;
@@ -102,12 +102,12 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: usize, paths: &Paths) -> anyhow::Result<Vec<CrateEntry>> {
-    if let Ok(content) = std::fs::read_to_string(&paths.crate_entries) {
-        let crate_entries = content.lines()
-            .map(|line| line.parse())
-            .collect::<Result<Vec<_>, _>>()
+    if let Ok(reader) = csv::Reader::from_path(&paths.crate_entries) {
+        let crate_entries = reader
+            .into_deserialize()
+            .collect::<csv::Result<Vec<CrateEntry>>>()
             .with_context(|| format!("Expected to parse {:?} as a list of crates", paths.crate_entries))?;
-
+ 
         if number_of_crates == crate_entries.len() {
             return Ok(crate_entries);
         }
@@ -118,15 +118,15 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: 
     let entries = crate_scraper::scrape_popular_by_configurations(client, number_of_crates as i64)
         .expect("Failed to scrape popular crates");
 
-    let file = File::create(&paths.crate_entries)
-        .with_context(|| format!("Failed to create file {:?}", paths.crate_entries))?;
-
-    let mut writer = BufWriter::new(file);
+    let mut writer = csv::Writer::from_path(&paths.crate_entries)?;
 
     for entry in entries.iter() {
-        writeln!(writer, "{}", entry)
+        writer
+            .serialize(entry)
             .with_context(|| format!("Failed to write to file {:?}", paths.crate_entries))?;
     }
+
+    writer.flush()?;
 
     Ok(entries)
 }

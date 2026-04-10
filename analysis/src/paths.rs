@@ -19,7 +19,7 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
     let paths = Paths {
         data: config.data.clone(),
         result: config.result.clone(),
-        crate_entries: config.data.join("crates.txt"),
+        crate_entries: config.data.join("crates.csv"),
         crates: config.data.join("crate"),
         config: config.data.join("configuration"),
         declared_model: config.data.join("model/declared"),
