@@ -10,5 +10,5 @@ pub struct ConfigStats {
     #[serde(rename = "Default Configurations")]
     pub default_configuration_count: usize,
     #[serde(rename = "Unique Configurations")]
-    pub unique_configuration_count: usize,
+    pub distinct_configuration_count: usize,
 }

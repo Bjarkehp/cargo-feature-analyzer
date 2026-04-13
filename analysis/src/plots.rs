@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use analysis::{args::Args, config::config_from_args, plot::{cross_tree_constraints, declared_vs_fca, default_configs, feature_stats, features_and_dependencies, line_count_and_features, unique_configs}, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats}};
+use analysis::{args::Args, config::config_from_args, plot::{cross_tree_constraints, declared_vs_fca, default_configs, feature_stats, features_and_dependencies, line_count_and_features, distinct_configs}, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats}};
 use clap::Parser;
 use serde::de::DeserializeOwned;
 
@@ -24,7 +24,7 @@ fn main() -> anyhow::Result<()> {
     cross_tree_constraints::plot(&declared_stats, &fca_stats, plot.join("cross_tree_constraints.png"))?;
     line_count_and_features::plot(&line_count_rows, &feature_stats, plot.join("line_count_and_features.png"))?;
     default_configs::plot(&config_stats, plot.join("default_configs.png"))?;
-    unique_configs::plot(&config_stats, plot.join("unique_configs.png"))?;
+    distinct_configs::plot(&config_stats, plot.join("unique_configs.png"))?;
 
     Ok(())
 }

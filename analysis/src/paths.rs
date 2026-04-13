@@ -23,7 +23,7 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
         crates: config.data.join("crate"),
         config: config.data.join("configuration"),
         declared_model: config.data.join("model/declared"),
-        fca_model: config.data.join("model/fca_model"),
+        fca_model: config.data.join("model/fca"),
         flamapy_server: PathBuf::from("analysis/src/flamapy_server.py")
     };
 

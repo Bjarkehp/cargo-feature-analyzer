@@ -4,7 +4,7 @@ pub mod declared_vs_fca;
 pub mod cross_tree_constraints;
 pub mod feature_stats;
 pub mod default_configs;
-pub mod unique_configs;
+pub mod distinct_configs;
 
 use std::{iter::successors, ops::Range, path::Path};
 

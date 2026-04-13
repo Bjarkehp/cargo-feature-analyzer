@@ -3,7 +3,7 @@ mod paths;
 mod feature_model;
 mod retry;
 
-use std::{collections::BTreeSet, fs::File, io::{BufWriter, Write}, path::{Path, PathBuf}};
+use std::{collections::BTreeSet, path::Path};
 
 use analysis::{args::Args, config::config_from_args, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability::SatisfiabilityRow}};
 use anyhow::Context;
@@ -79,7 +79,7 @@ fn main() -> anyhow::Result<()> {
         let flat_model_stats = get_model_stats(&mut flamapy_client, &id, &flat_model_path, &flat_model)?;
         let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
 
-        let satisfied_test_configurations = number_of_satisfied_configurations(&mut flamapy_client, &id, crate_test_configs)?;
+        let satisfied_test_configurations = number_of_satisfied_configurations(&mut flamapy_client, &id, &fca_model_path, crate_test_configs, &paths)?;
         let satisfiability = satisfied_test_configurations as f64 / crate_test_configs.len() as f64;
         let satisfiability_row = SatisfiabilityRow::new(id.clone(), satisfiability);
 
@@ -234,11 +234,11 @@ fn get_configuration_stats(id: &CrateId, configs: &[Configuration<'static>], def
         .filter(|config| config.features.iter().all(|(feature, &enabled)| default_features.contains(feature.as_ref()) == enabled))
         .count();
 
-    let unique_configuration_count = configs.iter()
+    let distinct_configuration_count = configs.iter()
         .into_group_map_by(|config| &config.features)
         .len();
 
-    ConfigStats::new(id.clone(), configuration_count, default_configuration_count, unique_configuration_count)
+    ConfigStats::new(id.clone(), configuration_count, default_configuration_count, distinct_configuration_count)
 }
 
 fn get_model_stats(client: &mut flamapy_client::Client, id: &CrateId, path: &Path, model: &FeatureModel) -> anyhow::Result<ModelStats> {
@@ -257,13 +257,19 @@ fn get_model_stats(client: &mut flamapy_client::Client, id: &CrateId, path: &Pat
     Ok(ModelStats::new(id.clone(), features, cross_tree_constraints, config_estimation, config_exact))
 }
 
-fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &CrateId, configurations: &[Configuration<'static>]) -> anyhow::Result<usize> {
-    configurations.iter()
-        .map(|config| {
-            let path = PathBuf::from(format!("data/configuration/{id}/{}@{}.csvconf", config.name, config.version));
+fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &CrateId, model: &Path, configurations: &[Configuration], paths: &Paths) -> anyhow::Result<usize> {
+    client.set_model(model)
+        .with_context(|| format!("Failed to set model to {model:?}"))?;
+
+    configurations
+        .iter()
+        .map(|configuration| {
+            let path = paths.config
+                .join(format!("{id}/{}@{}.csvconf", configuration.name, configuration.version));
+
             client.satisfiable_configuration(&path)
                 .map(|b| b as usize)
-                .with_context(|| format!("Failed to check for satisfiable configuration for {}@{} for {id}", config.name, config.version))
+                .with_context(|| format!("Failed to check for satisfiable configuration (model: {}, configuration: {:?})", id, path))
         })
-        .fold_ok(0, |acc, x| acc + x)
+        .fold_ok(0, |a, b| a + b)
 }

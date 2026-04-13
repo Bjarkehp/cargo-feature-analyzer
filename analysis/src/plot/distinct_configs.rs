@@ -6,11 +6,11 @@ use plotters::{chart::ChartBuilder, prelude::Circle, style::{BLACK, IntoFont}};
 use crate::{plot::{default_root, integer_formatter}, result::configuration_stats::ConfigStats};
 
 pub fn plot(config_stats: &[ConfigStats], path: impl AsRef<Path>) -> anyhow::Result<()> {
-    let caption = "Unique configurations";
+    let caption = "Distinct configurations";
 
     let values = config_stats
         .iter()
-        .map(|s| s.unique_configuration_count as f64)
+        .map(|s| s.distinct_configuration_count as f64)
         .collect::<Vec<_>>();
 
     let max = values

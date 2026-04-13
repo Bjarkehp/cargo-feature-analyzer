@@ -3,6 +3,7 @@ use std::{borrow::Cow, collections::BTreeMap};
 use itertools::Itertools;
 use semver::Version;
 
+#[derive(Clone)]
 pub struct Configuration<'a> {
     pub name: String,
     pub version: Version,
@@ -16,6 +17,12 @@ impl<'a> Configuration<'a> {
 
     pub fn is_enabled(&self, feature: &str) -> bool {
         *self.features.get(&Cow::Borrowed(feature)).unwrap_or(&false)
+    }
+
+    pub fn assignment(&self, feature: &str) -> Option<bool> {
+        self.features
+            .get(&Cow::Borrowed(feature))
+            .copied()
     }
 
     pub fn from_csv(name: String, version: Version, content: &'a str) -> Option<Configuration<'a>> {
