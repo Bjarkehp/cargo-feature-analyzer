@@ -18,7 +18,12 @@ The analysis checks for correlation between several properties of the crates (e.
 ## Requirements
 
 ### Rust
-To run any of the crates, you must have a working [Rust toolchain](https://rust-lang.org/) installed.
+To run any of the crates, you must have a working [Rust toolchain](https://rust-lang.org/) installed. 
+
+Additionally, locally you must have installed the libraries locally: 
+* libssl-dev
+* libfontconfig1-dev
+
 
 ### Flamapy
 The analysis uses Flamapy to calculate certain properties of feature models. We recommend using version 2.1.0.dev1, which can be installed using pip (or pipx):
@@ -31,10 +36,24 @@ pip install flamapy==2.1.0.dev1
 Many crates use the crates.io database dump, to avoid sending too much traffic to crates.io. We have provided a docker container in this repository as well as a few scripts to get the database quickly up and running. The docker container also contains small modifications to import.sql and some extra index tables in schema.sql make scraping faster. This of course requires that the host machine has docker installed.
 
 First, the content of the database dump must be downloaded. Either download [the newest archive](https://static.crates.io/db-dump.tar.gz) and place it in the path ```docker/db-dump.tar.gz```, or run ```docker/download.sh``` to get the dump used to get our results.
+The dump contains an archive of csv-files representing the tables, a schema.sql and a import.sql file. 
 
 To build the docker container and the database, run ```docker/build.sh```.
 
-Finally, to start the database, run ```docker/start.sh```
+Finally, to start the database, run 
+
+```bash
+docker/start.sh
+```
+This intializes the database that contains a table for crates, and a table for individual versions of a crate and a table for dependencies between the crates.
+
+You may see the warning ``psql:/docker-entrypoint-initdb.d/01-import.sql:49: NOTICE:  word is too long to be indexed
+DETAIL:  Words longer than 2047 characters are ignored.`` which can be ignored.
+
+The database is fully setup when you see the LOG message
+
+``LOG:  database system is ready to accept connections ``
+
 
 ### SCIP (optional)
 To run the feature model synthesizer utilizing MILP, you need to download SCIP. The crate uses a solver-agnostic MILP library, so using a different solver is possible with a few small changes to the source code, if necessary.
@@ -55,4 +74,19 @@ All other crates provide a nice list of parameters when passing the ```-h``` or 
 
 ```bash
 cargo run --bin fm_synthesizer_fca_bin -- --ac-poset ac-poset.dot tokio configurations/tokio tokio.uvl
+```
+
+# Troubleshooting
+
+## Docker image creation
+
+If docker fails to recognize the image crates_io_db, navigate to the docker directory: 
+```bash
+cd docker
+```
+Then, run the docker-scripts from there:
+
+```bash
+./build.sh 
+./start.sh
 ```
