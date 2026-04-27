@@ -38,6 +38,7 @@ fn main() -> anyhow::Result<()> {
     let mut config_stats_writer = csv::Writer::from_path(paths.result.join("configuration_stats.csv"))?;
     let mut satisfiability_writer = csv::Writer::from_path(paths.result.join("satisfiability.csv"))?;
     let mut line_count_writer = csv::Writer::from_path(paths.result.join("line_count.csv"))?;
+    let mut running_time_fca_writer = csv::Writer::from_path(paths.result.join("running_time_fca.csv"))?;
 
     let crate_entries = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates, &paths)?
         .into_iter()
@@ -73,7 +74,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         let flat_model = feature_model::create_declared(&id, &cargo_toml, &paths)?;
-        let fca_model = feature_model::create_fca(&id, &crate_configs, &paths)?;
+        let (fca_model, running_time_fca) = feature_model::create_fca(&id, &crate_configs, &paths)?;
         let flat_model_path = paths.declared_model.join(format!("{id_str}.uvl"));
         let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
         let flat_model_stats = get_model_stats(&mut flamapy_client, &id, &flat_model_path, &flat_model)?;
@@ -89,6 +90,7 @@ fn main() -> anyhow::Result<()> {
         config_stats_writer.serialize(config_stats)?;
         satisfiability_writer.serialize(satisfiability_row)?;
         line_count_writer.serialize(line_count_row)?;
+        running_time_fca_writer.serialize(running_time_fca)?;
     }
 
     feature_stats_writer.flush()?;
@@ -97,6 +99,7 @@ fn main() -> anyhow::Result<()> {
     config_stats_writer.flush()?;
     satisfiability_writer.flush()?;
     line_count_writer.flush()?;
+    running_time_fca_writer.flush()?;
 
     Ok(())
 }

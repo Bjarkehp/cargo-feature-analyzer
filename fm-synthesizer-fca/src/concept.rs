@@ -4,7 +4,7 @@ use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;
 use derive_new::new;
 use itertools::Itertools;
-use petgraph::{graph::DiGraph, visit::{Dfs, EdgeRef, VisitMap}};
+use petgraph::{Direction, algo::toposort, graph::DiGraph, visit::{Dfs, EdgeRef, VisitMap}};
 
 /// A Concept consists of a set of configurations and features,
 /// where the configurations share that same set of features.
@@ -35,11 +35,11 @@ impl Debug for Concept<'_> {
 /// 4. Create a graph where the nodes are concepts and the edges represent the partial order of concepts.
 /// 5. Remove all redundant edges that don't effect the partial order.
 pub fn ac_poset<'a>(configurations: &'a [Configuration], features: &'a [&str], root: &str) -> DiGraph<Concept<'a>, ()> {
-    let mut concepts = extract_concepts(configurations, features, root);
+    let concepts = extract_concepts(configurations, features, root);
     let edges = subset_edges(&concepts);
-    remove_duplicate_configurations(&mut concepts, &edges);
     let mut graph = create_graph(concepts, &edges);
     transitive_reduction(&mut graph);
+    remove_duplicate_configurations(&mut graph);
     graph
 }
 
@@ -75,24 +75,19 @@ fn subset_edges(concepts: &[Concept]) -> Vec<(u32, u32)> {
 }
 
 /// Remove duplicate configurations from the concepts that are already inherited by parent concepts.
-fn remove_duplicate_configurations(concepts: &mut [Concept], edges: &[(u32, u32)]) {
-    let mut differences: BTreeMap<u32, BTreeSet<CrateId>> = BTreeMap::new();
-    for &(i, j) in edges {
-        let a = &concepts[i as usize];
-        let b = &concepts[j as usize];
+fn remove_duplicate_configurations(graph: &mut DiGraph<Concept, ()>) {
+    let edges = toposort(&*graph, None)
+        .expect("AC poset has no cycles")
+        .into_iter()
+        .rev()
+        .flat_map(|i| graph.edges_directed(i, Direction::Incoming))
+        .map(|e| e.id())
+        .collect::<Vec<_>>();
 
-        let config_diff = differences.entry(j)
-            .or_insert(b.configurations.clone())
-            .difference(&a.configurations)
-            .cloned()
-            .collect::<BTreeSet<_>>();
-        differences.entry(j)
-            .and_modify(|set| set.retain(|c| config_diff.contains(c)))
-            .or_insert(config_diff);
-    }
-
-    for (i, set) in differences {
-        concepts[i as usize].configurations = set;
+    for e in edges {
+        let (u, v) = graph.edge_endpoints(e)
+            .expect("Only node weights are mutated, edges remain the same");
+        graph[v].configurations = &graph[v].configurations - &graph[u].configurations;
     }
 }
 
