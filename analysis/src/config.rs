@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use nameof::name_of;
 
@@ -42,10 +42,13 @@ macro_rules! config_replace {
 
 pub fn config_from_args(args: Args) -> anyhow::Result<Config> {
     let mut config = Config::default();
-    let toml_config = args.config
-        .as_ref()
-        .map(std::fs::read_to_string)
-        .transpose()?
+
+    let toml_config_path = args.config
+        .as_deref()
+        .unwrap_or(Path::new("analysis.toml"));
+
+    let toml_config = std::fs::read_to_string(toml_config_path)
+        .ok()
         .map(|s| s.parse::<toml::Table>())
         .transpose()?
         .unwrap_or_default();
