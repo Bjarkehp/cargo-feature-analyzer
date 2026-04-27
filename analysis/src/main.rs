@@ -33,12 +33,13 @@ fn main() -> anyhow::Result<()> {
         .with_context(|| "Failed to create reqwest client")?;
 
     let mut feature_stats_writer = csv::Writer::from_path(paths.result.join("feature_stats.csv"))?;
-    let mut flat_model_stats_writer = csv::Writer::from_path(paths.result.join("flat_model_stats.csv"))?;
+    let mut static_model_stats_writer = csv::Writer::from_path(paths.result.join("flat_model_stats.csv"))?;
     let mut fca_model_stats_writer = csv::Writer::from_path(paths.result.join("fca_model_stats.csv"))?;
     let mut config_stats_writer = csv::Writer::from_path(paths.result.join("configuration_stats.csv"))?;
     let mut satisfiability_writer = csv::Writer::from_path(paths.result.join("satisfiability.csv"))?;
     let mut line_count_writer = csv::Writer::from_path(paths.result.join("line_count.csv"))?;
     let mut running_time_fca_writer = csv::Writer::from_path(paths.result.join("running_time_fca.csv"))?;
+    let mut running_time_static_writer = csv::Writer::from_path(paths.result.join("running_time_static.csv"))?;
 
     let crate_entries = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates, &paths)?
         .into_iter()
@@ -73,11 +74,11 @@ fn main() -> anyhow::Result<()> {
             continue;
         }
 
-        let flat_model = feature_model::create_declared(&id, &cargo_toml, &paths)?;
+        let (static_model, running_time_static) = feature_model::create_static(&id, &cargo_toml, &paths)?;
         let (fca_model, running_time_fca) = feature_model::create_fca(&id, &crate_configs, &paths)?;
-        let flat_model_path = paths.declared_model.join(format!("{id_str}.uvl"));
+        let static_model_path = paths.static_model.join(format!("{id_str}.uvl"));
         let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
-        let flat_model_stats = get_model_stats(&mut flamapy_client, &id, &flat_model_path, &flat_model)?;
+        let static_model_stats = get_model_stats(&mut flamapy_client, &id, &static_model_path, &static_model)?;
         let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
 
         let satisfied_test_configurations = number_of_satisfied_configurations(&mut flamapy_client, &id, &fca_model_path, crate_test_configs, &paths)?;
@@ -85,21 +86,23 @@ fn main() -> anyhow::Result<()> {
         let satisfiability_row = SatisfiabilityRow::new(id.clone(), satisfiability);
 
         feature_stats_writer.serialize(feature_stats)?;
-        flat_model_stats_writer.serialize(flat_model_stats)?;
+        static_model_stats_writer.serialize(static_model_stats)?;
         fca_model_stats_writer.serialize(fca_model_stats)?;
         config_stats_writer.serialize(config_stats)?;
         satisfiability_writer.serialize(satisfiability_row)?;
         line_count_writer.serialize(line_count_row)?;
         running_time_fca_writer.serialize(running_time_fca)?;
+        running_time_static_writer.serialize(running_time_static)?;
     }
 
     feature_stats_writer.flush()?;
-    flat_model_stats_writer.flush()?;
+    static_model_stats_writer.flush()?;
     fca_model_stats_writer.flush()?;
     config_stats_writer.flush()?;
     satisfiability_writer.flush()?;
     line_count_writer.flush()?;
     running_time_fca_writer.flush()?;
+    running_time_static_writer.flush()?;
 
     Ok(())
 }

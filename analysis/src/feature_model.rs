@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufWriter, Write}, time::Instant};
 
-use analysis::result::running_time::Runningtime;
+use analysis::result::{running_time_fca::RunningTimeFca, running_time_static::RunningTimeStatic};
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;
@@ -10,11 +10,14 @@ use fm_synthesizer_fca::{concept, synthesizer, tree_constraints};
 use crate::paths::Paths;
 
 /// Create a declared feature model for a crate with the given crate id and Cargo.toml content.
-pub fn create_declared(id: &CrateId, table: &toml::Table, paths: &Paths) -> anyhow::Result<FeatureModel> {
+pub fn create_static(id: &CrateId, table: &toml::Table, paths: &Paths) -> anyhow::Result<(FeatureModel, RunningTimeStatic)> {
+    let start = Instant::now();
     let feature_model = fm_synthesizer_flat::fm_from_cargo_toml(table)
         .with_context(|| format!("Failed to create flat constraints for {id}"))?;
+    let elapsed = start.elapsed().as_secs_f32();
+    let running_time = RunningTimeStatic::new(id.clone(), elapsed);
 
-    let path = paths.declared_model.join(format!("{id}.uvl"));
+    let path = paths.static_model.join(format!("{id}.uvl"));
     let file = File::create(&path)?;
     let mut writer = BufWriter::new(file);
     uvl::write(&mut writer, &feature_model)
@@ -22,11 +25,11 @@ pub fn create_declared(id: &CrateId, table: &toml::Table, paths: &Paths) -> anyh
     writer.flush()
         .with_context(|| format!("Failed to flush file {path:?}"))?;
 
-    Ok(feature_model)
+    Ok((feature_model, running_time))
 }
 
 /// Create an FCA feature model for a crate with the given crate id and set of configurations.
-pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths: &Paths) -> anyhow::Result<(FeatureModel, Runningtime)> {
+pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths: &Paths) -> anyhow::Result<(FeatureModel, RunningTimeFca)> {
     let path = paths.fca_model.join(format!("{id}.uvl"));
     let file = File::create(&path)?;
     let train_configurations = &configurations[..configurations.len() / 10];
@@ -52,7 +55,7 @@ pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths:
     writer.flush()
         .with_context(|| format!("Failed to flush file {path:?}"))?;
 
-    let running_time = Runningtime::new(
+    let running_time = RunningTimeFca::new(
         id.clone(), 
         (ac_poset_time - start).as_secs_f32(),
         (tree_constraints_time - ac_poset_time).as_secs_f32(),
