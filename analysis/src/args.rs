@@ -17,6 +17,8 @@ pub struct Args {
     #[arg(short, long)]
     pub number_of_crates: Option<usize>,
     #[arg(long)]
+    pub min_features: Option<usize>,
+    #[arg(long)]
     pub max_features: Option<usize>,
     #[arg(long)]
     pub min_configs: Option<usize>,
@@ -24,4 +26,9 @@ pub struct Args {
     pub max_configs: Option<usize>,
     #[arg(long)]
     pub max_dependencies: Option<usize>,
+
+    #[arg(long)]
+    pub permutations: Option<usize>,
+    #[arg(long)]
+    pub train_test_split: Option<f32>,
 }

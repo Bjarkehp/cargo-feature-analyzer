@@ -1,15 +1,16 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
 use box_plotters::{box_plot::BoxPlot, quartiles::Quartiles};
+use cargo_toml::crate_id::CrateId;
 use plotters::{chart::ChartBuilder, prelude::Circle, style::{BLACK, IntoFont}};
 
 use crate::{plot::{default_root, integer_formatter}, result::configuration_stats::ConfigStats};
 
-pub fn plot(config_stats: &[ConfigStats], path: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn plot(config_stats: &BTreeMap<CrateId, ConfigStats>, path: impl AsRef<Path>) -> anyhow::Result<()> {
     let caption = "Default configurations";
 
     let values = config_stats
-        .iter()
+        .values()
         .map(|s| s.default_configuration_count as f64)
         .collect::<Vec<_>>();
 

@@ -1,6 +1,8 @@
 use cargo_toml::crate_id::CrateId;
 use serde::{Deserialize, Serialize};
 
+use crate::impl_key_crate_id;
+
 #[derive(Debug, Serialize, Deserialize, derive_new::new)]
 pub struct ConfigStats {
     #[serde(rename = "Crate")]
@@ -12,3 +14,5 @@ pub struct ConfigStats {
     #[serde(rename = "Unique Configurations")]
     pub distinct_configuration_count: usize,
 }
+
+impl_key_crate_id!(ConfigStats);

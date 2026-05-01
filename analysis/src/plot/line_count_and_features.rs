@@ -1,17 +1,23 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
-use itertools::izip;
+use cargo_toml::crate_id::CrateId;
 use plotters::data::fitting_range;
+use sorted_iter::SortedPairIterator;
 
 use crate::{plot::{default_chart, default_mesh, default_root, draw_linear_regression, draw_points}, result::{feature_stats::FeatureStats, line_count::LineCountRow}};
 
-pub fn plot(line_count_rows: &[LineCountRow], feature_stats: &[FeatureStats], path: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn plot(
+    line_count_rows: &BTreeMap<CrateId, LineCountRow>, 
+    feature_stats: &BTreeMap<CrateId, FeatureStats>, 
+    path: impl AsRef<Path>
+) -> anyhow::Result<()> {
     let caption = "Line count and features";
     let x_desc = "Line count";
     let y_desc = "Features";
 
-    let points = izip!(line_count_rows, feature_stats)
-        .map(|(l, f)| (l.line_count as f64, f.features as f64))
+    let points = line_count_rows.iter()
+        .join(feature_stats.iter())
+        .map(|(_id, (l, f))| (l.line_count as f64, f.features as f64))
         .collect::<Vec<_>>();
 
     let x_range = fitting_range(points.iter().map(|p| &p.0));

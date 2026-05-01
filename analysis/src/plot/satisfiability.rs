@@ -4,22 +4,17 @@ use box_plotters::{box_plot::BoxPlot, quartiles::Quartiles};
 use cargo_toml::crate_id::CrateId;
 use plotters::{chart::ChartBuilder, prelude::Circle, style::{BLACK, IntoFont}};
 
-use crate::{plot::{default_root, integer_formatter}, result::configuration_stats::ConfigStats};
+use crate::{plot::default_root, result::satisfiability::SatisfiabilityRow};
 
-pub fn plot(config_stats: &BTreeMap<CrateId, ConfigStats>, path: impl AsRef<Path>) -> anyhow::Result<()> {
-    let caption = "Distinct configurations";
+pub fn plot(rows: &BTreeMap<CrateId, SatisfiabilityRow>, path: impl AsRef<Path>) -> anyhow::Result<()> {
+    let caption = "Satisfiability";
 
-    let values = config_stats
+    let values = rows
         .values()
-        .map(|s| s.distinct_configuration_count as f64)
+        .map(|s| s.satisfiability)
         .collect::<Vec<_>>();
-
-    let max = values
-        .iter()
-        .cloned()
-        .max_by(f64::total_cmp)
-        .unwrap();
-    let x_axis = 0.0..max;
+    
+    let x_axis = 0.0..1.0;
 
     let root = default_root(path.as_ref(), 1000, 200)?;
     let mut chart = ChartBuilder::on(&root)
@@ -32,7 +27,6 @@ pub fn plot(config_stats: &BTreeMap<CrateId, ConfigStats>, path: impl AsRef<Path
     chart
         .configure_mesh()
         .x_label_style(("sans-serif", 18).into_font())
-        .x_label_formatter(&integer_formatter)
         .disable_y_axis()
         .disable_mesh()
         .draw()?;

@@ -32,7 +32,7 @@ pub fn create_static(id: &CrateId, table: &toml::Table, paths: &Paths) -> anyhow
 pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths: &Paths) -> anyhow::Result<(FeatureModel, RunningTimeFca)> {
     let path = paths.fca_model.join(format!("{id}.uvl"));
     let file = File::create(&path)?;
-    let train_configurations = &configurations[..configurations.len() / 10];
+    let train_configurations = &configurations[..configurations.len() / 2];
     let mut features = train_configurations.first()
         .expect("Crates are filtered above for number of configs")
         .features.keys()

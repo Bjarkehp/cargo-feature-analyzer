@@ -1,18 +1,25 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
 use crate::result::model_stats::ModelStats;
-use itertools::izip;
+use cargo_toml::crate_id::CrateId;
 use plotters::data::fitting_range;
+use sorted_iter::SortedPairIterator;
 
 use crate::plot::{default_log_chart, default_mesh, default_root, draw_points, log_label_formatter};
 
-pub fn plot(declared: &[ModelStats], fca: &[ModelStats], path: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn plot(
+    declared: &BTreeMap<CrateId, ModelStats>, 
+    fca: &BTreeMap<CrateId, ModelStats>, 
+    path: impl AsRef<Path>
+) -> anyhow::Result<()> {
     let caption = "Configuration number (Declared & FCA)";
     let x_desc = "Configuration number (Declared)";
     let y_desc = "Configuration number (FCA)";
 
-    let points = izip!(declared, fca)
-        .map(|(d, f)| (d.config_exact, f.config_exact))
+    let points = declared
+        .iter()
+        .join(fca.iter())
+        .map(|(_id, (d, f))| (d.config_exact, f.config_exact))
         .collect::<Vec<_>>();
 
     let x_range = fitting_range(points.iter().map(|p| &p.0));

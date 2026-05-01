@@ -62,27 +62,43 @@ fn main() -> anyhow::Result<()> {
         let default_features = implied_features::from_dependency_graph(["default"].into_iter(), &dependency_graph);
         let feature_stats = FeatureStats::new(id.clone(), feature_count, feature_dependency_count);
 
-        if feature_count > config.max_features {
+        if feature_count > config.max_features || feature_count < config.min_features {
             continue;
         }
         
         let crate_configs = get_or_scrape_configurations(&mut postgres_client, &id, &dependency_graph, &paths, config.max_configs, &mut rng)?;
-        let crate_test_configs = &crate_configs[crate_configs.len() / 10..];
+        let mut distinct_crate_configs = crate_configs.iter()
+            .unique_by(|c| &c.features)
+            .cloned()
+            .collect::<Vec<_>>();
         let config_stats = get_configuration_stats(&id, &crate_configs, &default_features);
 
-        if crate_configs.len() < config.min_configs {
+        if distinct_crate_configs.len() < config.min_configs {
             continue;
         }
 
         let (static_model, running_time_static) = feature_model::create_static(&id, &cargo_toml, &paths)?;
-        let (fca_model, running_time_fca) = feature_model::create_fca(&id, &crate_configs, &paths)?;
         let static_model_path = paths.static_model.join(format!("{id_str}.uvl"));
-        let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
         let static_model_stats = get_model_stats(&mut flamapy_client, &id, &static_model_path, &static_model)?;
+        
+        let (fca_model, running_time_fca) = feature_model::create_fca(&id, &distinct_crate_configs, &paths)?;
+        let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
         let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
 
-        let satisfied_test_configurations = number_of_satisfied_configurations(&mut flamapy_client, &id, &fca_model_path, crate_test_configs, &paths)?;
-        let satisfiability = satisfied_test_configurations as f64 / crate_test_configs.len() as f64;
+        let train_test_split_index = f32::floor(distinct_crate_configs.len() as f32 * config.train_test_split) as usize;
+        let train_range = 0..train_test_split_index;
+        let test_range = train_test_split_index..distinct_crate_configs.len();
+
+        let mut satisfied_test_configurations = 0;
+        for _ in 0..config.permutations {
+            distinct_crate_configs.shuffle(&mut rng);
+            let crate_train_configs = &distinct_crate_configs[train_range.clone()];
+            let crate_test_configs = &distinct_crate_configs[test_range.clone()];
+            feature_model::create_fca(&id, crate_train_configs, &paths)?;
+            satisfied_test_configurations += number_of_satisfied_configurations(&mut flamapy_client, &id, &fca_model_path, crate_test_configs, &paths)?;
+        }
+        
+        let satisfiability = satisfied_test_configurations as f64 / (test_range.len() as f64 * config.permutations as f64);
         let satisfiability_row = SatisfiabilityRow::new(id.clone(), satisfiability);
 
         feature_stats_writer.serialize(feature_stats)?;

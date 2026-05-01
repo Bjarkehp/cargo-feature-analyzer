@@ -1,17 +1,18 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
 use box_plotters::{box_plot::BoxPlot, quartiles::Quartiles};
+use cargo_toml::crate_id::CrateId;
 use itertools::chain;
 use plotters::{chart::ChartBuilder, prelude::{Circle, IntoSegmentedCoord, SegmentValue}, style::{BLACK, IntoFont}};
 
 use crate::{plot::{default_root, integer_formatter, segment_formatter}, result::feature_stats::FeatureStats};
 
-pub fn plot(feature_stats: &[FeatureStats], path: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn plot(feature_stats: &BTreeMap<CrateId, FeatureStats>, path: impl AsRef<Path>) -> anyhow::Result<()> {
     let caption = "Feature stats";
     let y_axis = ["Features", "Feature Dependencies"];
 
     let (features, feature_dependencies) = feature_stats
-        .iter()
+        .values()
         .map(|s| (s.features as f64, s.feature_dependencies as f64))
         .unzip::<_, _, Vec<_>, Vec<_>>();
 

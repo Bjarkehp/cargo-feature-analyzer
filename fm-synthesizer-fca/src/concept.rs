@@ -1,4 +1,4 @@
-use std::{collections::{BTreeMap, BTreeSet}, fmt::Debug};
+use std::{collections::BTreeSet, fmt::Debug};
 
 use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;

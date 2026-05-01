@@ -17,4 +17,4 @@ WHERE d.crate_id = (
     WHERE name = $1
 )
 -- Order such that new crates are preferred over old.
-ORDER BY v.created_at DESC
+ORDER BY v.downloads DESC

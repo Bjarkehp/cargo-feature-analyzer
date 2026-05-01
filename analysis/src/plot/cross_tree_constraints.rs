@@ -1,17 +1,24 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
-use itertools::izip;
+use cargo_toml::crate_id::CrateId;
 use plotters::data::fitting_range;
+use sorted_iter::SortedPairIterator;
 
 use crate::{plot::{default_chart, default_mesh, default_root, draw_points}, result::model_stats::ModelStats};
 
-pub fn plot(declared: &[ModelStats], fca: &[ModelStats], path: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn plot(
+    declared: &BTreeMap<CrateId, ModelStats>, 
+    fca: &BTreeMap<CrateId, ModelStats>, 
+    path: impl AsRef<Path>
+) -> anyhow::Result<()> {
     let caption = "Cross-tree constraints (Declared & FCA)";
     let x_desc = "Cross-tree constraints (Declared)";
     let y_desc = "Cross-tree constraints (FCA)";
 
-    let points = izip!(declared, fca)
-        .map(|(d, f)| (d.cross_tree_constraints as f64, f.cross_tree_constraints as f64))
+    let points = declared
+        .iter()
+        .join(fca.iter())
+        .map(|(_id, (d, f))| (d.cross_tree_constraints as f64, f.cross_tree_constraints as f64))
         .collect::<Vec<_>>();
 
     let x_range = fitting_range(points.iter().map(|p| &p.0));

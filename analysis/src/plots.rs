@@ -1,7 +1,8 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
-use analysis::{args::Args, config::config_from_args, plot::{cross_tree_constraints, declared_vs_fca, default_configs, feature_stats, features_and_dependencies, line_count_and_features, distinct_configs}, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats}};
+use analysis::{args::Args, config::config_from_args, plot::{cross_tree_constraints, declared_vs_fca, default_configs, distinct_configs, feature_stats, features_and_dependencies, line_count_and_features, satisfiability, satisfiability_wrt_configs, satisfiability_wrt_features}, result::{Row, configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability::SatisfiabilityRow}};
 use clap::Parser;
+use itertools::Itertools;
 use serde::de::DeserializeOwned;
 
 fn main() -> anyhow::Result<()> {
@@ -17,6 +18,7 @@ fn main() -> anyhow::Result<()> {
     let fca_stats = load::<ModelStats>(result.join("fca_model_stats.csv"))?;
     let line_count_rows = load::<LineCountRow>(result.join("line_count.csv"))?;
     let config_stats = load::<ConfigStats>(result.join("configuration_stats.csv"))?;
+    let satisfiability_rows = load::<SatisfiabilityRow>(result.join("satisfiability.csv"))?;
 
     feature_stats::plot(&feature_stats, plot.join("feature_stats.png"))?;
     features_and_dependencies::plot(&feature_stats, plot.join("features_and_dependencies.png"))?;
@@ -25,13 +27,17 @@ fn main() -> anyhow::Result<()> {
     line_count_and_features::plot(&line_count_rows, &feature_stats, plot.join("line_count_and_features.png"))?;
     default_configs::plot(&config_stats, plot.join("default_configs.png"))?;
     distinct_configs::plot(&config_stats, plot.join("unique_configs.png"))?;
+    satisfiability::plot(&satisfiability_rows, plot.join("satisfiability.png"))?;
+    satisfiability_wrt_configs::plot(&satisfiability_rows, &config_stats, plot.join("satisfiability_wrt_configs.png"))?;
+    satisfiability_wrt_features::plot(&satisfiability_rows, &feature_stats, plot.join("satisfiability_wrt_features.png"))?;
 
     Ok(())
 }
 
-fn load<T: DeserializeOwned>(path: impl AsRef<Path>) -> anyhow::Result<Vec<T>> {
+fn load<T: DeserializeOwned + Row>(path: impl AsRef<Path>) -> anyhow::Result<BTreeMap<T::Key, T>> {
     let rows = csv::Reader::from_path(path)?
         .into_deserialize()
-        .collect::<csv::Result<Vec<T>>>()?;
+        .map_ok(|r: T| (r.key(), r))
+        .collect::<csv::Result<BTreeMap<T::Key, T>>>()?;
     Ok(rows)
 }

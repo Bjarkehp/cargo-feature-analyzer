@@ -1,16 +1,18 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
 use crate::result::feature_stats::FeatureStats;
+use cargo_toml::crate_id::CrateId;
 use plotters::data::fitting_range;
 
 use crate::plot::{default_chart, default_mesh, default_root, draw_linear_regression, draw_points};
 
-pub fn plot(feature_stats: &[FeatureStats], path: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn plot(feature_stats: &BTreeMap<CrateId, FeatureStats>, path: impl AsRef<Path>) -> anyhow::Result<()> {
     let caption = "Features and feature dependencies";
     let x_desc = "Features";
     let y_desc = "Feature dependencies";
 
-    let points = feature_stats.iter()
+    let points = feature_stats
+        .values()
         .map(|s| (s.features as f64, s.feature_dependencies as f64))
         .collect::<Vec<_>>();
 

@@ -10,10 +10,13 @@ pub struct Config {
     pub result: PathBuf,
     pub plot: PathBuf,
     pub number_of_crates: usize,
+    pub min_features: usize,
     pub max_features: usize,
     pub min_configs: usize,
     pub max_configs: usize,
     pub max_dependencies: usize,
+    pub permutations: usize,
+    pub train_test_split: f32,
 }
 
 impl Default for Config {
@@ -24,10 +27,13 @@ impl Default for Config {
             result: PathBuf::from("data/result"),
             plot: PathBuf::from("data/plot"),
             number_of_crates: 100, 
+            min_features: 0,
             max_features: 100, 
             min_configs: 100, 
             max_configs: 1000, 
-            max_dependencies: 1000
+            max_dependencies: 1000,
+            permutations: 100,
+            train_test_split: 0.5
         }
     }
 }
@@ -61,16 +67,22 @@ pub fn config_from_args(args: Args) -> anyhow::Result<Config> {
 
     let path_map = |k: &str| toml_config.get(k)
         .and_then(|v| v.as_str().map(PathBuf::from));
+ 
+    let f32_map = |k: &str| toml_config.get(k)
+        .and_then(|v| v.as_float().map(|f| f as f32));
 
     config_replace!(config, args, str_map, connection_string);
     config_replace!(config, args, path_map, data);
     config_replace!(config, args, path_map, result);
     config_replace!(config, args, path_map, plot);
     config_replace!(config, args, usize_map, number_of_crates);
+    config_replace!(config, args, usize_map, min_features);
     config_replace!(config, args, usize_map, max_features);
     config_replace!(config, args, usize_map, min_configs);
     config_replace!(config, args, usize_map, max_configs);
     config_replace!(config, args, usize_map, max_dependencies);
+    config_replace!(config, args, usize_map, permutations);
+    config_replace!(config, args, f32_map, train_test_split);
 
     Ok(config)
 }
