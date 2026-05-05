@@ -1,19 +1,18 @@
-use std::{collections::BTreeMap, path::Path};
+use std::path::Path;
 
 use box_plotters::{box_plot::BoxPlot, quartiles::Quartiles};
-use cargo_toml::crate_id::CrateId;
 use plotters::{chart::ChartBuilder, prelude::Circle, style::{BLACK, IntoFont}};
 
-use crate::{plot::default_root, result::satisfiability_row::SatisfiabilityRow};
+use crate::{plot::default_root, result::satisfiability_crate_row::SatisfiabilityCrateRow};
 
-pub fn plot(rows: &BTreeMap<CrateId, SatisfiabilityRow>, path: impl AsRef<Path>) -> anyhow::Result<()> {
-    let caption = "Satisfiability";
+pub fn plot(rows: &[SatisfiabilityCrateRow], path: impl AsRef<Path>, name: &str) -> anyhow::Result<()> {
+    let caption = format!("Satisfiability for {name}");
 
     let values = rows
-        .values()
-        .map(|s| s.satisfiability)
+        .iter()
+        .map(|r| r.satisfiability)
         .collect::<Vec<_>>();
-    
+
     let x_axis = 0.0..1.0;
 
     let root = default_root(path.as_ref(), 1000, 200)?;

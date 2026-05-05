@@ -8,6 +8,7 @@ pub mod distinct_configs;
 pub mod satisfiability;
 pub mod satisfiability_wrt_configs;
 pub mod satisfiability_wrt_features;
+pub mod satisfiability_crate;
 
 use std::{iter::successors, ops::Range, path::Path};
 

@@ -1,9 +1,11 @@
 connection_string = "postgres://crates:crates@localhost:5432/crates_io_db"
+distinct_configs = true
 number_of_crates = 100
 min_features = 10
 max_features = 100
 min_configs = 20
-max_configs = 100000
+max_configs = 10000
 max_dependencies = 1000
-permutations = 100
+permutations = 10
 train_test_split = 0.5
+synthesis_configs = [10, 20, 40, 80, 160]

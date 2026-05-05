@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use nameof::name_of;
+use toml::Value;
 
 use crate::args::Args;
 
@@ -9,6 +10,7 @@ pub struct Config {
     pub data: PathBuf,
     pub result: PathBuf,
     pub plot: PathBuf,
+    pub distinct_configs: bool,
     pub number_of_crates: usize,
     pub min_features: usize,
     pub max_features: usize,
@@ -17,6 +19,7 @@ pub struct Config {
     pub max_dependencies: usize,
     pub permutations: usize,
     pub train_test_split: f32,
+    pub synthesis_configs: Vec<usize>
 }
 
 impl Default for Config {
@@ -26,6 +29,7 @@ impl Default for Config {
             data: PathBuf::from("data"),
             result: PathBuf::from("data/result"),
             plot: PathBuf::from("data/plot"),
+            distinct_configs: true,
             number_of_crates: 100, 
             min_features: 0,
             max_features: 100, 
@@ -33,7 +37,8 @@ impl Default for Config {
             max_configs: 1000, 
             max_dependencies: 1000,
             permutations: 100,
-            train_test_split: 0.5
+            train_test_split: 0.5,
+            synthesis_configs: vec![10]
         }
     }
 }
@@ -59,8 +64,16 @@ pub fn config_from_args(args: Args) -> anyhow::Result<Config> {
         .transpose()?
         .unwrap_or_default();
 
+    let value_to_usize = |v: &Value| v
+        .as_integer()
+        .filter(|&x| x >= 0)
+        .map(|x| x as usize);
+
     let usize_map = |k: &str| toml_config.get(k)
-        .and_then(|v| v.as_integer().filter(|&i| i >= 0).map(|i| i as usize));
+        .and_then(value_to_usize);
+
+    let bool_map = |k: &str| toml_config.get(k)
+        .and_then(|v| v.as_bool());
 
     let str_map = |k: &str| toml_config.get(k)
         .and_then(|v| v.as_str().map(str::to_string));
@@ -71,10 +84,15 @@ pub fn config_from_args(args: Args) -> anyhow::Result<Config> {
     let f32_map = |k: &str| toml_config.get(k)
         .and_then(|v| v.as_float().map(|f| f as f32));
 
+    let vec_usize_map = |k: &str| toml_config.get(k)
+        .and_then(|v| v.as_array())
+        .and_then(|values| values.iter().map(value_to_usize).collect::<Option<Vec<_>>>());
+
     config_replace!(config, args, str_map, connection_string);
     config_replace!(config, args, path_map, data);
     config_replace!(config, args, path_map, result);
     config_replace!(config, args, path_map, plot);
+    config_replace!(config, args, bool_map, distinct_configs);
     config_replace!(config, args, usize_map, number_of_crates);
     config_replace!(config, args, usize_map, min_features);
     config_replace!(config, args, usize_map, max_features);
@@ -83,6 +101,7 @@ pub fn config_from_args(args: Args) -> anyhow::Result<Config> {
     config_replace!(config, args, usize_map, max_dependencies);
     config_replace!(config, args, usize_map, permutations);
     config_replace!(config, args, f32_map, train_test_split);
+    config_replace!(config, args, vec_usize_map, synthesis_configs);
 
     Ok(config)
 }

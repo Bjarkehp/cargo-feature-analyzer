@@ -13,6 +13,9 @@ pub struct Args {
     pub plot: Option<PathBuf>,
 
     #[arg(long)]
+    pub distinct_configs: Option<bool>,
+
+    #[arg(long)]
     pub connection_string: Option<String>,
     #[arg(short, long)]
     pub number_of_crates: Option<usize>,
@@ -31,4 +34,6 @@ pub struct Args {
     pub permutations: Option<usize>,
     #[arg(long)]
     pub train_test_split: Option<f32>,
+    #[arg(long)]
+    pub synthesis_configs: Option<Vec<usize>>,
 }

@@ -4,7 +4,7 @@ use cargo_toml::crate_id::CrateId;
 use plotters::data::fitting_range;
 use sorted_iter::SortedPairIterator;
 
-use crate::{plot::{default_chart, default_mesh, default_root, draw_points, integer_formatter}, result::{feature_stats::FeatureStats, satisfiability::SatisfiabilityRow}};
+use crate::{plot::{default_chart, default_mesh, default_root, draw_points, integer_formatter}, result::{feature_stats::FeatureStats, satisfiability_row::SatisfiabilityRow}};
 
 pub fn plot(
     satisfiability: &BTreeMap<CrateId, SatisfiabilityRow>,

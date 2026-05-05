@@ -5,7 +5,7 @@ mod retry;
 
 use std::{collections::BTreeSet, path::Path};
 
-use analysis::{args::Args, config::config_from_args, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability::SatisfiabilityRow}};
+use analysis::{args::Args, config::config_from_args, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
 use anyhow::Context;
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use clap::Parser;
@@ -36,10 +36,19 @@ fn main() -> anyhow::Result<()> {
     let mut static_model_stats_writer = csv::Writer::from_path(paths.result.join("flat_model_stats.csv"))?;
     let mut fca_model_stats_writer = csv::Writer::from_path(paths.result.join("fca_model_stats.csv"))?;
     let mut config_stats_writer = csv::Writer::from_path(paths.result.join("configuration_stats.csv"))?;
-    let mut satisfiability_writer = csv::Writer::from_path(paths.result.join("satisfiability.csv"))?;
     let mut line_count_writer = csv::Writer::from_path(paths.result.join("line_count.csv"))?;
     let mut running_time_fca_writer = csv::Writer::from_path(paths.result.join("running_time_fca.csv"))?;
     let mut running_time_static_writer = csv::Writer::from_path(paths.result.join("running_time_static.csv"))?;
+
+    for &count in &config.synthesis_configs {
+        std::fs::create_dir_all(paths.satisfiability_crate.join(count.to_string()))?;
+    }
+
+    let mut satisfiability_writers = config.synthesis_configs
+        .iter()
+        .map(|count| paths.result.join("satisfiability").join(format!("{count}.csv")))
+        .map(csv::Writer::from_path)
+        .collect::<Result<Vec<_>, _>>()?;
 
     let crate_entries = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates, &paths)?
         .into_iter()
@@ -57,6 +66,7 @@ fn main() -> anyhow::Result<()> {
         let cargo_toml = get_cargo_toml(&id, &paths)?;
         let dependency_graph = feature_dependencies::from_cargo_toml(&cargo_toml)
             .with_context(|| format!("Failed to create dependency graph for {id}"))?;
+
         let feature_count = dependency_graph.node_count();
         let feature_dependency_count = dependency_graph.edge_count();
         let default_features = implied_features::from_dependency_graph(["default"].into_iter(), &dependency_graph);
@@ -66,12 +76,18 @@ fn main() -> anyhow::Result<()> {
             continue;
         }
         
-        let crate_configs = get_or_scrape_configurations(&mut postgres_client, &id, &dependency_graph, &paths, config.max_configs, &mut rng)?;
-        let mut distinct_crate_configs = crate_configs.iter()
-            .unique_by(|c| &c.features)
-            .cloned()
-            .collect::<Vec<_>>();
-        let config_stats = get_configuration_stats(&id, &crate_configs, &default_features);
+        let crate_configs = if !config.distinct_configs {
+            Some(get_or_scrape_configurations(&mut postgres_client, &id, &dependency_graph, &paths, config.max_configs, &mut rng)?)
+        } else {
+            None
+        };
+        
+        let mut distinct_crate_configs = get_or_scrape_distinct_configurations(&mut postgres_client, &id, &dependency_graph, &paths, config.max_configs, &mut rng)?;
+        let config_stats = if let Some(configs) = &crate_configs {
+            get_configuration_stats(&id, configs, &default_features)
+        } else {
+            ConfigStats::new(id.clone(), 0, 0, distinct_crate_configs.len())
+        };
 
         if distinct_crate_configs.len() < config.min_configs {
             continue;
@@ -80,32 +96,52 @@ fn main() -> anyhow::Result<()> {
         let (static_model, running_time_static) = feature_model::create_static(&id, &cargo_toml, &paths)?;
         let static_model_path = paths.static_model.join(format!("{id_str}.uvl"));
         let static_model_stats = get_model_stats(&mut flamapy_client, &id, &static_model_path, &static_model)?;
-        
+
         let (fca_model, running_time_fca) = feature_model::create_fca(&id, &distinct_crate_configs, &paths)?;
         let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
         let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
 
-        let train_test_split_index = f32::floor(distinct_crate_configs.len() as f32 * config.train_test_split) as usize;
-        let train_range = 0..train_test_split_index;
-        let test_range = train_test_split_index..distinct_crate_configs.len();
+        #[allow(clippy::needless_range_loop)]
+        for synthesis_config_index in 0..config.synthesis_configs.len() {
+            let synthesis_config_count = config.synthesis_configs[synthesis_config_index];
 
-        let mut satisfied_test_configurations = 0;
-        for _ in 0..config.permutations {
-            distinct_crate_configs.shuffle(&mut rng);
-            let crate_train_configs = &distinct_crate_configs[train_range.clone()];
-            let crate_test_configs = &distinct_crate_configs[test_range.clone()];
-            feature_model::create_fca(&id, crate_train_configs, &paths)?;
-            satisfied_test_configurations += number_of_satisfied_configurations(&mut flamapy_client, &id, &fca_model_path, crate_test_configs, &paths)?;
+            if synthesis_config_count as f32 > distinct_crate_configs.len() as f32 * config.train_test_split {
+                continue;
+            }
+
+            let train_range = 0..synthesis_config_count;
+            let test_range = synthesis_config_count..distinct_crate_configs.len();
+
+            let satisfiablity_path = paths.satisfiability_crate
+                .join(synthesis_config_count.to_string())
+                .join(id.to_string())
+                .with_extension("csv");
+            let mut satisfiability_crate_writer = csv::Writer::from_path(satisfiablity_path)?;
+            let mut total_satisfied_test_configurations = 0;
+
+            for _ in 0..config.permutations {
+                distinct_crate_configs.shuffle(&mut rng);
+                let crate_train_configs = &distinct_crate_configs[train_range.clone()];
+                let crate_test_configs = &distinct_crate_configs[test_range.clone()];
+                feature_model::create_fca(&id, crate_train_configs, &paths)?;
+                let satisfied_test_configurations = number_of_satisfied_configurations(&mut flamapy_client, &id, &fca_model_path, crate_test_configs, &paths)?;
+                let satisfiability = satisfied_test_configurations as f64 / test_range.len() as f64;
+                let row = SatisfiabilityCrateRow::new(satisfiability);
+                satisfiability_crate_writer.serialize(row)?;
+                total_satisfied_test_configurations += satisfied_test_configurations;
+            }
+
+            satisfiability_crate_writer.flush()?;
+
+            let average_satisfiability = total_satisfied_test_configurations as f64 / (test_range.len() as f64 * config.permutations as f64);
+            let satisfiability_row = SatisfiabilityRow::new(id.clone(), average_satisfiability);
+            satisfiability_writers[synthesis_config_index].serialize(satisfiability_row)?;
         }
-        
-        let satisfiability = satisfied_test_configurations as f64 / (test_range.len() as f64 * config.permutations as f64);
-        let satisfiability_row = SatisfiabilityRow::new(id.clone(), satisfiability);
 
         feature_stats_writer.serialize(feature_stats)?;
         static_model_stats_writer.serialize(static_model_stats)?;
         fca_model_stats_writer.serialize(fca_model_stats)?;
         config_stats_writer.serialize(config_stats)?;
-        satisfiability_writer.serialize(satisfiability_row)?;
         line_count_writer.serialize(line_count_row)?;
         running_time_fca_writer.serialize(running_time_fca)?;
         running_time_static_writer.serialize(running_time_static)?;
@@ -115,10 +151,13 @@ fn main() -> anyhow::Result<()> {
     static_model_stats_writer.flush()?;
     fca_model_stats_writer.flush()?;
     config_stats_writer.flush()?;
-    satisfiability_writer.flush()?;
     line_count_writer.flush()?;
     running_time_fca_writer.flush()?;
     running_time_static_writer.flush()?;
+
+    for mut writer in satisfiability_writers {
+        writer.flush()?;
+    }
 
     Ok(())
 }
@@ -232,6 +271,61 @@ fn get_or_scrape_configurations<R: Rng>(
     Ok(configurations)
 }
 
+fn get_or_scrape_distinct_configurations<R: Rng>(
+    client: &mut postgres::Client, 
+    id: &CrateId, 
+    dependency_graph: &feature_dependencies::Graph,
+    paths: &Paths,
+    max_configs: usize,
+    rng: &mut R
+) -> anyhow::Result<Vec<Configuration<'static>>> {
+    let path = paths.config_distinct.join(id.to_string());
+    let mut configurations = if let Ok(entries) = std::fs::read_dir(&path) {
+        let all_configurations = entries.map(|r| r.with_context(|| format!("Failed to get entry in {path:?}")))
+            .map(|r| r.and_then(|entry| read_configuration(&entry.path())))
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        
+        all_configurations
+            .iter()
+            .unique_by(|c| &c.features)
+            .cloned()
+            .collect::<Vec<_>>()
+    } else {
+        std::fs::create_dir(&path)
+            .with_context(|| format!("Failed to create directory {path:?}"))?;
+
+        println!("Scraping configurations for {id}...");
+
+        let configurations = configuration_scraper::scrape(
+            &id.name, 
+            &id.version, 
+            dependency_graph, 
+            client, 
+            max_configs
+        ).with_context(|| format!("Failed to query for configuration for {id}"))?;
+
+        let distinct_configurations = configurations
+            .iter()
+            .unique_by(|c| &c.features)
+            .cloned()
+            .collect::<Vec<_>>();
+
+        println!("Found {} distinct configurations", distinct_configurations.len());
+
+        for configuration in distinct_configurations.iter() {
+            let config_path = path.join(format!("{}@{}.csvconf", configuration.name, configuration.version));
+            std::fs::write(&config_path, configuration.to_csv())
+                .with_context(|| format!("Failed to write to configuration file {path:?}"))?;
+        }
+
+        distinct_configurations
+    };
+
+    configurations.sort_by(|a, b| a.name.cmp(&b.name));
+    configurations.shuffle(rng);
+    Ok(configurations)
+}
+
 fn read_configuration(path: &Path) -> anyhow::Result<Configuration<'static>> {
     let content = std::fs::read_to_string(path)
         .with_context(|| format!("Failed to read configuration file at {path:?}"))?;
@@ -286,7 +380,7 @@ fn number_of_satisfied_configurations(client: &mut flamapy_client::Client, id: &
     configurations
         .iter()
         .map(|configuration| {
-            let path = paths.config
+            let path = paths.config_distinct
                 .join(format!("{id}/{}@{}.csvconf", configuration.name, configuration.version));
 
             client.satisfiable_configuration(&path)

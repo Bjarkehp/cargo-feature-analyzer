@@ -1,10 +1,11 @@
 pub mod feature_stats;
 pub mod model_stats;
 pub mod configuration_stats;
-pub mod satisfiability;
+pub mod satisfiability_crate_row;
 pub mod line_count;
 pub mod running_time_fca;
 pub mod running_time_static;
+pub mod satisfiability_row;
 
 pub trait Row {
     type Key: Ord;
