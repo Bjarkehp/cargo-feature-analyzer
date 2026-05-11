@@ -1,11 +1,10 @@
 mod flamapy_client;
-mod paths;
 mod feature_model;
 mod retry;
 
 use std::{collections::BTreeSet, path::Path};
 
-use analysis::{args::Args, config::config_from_args, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
+use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
 use anyhow::Context;
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use clap::Parser;
@@ -16,7 +15,7 @@ use itertools::Itertools;
 use rand::{Rng, SeedableRng, rngs::StdRng, seq::SliceRandom};
 use tokei::{LanguageType, Languages};
 
-use crate::{paths::Paths, retry::retry};
+use crate::retry::retry;
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
