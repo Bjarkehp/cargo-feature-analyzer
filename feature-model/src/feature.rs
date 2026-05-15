@@ -26,6 +26,7 @@ impl Feature {
     pub fn count_features(&self) -> usize {
         self.groups.iter()
             .flat_map(|g| g.features.iter())
-            .count()
+            .map(|f| f.count_features())
+            .sum::<usize>() + 1
     }
 }

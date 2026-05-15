@@ -6,7 +6,8 @@ This repository provides tools for synthesizing feature models for Rust crates a
 The analysis checks for correlation between several properties of the crates (e.g. correlation between line count and number of features), and compares the flat feature model with the FCA feature model.
 
 ## Packages
-* **analysis**: Scrapes crates and configurations for a specified number of crates, and builds plots showing showing the correlation of several properties of those crates.
+* **analysis**: Scrapes crates and configurations for a specified number of crates, and synthesizes several feature models.
+* **plots**: Builds plots showing showing the correlation of several properties of the synthesized feature models.
 * **configuration-scraper**: Connects to a postgres database containing the crates.io dump, and queries for crates that have a specific dependency.
 * **crate-scraper**: Connects to a postgres database containing the crates.io dump, and finds popular crates determined by different parameters.
 * **crate-util**: Contains several utility types and functions for handling Rust crates.
@@ -33,7 +34,9 @@ pip install flamapy==2.1.0.dev1
 ```
 
 ### crates.io postgres database
-Many crates use the crates.io database dump, to avoid sending too much traffic to crates.io. We have provided a docker container in this repository as well as a few scripts to get the database quickly up and running. The docker container also contains small modifications to import.sql and some extra index tables in schema.sql make scraping faster. This of course requires that the host machine has docker installed.
+Many crates use the crates.io database dump, to avoid sending too much traffic to crates.io. We have provided a docker container in this repository as well as a few scripts to get the database quickly up and running on ucloud. The database contains small modifications to import.sql and some extra index tables in schema.sql to make scraping faster. 
+
+#### Docker
 
 First, the content of the database dump must be downloaded. Either download [the newest archive](https://static.crates.io/db-dump.tar.gz) and place it in the path ```docker/db-dump.tar.gz```, or run ```docker/download.sh``` to get the dump used to get our results.
 The dump contains an archive of csv-files representing the tables, a schema.sql and a import.sql file. 
@@ -54,6 +57,11 @@ The database is fully setup when you see the LOG message
 
 ``LOG:  database system is ready to accept connections ``
 
+#### UCloud
+
+To run the database and analysis on UCloud, first clone the repository into a drive of your choice. Then, create a drive named 'crates_db', this will store the database content. You can now start a terminal job. The repository and the crates_db disk must be mounted to /work, and then you must select the script 'ucloud/init.sh' to install the dependencies required. 
+
+When inside the terminal, run 'ucloud/start.sh' to start the database. If the database is empty (i.e. this is the first time you set it up), you must first download the database dump content using 'ucloud/download.sh', and then import it using 'ucloud/import.sh'. The database is now ready, and you can run the analysis.
 
 ### SCIP (optional)
 To run the feature model synthesizer utilizing MILP, you need to download SCIP. The crate uses a solver-agnostic MILP library, so using a different solver is possible with a few small changes to the source code, if necessary.

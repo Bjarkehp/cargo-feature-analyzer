@@ -92,13 +92,8 @@ fn main() -> anyhow::Result<()> {
             continue;
         }
 
-        let (static_model, running_time_static) = feature_model::create_static(&id, &cargo_toml, &paths)?;
         let static_model_path = paths.static_model.join(format!("{id_str}.uvl"));
-        let static_model_stats = get_model_stats(&mut flamapy_client, &id, &static_model_path, &static_model)?;
-
-        let (fca_model, running_time_fca) = feature_model::create_fca(&id, &distinct_crate_configs, &paths)?;
         let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
-        let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
 
         #[allow(clippy::needless_range_loop)]
         for synthesis_config_index in 0..config.synthesis_configs.len() {
@@ -136,6 +131,12 @@ fn main() -> anyhow::Result<()> {
             let satisfiability_row = SatisfiabilityRow::new(id.clone(), average_satisfiability);
             satisfiability_writers[synthesis_config_index].serialize(satisfiability_row)?;
         }
+
+        let (static_model, running_time_static) = feature_model::create_static(&id, &cargo_toml, &paths)?;
+        let static_model_stats = get_model_stats(&mut flamapy_client, &id, &static_model_path, &static_model)?;
+
+        let (fca_model, running_time_fca) = feature_model::create_fca(&id, &distinct_crate_configs, &paths)?;
+        let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
 
         feature_stats_writer.serialize(feature_stats)?;
         static_model_stats_writer.serialize(static_model_stats)?;

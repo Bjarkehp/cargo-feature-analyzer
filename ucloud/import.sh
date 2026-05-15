@@ -1,28 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-DUMP_URL="https://static.crates.io/db-dump.tar.gz"
-DUMP_DIR="/tmp/dump"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-echo "Downloading crates.io dump..."
-mkdir -p "$DUMP_DIR"
-# curl -SL "$DUMP_URL" -o "$DUMP_DIR/dump.tar.gz" --progress-bar
-wget -O "$DUMP_DIR/dump.tar.gz" "$DUMP_URL" --progress=dot:giga
+cd "$SCRIPT_DIR"
 
-echo "Unpacking dump..."
-tar -xzf "$DUMP_DIR/dump.tar.gz" -C "$DUMP_DIR" --strip-components=1
+echo "Extracting dump..."
+mkdir -p /tmp/db-dump
+tar -xzf db-dump.tar.gz -C "/tmp/db-dump" --strip-components=1
+mv /tmp/db-dump/data data
+sudo chown -R postgres:postgres data
+rm -r "/tmp/db-dump"
 
-cp /import.sql "$DUMP_DIR/import.sql"
+echo "Importing dump..."
+sudo -u postgres psql -f config.sql
+sudo -u postgres psql -d crates_io_db -f schema.sql
+sudo -u postgres psql -d crates_io_db -f import.sql
 
-cd "$DUMP_DIR"
+sudo rm -r data
 
-echo "Initializing schema..."
-psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f "$DUMP_DIR/schema.sql"
-
-echo "Importing data..."
-psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f "$DUMP_DIR/import.sql"
-
-echo "Cleaning up dump files..."
-rm -rf "$DUMP_DIR"
-
-echo "Database setup complete."
+echo "Data from crates.io has been imported"
