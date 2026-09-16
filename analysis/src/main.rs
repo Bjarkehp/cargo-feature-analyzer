@@ -4,7 +4,7 @@ mod retry;
 
 use std::{collections::BTreeSet, path::Path};
 
-use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
+use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}, scanner};
 use anyhow::Context;
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use clap::Parser;
@@ -18,6 +18,9 @@ use tokei::{LanguageType, Languages};
 use crate::retry::retry;
 
 fn main() -> anyhow::Result<()> {
+    let test = scanner::scan("analysis");
+    println!("{test:?}");
+
     let args = Args::parse();
     let config = config_from_args(args)?;
     let paths = paths::prepare_paths(&config)?;
