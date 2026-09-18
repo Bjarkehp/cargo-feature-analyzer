@@ -24,14 +24,6 @@ struct Test5 {
     field: u32
 }
 
-fn test(
-    x: usize,
-    #[cfg(feature = "my-feature")]
-    z: usize,
-) {
-    
-}
-
 #[derive(Debug)]
 #[cfg(feature = "my-feature")]
 struct Test6;

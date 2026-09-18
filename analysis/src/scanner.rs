@@ -1,19 +1,31 @@
-use std::{cmp::max, ops::{Add, Range}, path::{Path, PathBuf}};
+use std::{cmp::max, collections::{HashMap, HashSet}, ops::{Add, Range}, path::{Path, PathBuf}};
 
 use itertools::Itertools;
 use walkdir::WalkDir;
 
-#[derive(Default, Debug)]
+use crate::statistics;
+
+#[derive(Debug)]
 pub struct ScanResult {
     pub loc: usize,
-    pub lof: usize
+    pub lof: usize,
+    pub sd_mean: f64,
+    pub sd_dev: f64,
+    pub td_mean: f64,
+    pub td_dev: f64,
 }
 
-impl Add for ScanResult {
-    type Output = ScanResult;
+#[derive(Default, Debug)]
+struct FileScanResult {
+    pub loc: usize,
+    pub lof: usize,
+}
+
+impl Add for FileScanResult {
+    type Output = FileScanResult;
 
     fn add(self, rhs: Self) -> Self::Output {
-        ScanResult {
+        FileScanResult {
             loc: self.loc + rhs.loc,
             lof: self.lof + rhs.lof
         }
@@ -34,14 +46,32 @@ pub fn scan<P: AsRef<Path>>(path: P) -> Result<ScanResult, Error> {
     let mut parser = tree_sitter::Parser::new();
     parser.set_language(&tree_sitter_rust::LANGUAGE.into())?;
 
-    let result = rust_file_paths(path)
+    let mut sd = HashMap::new();
+    let mut td = vec![];
+
+    let file_result = rust_file_paths(path)
         .map(|p| -> Result<_, Error> {
             let source = std::fs::read_to_string(&p)
                 .map_err(Error::ReadSource)?;
-            let lof = scan_file(&mut parser, &source)?;
+            let lof = scan_file(&mut parser, &source, &mut sd, &mut td)?;
             Ok(lof)
         })
-        .fold_ok(ScanResult::default(), |a, b| a + b)?;
+        .fold_ok(FileScanResult::default(), |a, b| a + b)?;
+
+    let (sd_mean, sd_dev) = statistics::mean_dev(|| sd.values().copied());
+    let (td_mean, td_dev) = statistics::mean_dev(|| td.iter().copied());
+
+    dbg!(sd);
+    dbg!(td);
+
+    let result = ScanResult {
+        loc: file_result.loc,
+        lof: file_result.lof,
+        sd_mean,
+        sd_dev,
+        td_mean,
+        td_dev,
+    };
 
     Ok(result)
 }
@@ -55,22 +85,37 @@ fn rust_file_paths(path: impl AsRef<Path>) -> impl Iterator<Item = PathBuf> {
         .map(|e| e.into_path())
 }
 
-fn scan_file(parser: &mut tree_sitter::Parser, source: &str) -> Result<ScanResult, Error> {
+fn scan_file(
+    parser: &mut tree_sitter::Parser, 
+    source: &str,
+    sd: &mut HashMap<String, u32>,
+    td: &mut Vec<u32>,
+) -> Result<FileScanResult, Error> {
     let tree = parser.parse(source, None)
         .ok_or(Error::ParseSource)?;
     let root = tree.root_node();
-    let mut lof_ranges = vec![];
-    scan_node(root, source, &mut lof_ranges);
-    let union = range_union(lof_ranges);
-    let lof: usize = union
+
+    let mut lof = vec![];
+    scan_node(root, source, &mut lof, sd, td);
+
+    let loc = root.end_position().row - root.start_position().row + 1;
+
+    let lof_union = range_union(lof);
+    let lof: usize = lof_union
         .into_iter()
         .map(|r| r.end - r.start)
         .sum();
-    let loc = root.end_position().row - root.start_position().row + 1;
-    Ok(ScanResult { loc, lof })
+
+    Ok(FileScanResult { loc, lof })
 }
 
-fn scan_node(node: tree_sitter::Node, source: &str, lof: &mut Vec<Range<usize>>) {
+fn scan_node(
+    node: tree_sitter::Node, 
+    source: &str, 
+    lof: &mut Vec<Range<usize>>,
+    sd: &mut HashMap<String, u32>,
+    td: &mut Vec<u32>,
+) {
     let mut cursor = node.walk();
     let mut children = node.children(&mut cursor).peekable();
     let mut start = node.start_position().row + 1;
@@ -81,18 +126,25 @@ fn scan_node(node: tree_sitter::Node, source: &str, lof: &mut Vec<Range<usize>>)
             "attribute_item" => {
                 let is_cfg = scan_attribute_item_for_cfg(child, source);
                 let is_cfg_attr = scan_attribute_item_for_cfg_attr(child, source);
-                let has_feature = scan_attribute_item_for_feature(child, source);
 
-                if is_cfg_attr && has_feature {
+                if is_cfg || is_cfg_attr {
+                    let mut visited = HashSet::new();
+                    let feature_count = scan_attribute_item_for_features(child, source, sd, &mut visited);
+                    if feature_count > 0 {
+                        td.push(feature_count);
+                    }
+                }
+
+                if is_cfg_attr {
                     let start = child.start_position().row + 1;
                     let end = child.end_position().row + 2;
                     lof.push(start..end)
-                } else if is_cfg && has_feature {
+                } else if is_cfg {
                     is_feature_child = true
                 }
             },
             _ => {
-                scan_node(child, source, lof);
+                scan_node(child, source, lof, sd, td);
                 if is_feature_child {
                     let end = child.end_position().row + 2;
                     lof.push(start..end);
@@ -104,16 +156,12 @@ fn scan_node(node: tree_sitter::Node, source: &str, lof: &mut Vec<Range<usize>>)
     }
 }
 
-fn scan_attribute_item_for_cfg_attr(node: tree_sitter::Node, source: &str) -> bool {    
-    scan_attribute_item_for_identifier(node, source, |s| s == "cfg_attr")
-}
-
 fn scan_attribute_item_for_cfg(node: tree_sitter::Node, source: &str) -> bool {    
     scan_attribute_item_for_identifier(node, source, |s| s == "cfg")
 }
 
-fn scan_attribute_item_for_feature(node: tree_sitter::Node, source: &str) -> bool {    
-    scan_attribute_item_for_identifier(node, source, |s| s == "feature")
+fn scan_attribute_item_for_cfg_attr(node: tree_sitter::Node, source: &str) -> bool {    
+    scan_attribute_item_for_identifier(node, source, |s| s == "cfg_attr")
 }
 
 fn scan_attribute_item_for_identifier(node: tree_sitter::Node, source: &str, predicate: impl (Fn(&str) -> bool) + Clone) -> bool {    
@@ -125,6 +173,46 @@ fn scan_attribute_item_for_identifier(node: tree_sitter::Node, source: &str, pre
         let mut children = node.children(&mut cursor);
         children.any(|child| scan_attribute_item_for_identifier(child, source, predicate.clone()))
     }
+}
+
+fn scan_attribute_item_for_features<'a>(
+    node: tree_sitter::Node, 
+    source: &'a str, 
+    sd: &mut HashMap<String, u32>, 
+    visited: &mut HashSet<&'a str>
+) -> u32 {
+    let mut sum = 0;
+
+    let mut cursor = node.walk();
+    let identifiers = node.children(&mut cursor)
+        .filter(|c| c.kind() == "identifier" && c.utf8_text(source.as_bytes()) == Ok("feature"));
+
+    for identifier in identifiers {
+        let Some(string_literal) = identifier.next_sibling().and_then(|n| n.next_sibling()) else { continue };
+        let Some(string_content) = find_child(string_literal, "string_content") else { continue };
+        let feature = string_content.utf8_text(source.as_bytes()).expect("source is utf8");
+        println!("{}", string_content.start_position().row + 1);
+        if visited.insert(feature) {
+            sd.entry(feature.to_string())
+                .and_modify(|c| *c += 1)
+                .or_insert(1);
+            sum += 1;
+        }
+    }
+
+    let mut cursor = node.walk();
+    let children = node.children(&mut cursor);
+    sum += children
+        .map(|child| scan_attribute_item_for_features(child, source, sd, visited))
+        .sum::<u32>();
+
+    sum
+}
+
+fn find_child<'a>(node: tree_sitter::Node<'a>, kind: &str) -> Option<tree_sitter::Node<'a>> {
+    let mut cursor = node.walk();
+    let mut children = node.children(&mut cursor);
+    children.find(|c| c.kind() == kind)
 }
 
 fn range_union(mut ranges: Vec<Range<usize>>) -> Vec<Range<usize>> {
@@ -158,6 +246,10 @@ mod test {
             .unwrap();
 
         assert_eq!(result.loc, 40);
-        assert_eq!(result.lof, 21);
+        assert_eq!(result.lof, 23);
+        assert_eq!(result.sd_mean, 4.0);
+        assert_eq!(result.sd_dev, 3.0);
+        assert_eq!(result.td_mean, 1.0);
+        assert_eq!(result.td_dev, 0.0);
     }
 }

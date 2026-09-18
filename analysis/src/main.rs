@@ -75,7 +75,7 @@ fn main() -> anyhow::Result<()> {
         let crate_path = paths.crates
             .join(id.to_string());
         let scan = scanner::scan(&crate_path)?;
-        let feature_metrics = FeatureMetrics::new(id.clone(), scan.loc, scan.lof);
+        let feature_metrics = FeatureMetrics::from_crate_scan(id.clone(), scan);
         feature_metrics_writer.serialize(feature_metrics)?;
 
         if feature_count > config.max_features || feature_count < config.min_features {
