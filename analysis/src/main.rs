@@ -4,7 +4,7 @@ mod retry;
 
 use std::{collections::BTreeSet, path::Path};
 
-use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, result::{configuration_stats::ConfigStats, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}, scanner};
+use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, result::{configuration_stats::ConfigStats, feature_metrics::FeatureMetrics, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}, scanner};
 use anyhow::Context;
 use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use clap::Parser;
@@ -18,9 +18,6 @@ use tokei::{LanguageType, Languages};
 use crate::retry::retry;
 
 fn main() -> anyhow::Result<()> {
-    let test = scanner::scan("analysis");
-    println!("{test:?}");
-
     let args = Args::parse();
     let config = config_from_args(args)?;
     let paths = paths::prepare_paths(&config)?;
@@ -41,6 +38,7 @@ fn main() -> anyhow::Result<()> {
     let mut line_count_writer = csv::Writer::from_path(paths.result.join("line_count.csv"))?;
     let mut running_time_fca_writer = csv::Writer::from_path(paths.result.join("running_time_fca.csv"))?;
     let mut running_time_static_writer = csv::Writer::from_path(paths.result.join("running_time_static.csv"))?;
+    let mut feature_metrics_writer = csv::Writer::from_path(paths.result.join("loc_and_lof.csv"))?;
 
     for &count in &config.synthesis_configs {
         std::fs::create_dir_all(paths.satisfiability_crate.join(count.to_string()))?;
@@ -73,6 +71,12 @@ fn main() -> anyhow::Result<()> {
         let feature_dependency_count = dependency_graph.edge_count();
         let default_features = implied_features::from_dependency_graph(["default"].into_iter(), &dependency_graph);
         let feature_stats = FeatureStats::new(id.clone(), feature_count, feature_dependency_count);
+
+        let crate_path = paths.crates
+            .join(id.to_string());
+        let scan = scanner::scan(&crate_path)?;
+        let feature_metrics = FeatureMetrics::new(id.clone(), scan.loc, scan.lof);
+        feature_metrics_writer.serialize(feature_metrics)?;
 
         if feature_count > config.max_features || feature_count < config.min_features {
             continue;
@@ -157,6 +161,7 @@ fn main() -> anyhow::Result<()> {
     line_count_writer.flush()?;
     running_time_fca_writer.flush()?;
     running_time_static_writer.flush()?;
+    feature_metrics_writer.flush()?;
 
     for mut writer in satisfiability_writers {
         writer.flush()?;

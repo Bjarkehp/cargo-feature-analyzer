@@ -5,8 +5,8 @@ use walkdir::WalkDir;
 
 #[derive(Default, Debug)]
 pub struct ScanResult {
-    loc: usize,
-    lof: usize
+    pub loc: usize,
+    pub lof: usize
 }
 
 impl Add for ScanResult {

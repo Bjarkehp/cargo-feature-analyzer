@@ -24,6 +24,14 @@ struct Test5 {
     field: u32
 }
 
+fn test(
+    x: usize,
+    #[cfg(feature = "my-feature")]
+    z: usize,
+) {
+    
+}
+
 #[derive(Debug)]
 #[cfg(feature = "my-feature")]
 struct Test6;
@@ -35,6 +43,6 @@ struct Test7;
 #[cfg(target_os = "linux")]
 struct Test8;
 
-#[cfg_attr(feature = "my-feature", derive(Debug))]
+#[cfg_attr(feature = "my-other-feature", derive(Debug))]
 #[cfg(feature = "my-feature")]
 struct Test9;

@@ -6,6 +6,7 @@ pub mod line_count;
 pub mod running_time_fca;
 pub mod running_time_static;
 pub mod satisfiability_row;
+pub mod feature_metrics;
 
 pub trait Row {
     type Key: Ord;
