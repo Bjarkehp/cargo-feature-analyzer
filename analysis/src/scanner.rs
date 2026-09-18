@@ -61,9 +61,6 @@ pub fn scan<P: AsRef<Path>>(path: P) -> Result<ScanResult, Error> {
     let (sd_mean, sd_dev) = statistics::mean_dev(|| sd.values().copied());
     let (td_mean, td_dev) = statistics::mean_dev(|| td.iter().copied());
 
-    dbg!(sd);
-    dbg!(td);
-
     let result = ScanResult {
         loc: file_result.loc,
         lof: file_result.lof,
@@ -127,12 +124,16 @@ fn scan_node(
                 let is_cfg = scan_attribute_item_for_cfg(child, source);
                 let is_cfg_attr = scan_attribute_item_for_cfg_attr(child, source);
 
-                if is_cfg || is_cfg_attr {
-                    let mut visited = HashSet::new();
-                    let feature_count = scan_attribute_item_for_features(child, source, sd, &mut visited);
-                    if feature_count > 0 {
-                        td.push(feature_count);
-                    }
+                if !is_cfg && !is_cfg_attr {
+                    continue;
+                }
+
+                let mut visited = HashSet::new();
+                let feature_count = scan_attribute_item_for_features(child, source, sd, &mut visited);
+                if feature_count > 0 {
+                    td.push(feature_count);
+                } else {
+                    continue;
                 }
 
                 if is_cfg_attr {
@@ -191,7 +192,6 @@ fn scan_attribute_item_for_features<'a>(
         let Some(string_literal) = identifier.next_sibling().and_then(|n| n.next_sibling()) else { continue };
         let Some(string_content) = find_child(string_literal, "string_content") else { continue };
         let feature = string_content.utf8_text(source.as_bytes()).expect("source is utf8");
-        println!("{}", string_content.start_position().row + 1);
         if visited.insert(feature) {
             sd.entry(feature.to_string())
                 .and_modify(|c| *c += 1)
@@ -246,7 +246,7 @@ mod test {
             .unwrap();
 
         assert_eq!(result.loc, 40);
-        assert_eq!(result.lof, 23);
+        assert_eq!(result.lof, 21);
         assert_eq!(result.sd_mean, 4.0);
         assert_eq!(result.sd_dev, 3.0);
         assert_eq!(result.td_mean, 1.0);

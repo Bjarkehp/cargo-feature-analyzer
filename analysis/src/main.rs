@@ -38,7 +38,7 @@ fn main() -> anyhow::Result<()> {
     let mut line_count_writer = csv::Writer::from_path(paths.result.join("line_count.csv"))?;
     let mut running_time_fca_writer = csv::Writer::from_path(paths.result.join("running_time_fca.csv"))?;
     let mut running_time_static_writer = csv::Writer::from_path(paths.result.join("running_time_static.csv"))?;
-    let mut feature_metrics_writer = csv::Writer::from_path(paths.result.join("loc_and_lof.csv"))?;
+    let mut feature_metrics_writer = csv::Writer::from_path(paths.result.join("feature_metrics.csv"))?;
 
     for &count in &config.synthesis_configs {
         std::fs::create_dir_all(paths.satisfiability_crate.join(count.to_string()))?;
