@@ -13,6 +13,8 @@ pub struct ScanResult {
     pub sd_dev: f64,
     pub td_mean: f64,
     pub td_dev: f64,
+    pub and_mean: f64,
+    pub and_dev: f64,
 }
 
 #[derive(Default, Debug)]
@@ -48,18 +50,20 @@ pub fn scan<P: AsRef<Path>>(path: P) -> Result<ScanResult, Error> {
 
     let mut sd = HashMap::new();
     let mut td = vec![];
+    let mut and = vec![];
 
     let file_result = rust_file_paths(path)
         .map(|p| -> Result<_, Error> {
             let source = std::fs::read_to_string(&p)
                 .map_err(Error::ReadSource)?;
-            let lof = scan_file(&mut parser, &source, &mut sd, &mut td)?;
+            let lof = scan_file(&mut parser, &source, &mut sd, &mut td, &mut and)?;
             Ok(lof)
         })
         .fold_ok(FileScanResult::default(), |a, b| a + b)?;
 
     let (sd_mean, sd_dev) = statistics::mean_dev(|| sd.values().copied());
     let (td_mean, td_dev) = statistics::mean_dev(|| td.iter().copied());
+    let (and_mean, and_dev) = statistics::mean_dev(|| and.iter().copied());
 
     let result = ScanResult {
         loc: file_result.loc,
@@ -68,6 +72,8 @@ pub fn scan<P: AsRef<Path>>(path: P) -> Result<ScanResult, Error> {
         sd_dev,
         td_mean,
         td_dev,
+        and_mean,
+        and_dev,
     };
 
     Ok(result)
@@ -87,13 +93,14 @@ fn scan_file(
     source: &str,
     sd: &mut HashMap<String, u32>,
     td: &mut Vec<u32>,
+    and: &mut Vec<u32>,
 ) -> Result<FileScanResult, Error> {
     let tree = parser.parse(source, None)
         .ok_or(Error::ParseSource)?;
     let root = tree.root_node();
 
     let mut lof = vec![];
-    scan_node(root, source, &mut lof, sd, td);
+    scan_node(root, source, &mut lof, sd, td, and, 1);
 
     let loc = root.end_position().row - root.start_position().row + 1;
 
@@ -112,6 +119,8 @@ fn scan_node(
     lof: &mut Vec<Range<usize>>,
     sd: &mut HashMap<String, u32>,
     td: &mut Vec<u32>,
+    and: &mut Vec<u32>,
+    depth: u32,
 ) {
     let mut cursor = node.walk();
     let mut children = node.children(&mut cursor).peekable();
@@ -145,10 +154,13 @@ fn scan_node(
                 }
             },
             _ => {
-                scan_node(child, source, lof, sd, td);
                 if is_feature_child {
+                    scan_node(child, source, lof, sd, td, and, depth + 1);
                     let end = child.end_position().row + 2;
                     lof.push(start..end);
+                    and.push(depth);
+                } else {
+                    scan_node(child, source, lof, sd, td, and, depth);
                 }
                 start = children.peek().map(|n| n.start_position().row + 1).unwrap_or(0);
                 is_feature_child = false;

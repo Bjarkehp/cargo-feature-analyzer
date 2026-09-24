@@ -9,6 +9,8 @@ pub mod satisfiability;
 pub mod satisfiability_wrt_configs;
 pub mod satisfiability_wrt_features;
 pub mod satisfiability_crate;
+pub mod loc_and_lof;
+pub mod nofc_and_lof;
 
 use std::{iter::successors, ops::Range, path::Path};
 
@@ -23,6 +25,7 @@ pub type DefaultRoot<'a> = DrawingArea<BitMapBackend<'a>, Shift>;
 pub type DefaultChartContext<'a> = ChartContext<'a, BitMapBackend<'a>, Cartesian2d<RangedCoordf64, RangedCoordf64>>;
 pub type DefaultLogChartContext<'a> = ChartContext<'a, BitMapBackend<'a>, Cartesian2d<LogCoord<f64>, LogCoord<f64>>>;
 pub type DefaultLogXChartContext<'a> = ChartContext<'a, BitMapBackend<'a>, Cartesian2d<LogCoord<f64>, RangedCoordf64>>;
+pub type DefaultLogYChartContext<'a> = ChartContext<'a, BitMapBackend<'a>, Cartesian2d<RangedCoordf64, LogCoord<f64>>>;
 
 pub fn default_root(path: &Path, width: u32, height: u32) -> anyhow::Result<DefaultRoot<'_>> {
     let root = BitMapBackend::new(path, (width, height)).into_drawing_area();
@@ -74,6 +77,22 @@ pub fn default_log_x_chart<'a>(
         .x_label_area_size(50)
         .y_label_area_size(70)
         .build_cartesian_2d(x_range.log_scale(), y_range)?;
+    
+    Ok(chart)
+}
+
+pub fn default_log_y_chart<'a>(
+    root: &DefaultRoot<'a>, 
+    caption: &str, 
+    x_range: Range<f64>, 
+    y_range: Range<f64>,
+) -> anyhow::Result<DefaultLogYChartContext<'a>> {
+    let chart = ChartBuilder::on(root)
+        .caption(caption, ("sans-serif", 32).into_font())
+        .margin(30)
+        .x_label_area_size(50)
+        .y_label_area_size(70)
+        .build_cartesian_2d(x_range, y_range.log_scale())?;
     
     Ok(chart)
 }

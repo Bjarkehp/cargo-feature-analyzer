@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{impl_key_crate_id, scanner::ScanResult};
 
-#[derive(Debug, Serialize, Deserialize, derive_new::new)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FeatureMetrics {
     #[serde(rename = "Crate")]
     pub crate_id: CrateId,
@@ -19,6 +19,10 @@ pub struct FeatureMetrics {
     pub td_mean: f64,
     #[serde(rename = "TD (σ)")]
     pub td_dev: f64,
+    #[serde(rename = "AND (μ)")]
+    pub and_mean: f64,
+    #[serde(rename = "AND (σ)")]
+    pub and_dev: f64,
 }
 
 impl FeatureMetrics {
@@ -31,6 +35,8 @@ impl FeatureMetrics {
             sd_dev: scan.sd_dev,
             td_mean: scan.td_mean,
             td_dev: scan.td_dev,
+            and_mean: scan.and_mean,
+            and_dev: scan.and_dev,
         }
     }
 }

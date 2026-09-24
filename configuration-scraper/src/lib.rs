@@ -1,6 +1,6 @@
-use std::{borrow::Cow, collections::{BTreeMap, BTreeSet}};
+use std::{borrow::Cow, collections::{BTreeMap, BTreeSet, HashSet}, sync::LazyLock};
 
-use cargo_toml::{feature_dependencies, implied_features};
+use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use postgres::{Row, fallible_iterator::{FallibleIterator, IntoFallibleIterator}};
 use semver::{Version, VersionReq};
 
@@ -10,12 +10,20 @@ pub use postgres;
 
 pub mod configuration;
 
+static BLACKLIST: LazyLock<HashSet<CrateId>> = LazyLock::new(|| {
+    include_str!("blacklist.txt")
+        .lines()
+        .enumerate()
+        .map(|(i, l)| l.parse().unwrap_or_else(|e| panic!("CrateId at line {} could not be parsed: {e}", i + 1)))
+        .collect()
+});
+
 pub fn scrape(
     crate_name: &str, 
     crate_version: &Version, 
     feature_dependencies: &feature_dependencies::Graph,
     client: &mut postgres::Client, 
-    limit: usize
+    limit: usize,
 ) -> Result<Vec<Configuration<'static>>, Error> {
     let features = feature_dependencies.nodes()
         .collect::<Vec<_>>();
@@ -39,18 +47,23 @@ fn row_to_config(
     feature_dependencies: &feature_dependencies::Graph,
 ) -> Option<Configuration<'static>> {
     let dependent_name: String = row.get("dependent_crate");
+    let version_string: String = row.get("dependent_version");
+    let version = version_string
+        .parse::<Version>()
+        .unwrap_or_else(|e| panic!("Failed to parse version of dependent {dependent_name}: {e}"));
+
+    if BLACKLIST.contains(&CrateId::new(dependent_name.clone(), version.clone())) {
+        return None;
+    }
+
     let dependency_requirement_str: String = row.get("dependency_requirement");
     let dependency_requirement = VersionReq::parse(&dependency_requirement_str)
-        .unwrap_or_else(|e| panic!("Failed to parse version requirement for dependent {dependent_name}: {e}"));
+        .unwrap_or_else(|e| panic!("Failed to parse version requirement '{dependency_requirement_str}' for dependent '{dependent_name}' version '{version}': {e}"));
 
     if !dependency_requirement.matches(crate_version) {
         return None;
     }
 
-    let version_string: String = row.get("dependent_version");
-    let version = version_string
-        .parse::<Version>()
-        .unwrap_or_else(|e| panic!("Failed to parse version of dependent {dependent_name}: {e}"));
     let mut explicit_features: Vec<String> = row.get("features");
     let default_features: bool = row.get("default_features");
     if default_features {

@@ -16,6 +16,7 @@ pub struct Paths {
 
     pub result: PathBuf,
     pub feature_stats: PathBuf,
+    pub feature_metrics: PathBuf,
     pub static_stats: PathBuf,
     pub fca_stats: PathBuf,
     pub line_count: PathBuf,
@@ -27,6 +28,8 @@ pub struct Paths {
     pub static_vs_fca: PathBuf,
     pub cross_tree_constraints: PathBuf,
     pub line_count_and_features: PathBuf,
+    pub loc_and_lof: PathBuf,
+    pub nofc_and_lof: PathBuf,
     pub default_configs_plot: PathBuf,
     pub distinct_configs_plot: PathBuf,
     pub satisfiability_crate_plot: PathBuf,
@@ -52,6 +55,7 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
 
         result: config.result.clone(),
         feature_stats: config.result.join("feature_stats.csv"),
+        feature_metrics: config.result.join("feature_metrics.csv"),
         static_stats: config.result.join("flat_model_stats.csv"),
         fca_stats: config.result.join("fca_model_stats.csv"),
         line_count: config.result.join("line_count.csv"),
@@ -63,6 +67,8 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
         static_vs_fca: config.plot.join("declared_vs_fca.png"),
         cross_tree_constraints: config.plot.join("cross_tree_constraints.png"),
         line_count_and_features: config.plot.join("line_count_and_features.png"),
+        loc_and_lof: config.plot.join("loc_and_lof.png"),
+        nofc_and_lof: config.plot.join("nofc_and_lof.png"),
         default_configs_plot: config.plot.join("default_configs.png"),
         distinct_configs_plot: config.plot.join("unique_configs.png"),
         satisfiability_crate_plot: config.plot.join("satisfiability_crate"),
