@@ -11,6 +11,9 @@ pub mod satisfiability_wrt_features;
 pub mod satisfiability_crate;
 pub mod loc_and_lof;
 pub mod nofc_and_lof;
+pub mod nofc_and_sd;
+pub mod nofc_and_td;
+pub mod nofc_and_and;
 
 use std::{iter::successors, ops::Range, path::Path};
 

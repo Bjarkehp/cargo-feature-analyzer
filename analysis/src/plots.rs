@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, path::{Path, PathBuf}};
 
-use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, plot::{cross_tree_constraints, declared_vs_fca, default_configs, distinct_configs, feature_stats, features_and_dependencies, line_count_and_features, loc_and_lof, nofc_and_lof, satisfiability, satisfiability_crate, satisfiability_wrt_configs, satisfiability_wrt_features}, result::{Row, configuration_stats::ConfigStats, feature_metrics::FeatureMetrics, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
+use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, plot::{cross_tree_constraints, declared_vs_fca, default_configs, distinct_configs, feature_stats, features_and_dependencies, line_count_and_features, loc_and_lof, nofc_and_and, nofc_and_lof, nofc_and_sd, nofc_and_td, satisfiability, satisfiability_crate, satisfiability_wrt_configs, satisfiability_wrt_features}, result::{Row, configuration_stats::ConfigStats, feature_metrics::FeatureMetrics, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 use clap::Parser;
@@ -27,6 +27,9 @@ fn main() -> anyhow::Result<()> {
     line_count_and_features::plot(&line_count_rows, &feature_stats, &paths.line_count_and_features)?;
     loc_and_lof::plot(&feature_metrics, &paths.loc_and_lof)?;
     nofc_and_lof::plot(&feature_stats, &feature_metrics, &paths.nofc_and_lof)?;
+    nofc_and_sd::plot(&feature_stats, &feature_metrics, &paths.nofc_and_sd)?;
+    nofc_and_td::plot(&feature_stats, &feature_metrics, &paths.nofc_and_td)?;
+    nofc_and_and::plot(&feature_stats, &feature_metrics, &paths.nofc_and_and)?;
 
     if !config_stats.is_empty() {
         default_configs::plot(&config_stats, &paths.default_configs_plot)?;

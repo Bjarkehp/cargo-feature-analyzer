@@ -61,9 +61,9 @@ pub fn scan<P: AsRef<Path>>(path: P) -> Result<ScanResult, Error> {
         })
         .fold_ok(FileScanResult::default(), |a, b| a + b)?;
 
-    let (sd_mean, sd_dev) = statistics::mean_dev(|| sd.values().copied());
-    let (td_mean, td_dev) = statistics::mean_dev(|| td.iter().copied());
-    let (and_mean, and_dev) = statistics::mean_dev(|| and.iter().copied());
+    let (sd_mean, sd_dev) = statistics::mean_dev(|| sd.values().copied()).unwrap_or((1.0, 0.0));
+    let (td_mean, td_dev) = statistics::mean_dev(|| td.iter().copied()).unwrap_or((1.0, 0.0));
+    let (and_mean, and_dev) = statistics::mean_dev(|| and.iter().copied()).unwrap_or((1.0, 0.0));
 
     let result = ScanResult {
         loc: file_result.loc,

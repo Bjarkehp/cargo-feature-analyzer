@@ -14,17 +14,22 @@ impl Client {
     pub fn new(server: impl AsRef<Path>) -> Result<Client, ConnectionError> {
         let flamapy_path = which("flamapy")?;
         let flamapy_script = std::fs::read_to_string(&flamapy_path)?;
-        let python_environment_path = flamapy_script.lines()
+        let python_environment_command = flamapy_script.lines()
             .next()
             .ok_or(ConnectionError::EmptyFlamapy)?
             .strip_prefix("#!")
             .ok_or(ConnectionError::NoShebang)?;
+        let (python_environment_path, args_str) = python_environment_command.split_once(' ')
+            .unwrap_or((python_environment_command, ""));
+        let args = shell_words::split(args_str)
+            .map_err(|e| ConnectionError::InvalidPythonArgs(python_environment_command.to_owned(), e))?;
         let mut command = Command::new(python_environment_path)
+            .args(args)
             .arg(server.as_ref())
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
-            .map_err(|e| ConnectionError::MissingPythonEnv(python_environment_path.to_owned(), e))?;
+            .map_err(|e| ConnectionError::MissingPythonEnv(python_environment_command.to_owned(), e))?;
         
         let writer = command.stdin.take().unwrap();
         let reader = command.stdout.take().unwrap();
@@ -84,6 +89,8 @@ pub enum ConnectionError {
     Which(#[from] which::Error),
     #[error("Python environment at {0} doesn't exist")]
     MissingPythonEnv(String, #[source] std::io::Error),
+    #[error("Python environment at {0} has invalid args")]
+    InvalidPythonArgs(String, #[source] shell_words::ParseError),
     #[error("Flamapy script was empty")]
     EmptyFlamapy,
     #[error("Flamapy script did not contain a shebang")]

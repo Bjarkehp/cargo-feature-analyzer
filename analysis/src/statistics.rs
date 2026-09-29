@@ -1,10 +1,10 @@
 use std::{iter::Sum, ops::{Mul, Sub}};
 
-pub fn mean_dev<T: Sum + Sub + Mul + Into<f64>, I: Iterator<Item = T>>(population: impl Fn() -> I) -> (f64, f64) {
+pub fn mean_dev<T: Sum + Sub + Mul + Into<f64>, I: Iterator<Item = T>>(population: impl Fn() -> I) -> Option<(f64, f64)> {
     let n = population().count() as f64;
 
     if n == 0.0 {
-        return (0.0, 0.0);
+        return None;
     }
 
     let mean = population()
@@ -18,5 +18,5 @@ pub fn mean_dev<T: Sum + Sub + Mul + Into<f64>, I: Iterator<Item = T>>(populatio
 
     let sd = sd_sq.sqrt();
 
-    (mean, sd)
+    Some((mean, sd))
 }

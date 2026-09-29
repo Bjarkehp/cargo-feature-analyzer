@@ -28,7 +28,7 @@ def main():
                         print("Error: Model not assigned")
                         continue
 
-                    result = model.configurations_number()
+                    result = model.configurations_number(backend = "sharpsat")
                     if result != None:
                         print(result)
                 case "satisfiable_configuration":
