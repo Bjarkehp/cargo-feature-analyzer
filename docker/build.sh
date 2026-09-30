@@ -1,3 +1,7 @@
+#!/bin/bash
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd "$SCRIPT_DIR"
+
 docker build -t crates_io_db --no-cache .
 
 if [ "$(docker ps -a -q -f name=crates_io_db$)" ]; then

@@ -1,4 +1,7 @@
 #!/bin/bash
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd "$SCRIPT_DIR"
+
 set -e
 
 DUMP_URL="https://static.crates.io/db-dump.tar.gz"
