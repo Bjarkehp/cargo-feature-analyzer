@@ -2,7 +2,7 @@ mod flamapy_client;
 mod feature_model;
 mod retry;
 
-use std::{collections::BTreeSet, path::Path};
+use std::{collections::BTreeSet, io::stdout, path::Path};
 
 use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, result::{configuration_stats::ConfigStats, feature_metrics::FeatureMetrics, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}, scanner};
 use anyhow::Context;
@@ -10,6 +10,7 @@ use cargo_toml::{crate_id::CrateId, feature_dependencies, implied_features};
 use clap::Parser;
 use configuration_scraper::{configuration::Configuration, postgres};
 use crate_scraper::crate_entry::CrateEntry;
+use crossterm::{execute, style::{Color, ResetColor, SetForegroundColor}};
 use ::feature_model::FeatureModel;
 use itertools::Itertools;
 use rand::{Rng, SeedableRng, rngs::StdRng, seq::SliceRandom};
@@ -205,11 +206,20 @@ fn download_crate(client: &reqwest::blocking::Client, id: &CrateId, paths: &Path
     if !std::fs::exists(&path)? {
         println!("Downloading {}", id);
         let version_str = id.version.to_string();
-        let request = || cargo_toml::download(client, &id.name, &version_str);
-        let error_reporter = |attempt, _error| println!("Failed attempt {} at downloading Cargo.toml for {id}, {} attempts left", attempt, 3 - attempt);
-        let mut archive = retry(5, request, error_reporter)
-            .with_context(|| format!("Failed to download Cargo.toml for {id}"))?;
-        archive.unpack(&paths.crates)?;
+        let request = || -> anyhow::Result<()> {
+            let mut archive = cargo_toml::download(client, &id.name, &version_str)
+                .with_context(|| format!("Failed to download .crate for {id}"))?;
+            archive.unpack(&paths.crates)
+                .with_context(|| format!("Failed to unpack .crate for {id}"))?;
+            Ok(())
+        };
+        let tries = 5;
+        let error_reporter = |attempt, error| {
+            execute!(stdout(), SetForegroundColor(Color::Red)).unwrap();
+            println!("(attempt {attempt}/{tries}): {error}");
+            execute!(stdout(), ResetColor).unwrap();
+        };
+        retry(5, request, error_reporter)?;
         let unpack_path = paths.crates.join(format!("{}-{}", id.name, id.version));
         std::fs::rename(unpack_path, path)?;
     }

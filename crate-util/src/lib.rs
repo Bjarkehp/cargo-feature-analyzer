@@ -30,6 +30,7 @@ pub fn download(client: &reqwest::blocking::Client, name: &str, version: &str) -
     std::thread::sleep(Duration::from_secs(1));
     let crate_archive_bytes = client.get(format!("https://static.crates.io/crates/{name}/{name}-{version}.crate"))
         .send()?
+        .error_for_status()?
         .bytes()?;
     let cursor = Cursor::new(crate_archive_bytes);
     let gz = GzDecoder::new(cursor);
