@@ -11,17 +11,23 @@ pub struct FeatureMetrics {
     pub loc: usize,
     #[serde(rename = "LOF")]
     pub lof: usize,
-    #[serde(rename = "SD (μ)")]
+    #[serde(rename = "SD median")]
+    pub sd_median: f64,
+    #[serde(rename = "SD mean")]
     pub sd_mean: f64,
-    #[serde(rename = "SD (σ)")]
+    #[serde(rename = "SD deviation")]
     pub sd_dev: f64,
-    #[serde(rename = "TD (μ)")]
+    #[serde(rename = "TD median")]
+    pub td_median: f64,
+    #[serde(rename = "TD mean")]
     pub td_mean: f64,
-    #[serde(rename = "TD (σ)")]
+    #[serde(rename = "TD deviation")]
     pub td_dev: f64,
-    #[serde(rename = "AND (μ)")]
+    #[serde(rename = "AND median")]
+    pub and_median: f64,
+    #[serde(rename = "AND mean")]
     pub and_mean: f64,
-    #[serde(rename = "AND (σ)")]
+    #[serde(rename = "AND deviation")]
     pub and_dev: f64,
 }
 
@@ -31,10 +37,13 @@ impl FeatureMetrics {
             crate_id,
             loc: scan.loc,
             lof: scan.lof,
+            sd_median: scan.sd_median,
             sd_mean: scan.sd_mean,
             sd_dev: scan.sd_dev,
+            td_median: scan.td_median,
             td_mean: scan.td_mean,
             td_dev: scan.td_dev,
+            and_median: scan.and_median,
             and_mean: scan.and_mean,
             and_dev: scan.and_dev,
         }

@@ -19,6 +19,7 @@ pub fn plot(
         .iter()
         .join(feature_metrics.iter())
         .map(|(_id, (s, m))| (s.features as f64, m.sd_mean))
+        .filter(|(_f, m)| m.is_finite())
         .collect::<Vec<_>>();
 
     let x_range = fitting_range(points.iter().map(|p| &p.0));

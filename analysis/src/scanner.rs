@@ -9,10 +9,13 @@ use crate::statistics;
 pub struct ScanResult {
     pub loc: usize,
     pub lof: usize,
+    pub sd_median: f64,
     pub sd_mean: f64,
     pub sd_dev: f64,
+    pub td_median: f64,
     pub td_mean: f64,
     pub td_dev: f64,
+    pub and_median: f64,
     pub and_mean: f64,
     pub and_dev: f64,
 }
@@ -61,17 +64,21 @@ pub fn scan<P: AsRef<Path>>(path: P) -> Result<ScanResult, Error> {
         })
         .fold_ok(FileScanResult::default(), |a, b| a + b)?;
 
-    let (sd_mean, sd_dev) = statistics::mean_dev(|| sd.values().copied()).unwrap_or((1.0, 0.0));
-    let (td_mean, td_dev) = statistics::mean_dev(|| td.iter().copied()).unwrap_or((1.0, 0.0));
-    let (and_mean, and_dev) = statistics::mean_dev(|| and.iter().copied()).unwrap_or((1.0, 0.0));
+    let nan = (f64::NAN, f64::NAN, f64::NAN);
+    let (sd_median, sd_mean, sd_dev) = statistics::median_mean_dev(sd.values().copied()).unwrap_or(nan);
+    let (td_median, td_mean, td_dev) = statistics::median_mean_dev(td.iter().copied()).unwrap_or(nan);
+    let (and_median, and_mean, and_dev) = statistics::median_mean_dev(and.iter().copied()).unwrap_or(nan);
 
     let result = ScanResult {
         loc: file_result.loc,
         lof: file_result.lof,
+        sd_median,
         sd_mean,
         sd_dev,
+        td_median,
         td_mean,
         td_dev,
+        and_median,
         and_mean,
         and_dev,
     };
