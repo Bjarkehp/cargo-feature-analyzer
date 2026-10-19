@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufWriter, Write}, time::Instant};
 
-use analysis::result::{running_time_fca::RunningTimeFca, running_time_static::RunningTimeStatic};
+use analysis::result::{running_time_but4reuse::RunningTimeBut4Reuse, running_time_fca::RunningTimeFca, running_time_static::RunningTimeStatic};
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 use configuration_scraper::configuration::Configuration;
@@ -32,9 +32,8 @@ pub fn create_static(id: &CrateId, table: &toml::Table, paths: &Paths) -> anyhow
 pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths: &Paths) -> anyhow::Result<(FeatureModel, RunningTimeFca)> {
     let path = paths.fca_model.join(format!("{id}.uvl"));
     let file = File::create(&path)?;
-    let train_configurations = &configurations[..configurations.len() / 2];
-    let mut features = train_configurations.first()
-        .expect("Crates are filtered above for number of configs")
+    let mut features = configurations.first()
+        .expect("Crates are filtered for number of configs")
         .features.keys()
         .map(|k| k.as_ref())
         .collect::<Vec<_>>();
@@ -42,7 +41,7 @@ pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths:
 
     let start = Instant::now();
 
-    let ac_poset = concept::ac_poset(train_configurations, &features, &id.name);
+    let ac_poset = concept::ac_poset(configurations, &features, &id.name);
     let ac_poset_time = Instant::now();
     let tree_constraints = tree_constraints::max_depth::find(&ac_poset);
     let tree_constraints_time = Instant::now();
@@ -62,6 +61,26 @@ pub fn create_fca<'a>(id: &CrateId, configurations: &[Configuration<'a>], paths:
         (group_time - tree_constraints_time).as_secs_f32(),
         (group_time - start).as_secs_f32(),
     );
+
+    Ok((feature_model, running_time))
+}
+
+pub fn create_but4reuse<'a>(id: &CrateId, table: &toml::Table, configurations: &[Configuration<'a>], paths: &Paths) -> anyhow::Result<(FeatureModel, RunningTimeBut4Reuse)> {
+    let start = Instant::now();
+
+    let feature_model = fm_synthesizer_but4reuse::synthesize(table, configurations)
+        .with_context(|| "Failed to synthesize feature model with but4reuse synthesizer")?;
+
+    let elapsed = start.elapsed().as_secs_f32();
+    let running_time = RunningTimeBut4Reuse::new(id.clone(), elapsed);
+
+    let path = paths.but4reuse_model.join(format!("{id}.uvl"));
+    let file = File::create(&path)?;
+    let mut writer = BufWriter::new(file);
+    uvl::write(&mut writer, &feature_model)
+        .with_context(|| format!("Failed to write but4reuse feature model to {path:?}"))?;
+    writer.flush()
+        .with_context(|| format!("Failed to flush file {path:?}"))?;
 
     Ok((feature_model, running_time))
 }

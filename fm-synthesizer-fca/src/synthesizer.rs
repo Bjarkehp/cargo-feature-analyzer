@@ -53,10 +53,15 @@ pub fn fm_from_ac_poset(ac_poset: &DiGraph<Concept, ()>, features: &[&str], tree
         .collect::<Vec<_>>();
 
     if !unused_features.is_empty() {
-        let unused_features_group = Group::optional(unused_features);
+        let unused_features_groups = unused_features
+            .into_iter()
+            .enumerate()
+            .map(|(i, f)| Group::new(vec![f, Feature::new_leaf(format!("unused_{i}"), true)], 0, 0))
+            .collect::<Vec<_>>();
+
         let unused_features_abstract_feature = Feature::new(
             "unused_features".to_owned(), 
-            vec![unused_features_group], 
+            unused_features_groups, 
             true,
         );
         let mandatory_group = Group::mandatory(vec![unused_features_abstract_feature]);

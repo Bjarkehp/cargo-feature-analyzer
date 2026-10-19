@@ -6,6 +6,7 @@ members = [
     "crate-scraper", 
     "crate-util", 
     "feature-model", 
+    "fm-synthesizer-but4reuse", 
     "fm-synthesizer-fca", 
     "fm-synthesizer-flat", 
     "fm-synthesizer-milp", 

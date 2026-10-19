@@ -14,6 +14,8 @@ pub mod nofc_and_lof;
 pub mod nofc_and_sd;
 pub mod nofc_and_td;
 pub mod nofc_and_and;
+pub mod but4reuse_vs_fca;
+pub mod but4reuse_vs_fca_estimation;
 
 use std::{iter::successors, ops::Range, path::Path};
 

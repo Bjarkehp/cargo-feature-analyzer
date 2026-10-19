@@ -1,0 +1,15 @@
+[package]
+name = "fm-synthesizer-but4reuse"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+configuration-scraper = { version = "0.1.0", path = "../configuration-scraper" }
+crate-util = { version = "0.1.0", path = "../crate-util" }
+feature-model = { version = "0.1.0", path = "../feature-model" }
+itertools = "0.15.0"
+petgraph = "0.8.3"
+slotmap = "1.1.1"
+smallvec = { version = "1.16.2", features = ["union", "const_generics"] }
+toml = "1.1.6"

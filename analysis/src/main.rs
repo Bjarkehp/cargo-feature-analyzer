@@ -35,10 +35,12 @@ fn main() -> anyhow::Result<()> {
     let mut feature_stats_writer = csv::Writer::from_path(paths.result.join("feature_stats.csv"))?;
     let mut static_model_stats_writer = csv::Writer::from_path(paths.result.join("flat_model_stats.csv"))?;
     let mut fca_model_stats_writer = csv::Writer::from_path(paths.result.join("fca_model_stats.csv"))?;
+    let mut but4reuse_model_stats_writer = csv::Writer::from_path(paths.result.join("but4reuse_model_stats.csv"))?;
     let mut config_stats_writer = csv::Writer::from_path(paths.result.join("configuration_stats.csv"))?;
     let mut line_count_writer = csv::Writer::from_path(paths.result.join("line_count.csv"))?;
     let mut running_time_fca_writer = csv::Writer::from_path(paths.result.join("running_time_fca.csv"))?;
     let mut running_time_static_writer = csv::Writer::from_path(paths.result.join("running_time_static.csv"))?;
+    let mut running_time_but4reuse_writer = csv::Writer::from_path(paths.result.join("running_time_but4reuse.csv"))?;
     let mut feature_metrics_writer = csv::Writer::from_path(paths.result.join("feature_metrics.csv"))?;
 
     for &count in &config.synthesis_configs {
@@ -102,6 +104,7 @@ fn main() -> anyhow::Result<()> {
 
         let static_model_path = paths.static_model.join(format!("{id_str}.uvl"));
         let fca_model_path = paths.fca_model.join(format!("{id_str}.uvl"));
+        let but4reuse_model_path = paths.but4reuse_model.join(format!("{id_str}.uvl"));
 
         #[allow(clippy::needless_range_loop)]
         for synthesis_config_index in 0..config.synthesis_configs.len() {
@@ -146,13 +149,18 @@ fn main() -> anyhow::Result<()> {
         let (fca_model, running_time_fca) = feature_model::create_fca(&id, &distinct_crate_configs, &paths)?;
         let fca_model_stats = get_model_stats(&mut flamapy_client, &id, &fca_model_path, &fca_model)?;
 
+        let (but4reuse_model, running_time_but4reuse) = feature_model::create_but4reuse(&id, &cargo_toml, &distinct_crate_configs, &paths)?;
+        let but4reuse_model_stats = get_model_stats(&mut flamapy_client, &id, &but4reuse_model_path, &but4reuse_model)?;
+
         feature_stats_writer.serialize(feature_stats)?;
         static_model_stats_writer.serialize(static_model_stats)?;
         fca_model_stats_writer.serialize(fca_model_stats)?;
+        but4reuse_model_stats_writer.serialize(but4reuse_model_stats)?;
         config_stats_writer.serialize(config_stats)?;
         line_count_writer.serialize(line_count_row)?;
         running_time_fca_writer.serialize(running_time_fca)?;
         running_time_static_writer.serialize(running_time_static)?;
+        running_time_but4reuse_writer.serialize(running_time_but4reuse)?;
     }
 
     feature_stats_writer.flush()?;

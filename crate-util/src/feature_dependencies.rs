@@ -28,7 +28,7 @@ pub fn from_cargo_toml(root: &toml::Table) -> Result<Graph<'_>> {
     Ok(feature_dependencies)
 }
 
-fn scan_features<'a>(feature_table: &'a toml::Table, dependency_tables: &[&'a toml::Table]) -> impl Iterator<Item = &'a str> {
+pub fn scan_features<'a>(feature_table: &'a toml::Table, dependency_tables: &[&'a toml::Table]) -> impl Iterator<Item = &'a str> {
     let explicit_features = feature_table.keys()
         .map(|k| k.as_str());
     let implicit_features = dependency_tables.iter()

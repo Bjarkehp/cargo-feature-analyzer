@@ -33,7 +33,7 @@ sorted-iter = "0.1.11"
 tempfile = "3.24.0"
 thiserror = "2.0.17"
 tokei = "14.0.0"
-toml = "0.9.8"
+toml = "1.1.6"
 which = "8.0.0"
 feature-model = { version = "0.1.0", path = "../feature-model" }
 nameof = "1.3.0"
@@ -45,3 +45,4 @@ tree-sitter = "0.27.0"
 tree-sitter-rust = "0.24.2"
 shell-words = "1.1.1"
 crossterm = "0.29.0"
+fm-synthesizer-but4reuse = { version = "0.1.0", path = "../fm-synthesizer-but4reuse" }

@@ -5,6 +5,7 @@ pub mod satisfiability_crate_row;
 pub mod line_count;
 pub mod running_time_fca;
 pub mod running_time_static;
+pub mod running_time_but4reuse;
 pub mod satisfiability_row;
 pub mod feature_metrics;
 

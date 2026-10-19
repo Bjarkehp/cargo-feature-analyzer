@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, path::{Path, PathBuf}};
 
-use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, plot::{cross_tree_constraints, declared_vs_fca, default_configs, distinct_configs, feature_stats, features_and_dependencies, line_count_and_features, loc_and_lof, nofc_and_and, nofc_and_lof, nofc_and_sd, nofc_and_td, satisfiability, satisfiability_crate, satisfiability_wrt_configs, satisfiability_wrt_features}, result::{Row, configuration_stats::ConfigStats, feature_metrics::FeatureMetrics, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
+use analysis::{args::Args, config::config_from_args, paths::{self, Paths}, plot::{but4reuse_vs_fca, but4reuse_vs_fca_estimation, cross_tree_constraints, declared_vs_fca, default_configs, distinct_configs, feature_stats, features_and_dependencies, line_count_and_features, loc_and_lof, nofc_and_and, nofc_and_lof, nofc_and_sd, nofc_and_td, satisfiability, satisfiability_crate, satisfiability_wrt_configs, satisfiability_wrt_features}, result::{Row, configuration_stats::ConfigStats, feature_metrics::FeatureMetrics, feature_stats::FeatureStats, line_count::LineCountRow, model_stats::ModelStats, satisfiability_crate_row::SatisfiabilityCrateRow, satisfiability_row::SatisfiabilityRow}};
 use anyhow::Context;
 use cargo_toml::crate_id::CrateId;
 use clap::Parser;
@@ -16,6 +16,7 @@ fn main() -> anyhow::Result<()> {
     let feature_stats = load_map::<FeatureStats>(&paths.feature_stats)?;
     let declared_stats = load_map::<ModelStats>(&paths.static_stats)?;
     let fca_stats = load_map::<ModelStats>(&paths.fca_stats)?;
+    let but4reuse_stats = load_map::<ModelStats>(&paths.but4reuse_stats)?;
     let line_count_rows = load_map::<LineCountRow>(&paths.line_count)?;
     let config_stats = load_map::<ConfigStats>(&paths.config_stats)?;
     let feature_metrics = load_map::<FeatureMetrics>(&paths.feature_metrics)?;
@@ -23,6 +24,8 @@ fn main() -> anyhow::Result<()> {
     feature_stats::plot(&feature_stats, &paths.feature_stats_plot)?;
     features_and_dependencies::plot(&feature_stats, &paths.features_and_dependencies)?;
     declared_vs_fca::plot(&declared_stats, &fca_stats, &paths.static_vs_fca)?;
+    but4reuse_vs_fca::plot(&but4reuse_stats, &fca_stats, &paths.but4reuse_vs_fca)?;
+    but4reuse_vs_fca_estimation::plot(&but4reuse_stats, &fca_stats, &paths.but4reuse_vs_fca_estimation)?;
     cross_tree_constraints::plot(&declared_stats, &fca_stats, &paths.cross_tree_constraints)?;
     line_count_and_features::plot(&line_count_rows, &feature_stats, &paths.line_count_and_features)?;
     loc_and_lof::plot(&feature_metrics, &paths.loc_and_lof)?;

@@ -12,6 +12,7 @@ pub struct Paths {
     pub config_distinct: PathBuf,
     pub static_model: PathBuf,
     pub fca_model: PathBuf,
+    pub but4reuse_model: PathBuf,
     pub flamapy_server: PathBuf,
 
     pub result: PathBuf,
@@ -19,6 +20,7 @@ pub struct Paths {
     pub feature_metrics: PathBuf,
     pub static_stats: PathBuf,
     pub fca_stats: PathBuf,
+    pub but4reuse_stats: PathBuf,
     pub line_count: PathBuf,
     pub config_stats: PathBuf,
 
@@ -26,6 +28,8 @@ pub struct Paths {
     pub feature_stats_plot: PathBuf,
     pub features_and_dependencies: PathBuf,
     pub static_vs_fca: PathBuf,
+    pub but4reuse_vs_fca: PathBuf,
+    pub but4reuse_vs_fca_estimation: PathBuf,
     pub cross_tree_constraints: PathBuf,
     pub line_count_and_features: PathBuf,
     pub loc_and_lof: PathBuf,
@@ -54,6 +58,7 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
         config_distinct: config.data.join("configuration_distinct"),
         static_model: config.data.join("model/declared"),
         fca_model: config.data.join("model/fca"),
+        but4reuse_model: config.data.join("model/but4reuse"),
         flamapy_server: PathBuf::from("analysis/src/flamapy_server.py"),
 
         result: config.result.clone(),
@@ -61,6 +66,7 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
         feature_metrics: config.result.join("feature_metrics.csv"),
         static_stats: config.result.join("flat_model_stats.csv"),
         fca_stats: config.result.join("fca_model_stats.csv"),
+        but4reuse_stats: config.result.join("but4reuse_model_stats.csv"),
         line_count: config.result.join("line_count.csv"),
         config_stats: config.result.join("configuration_stats.csv"),
 
@@ -68,6 +74,8 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
         feature_stats_plot: config.plot.join("feature_stats.png"),
         features_and_dependencies: config.plot.join("features_and_dependencies.png"),
         static_vs_fca: config.plot.join("declared_vs_fca.png"),
+        but4reuse_vs_fca: config.plot.join("but4reuse_vs_fca.png"),
+        but4reuse_vs_fca_estimation: config.plot.join("but4reuse_vs_fca_estimation.png"),
         cross_tree_constraints: config.plot.join("cross_tree_constraints.png"),
         line_count_and_features: config.plot.join("line_count_and_features.png"),
         loc_and_lof: config.plot.join("loc_and_lof.png"),
@@ -92,6 +100,7 @@ pub fn prepare_paths(config: &Config) -> anyhow::Result<Paths> {
     std::fs::create_dir_all(&paths.config_distinct)?;
     std::fs::create_dir_all(&paths.static_model)?;
     std::fs::create_dir_all(&paths.fca_model)?;
+    std::fs::create_dir_all(&paths.but4reuse_model)?;
 
     std::fs::create_dir_all(&paths.plot)?;
     std::fs::create_dir_all(&paths.satisfiability_crate_plot)?;
