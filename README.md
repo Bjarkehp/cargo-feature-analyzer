@@ -5,6 +5,9 @@ This repository provides tools for synthesizing feature models for Rust crates a
 
 The analysis checks for correlation between several properties of the crates (e.g. correlation between line count and number of features), and compares the flat feature model with the FCA feature model.
 
+## Crate selection criteria
+When selecting crates, the tool prioritizes crates with a high number of distinct configurations. We select the version which was created the latest, *this is not the same as the highest version*. Many of the configurations initially found only apply to previous versions in regards to the selected version. These are filtered out in the analysis, but are still considered when ranking the crates.
+
 ## Packages
 * **analysis**: Scrapes crates and configurations for a specified number of crates, and synthesizes several feature models.
 * **plots**: Builds plots showing showing the correlation of several properties of the synthesized feature models.
@@ -27,10 +30,10 @@ Additionally, locally you must have installed the libraries locally:
 
 
 ### Flamapy
-The analysis uses Flamapy to calculate certain properties of feature models. We recommend using version 2.1.0.dev1, which can be installed using pip (or pipx):
+The analysis uses Flamapy to calculate certain properties of feature models. We recommend using version >2.6.0, which can be installed using pip (or pipx):
 
 ```bash
-pip install flamapy==2.1.0.dev1
+pip install flamapy
 ```
 
 ### crates.io postgres database

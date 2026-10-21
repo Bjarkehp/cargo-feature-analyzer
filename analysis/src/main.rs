@@ -53,7 +53,7 @@ fn main() -> anyhow::Result<()> {
         .map(csv::Writer::from_path)
         .collect::<Result<Vec<_>, _>>()?;
 
-    let crate_entries = get_or_scrape_crate_entries(&mut postgres_client, config.number_of_crates, &paths)?
+    let crate_entries = get_or_scrape_crate_entries(&mut postgres_client, &paths, config.number_of_crates, config.min_features, config.max_features)?
         .into_iter()
         .sorted_by(|a, b| a.id.cmp(&b.id));
 
@@ -179,7 +179,7 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: usize, paths: &Paths) -> anyhow::Result<Vec<CrateEntry>> {
+fn get_or_scrape_crate_entries(client: &mut postgres::Client, paths: &Paths, number_of_crates: usize, min_features: usize, max_features: usize) -> anyhow::Result<Vec<CrateEntry>> {
     if let Ok(reader) = csv::Reader::from_path(&paths.crate_entries) {
         let crate_entries = reader
             .into_deserialize()
@@ -191,9 +191,9 @@ fn get_or_scrape_crate_entries(client: &mut postgres::Client, number_of_crates: 
         }
     }
 
-    println!("Scraping {} popular crates from crates.io...", number_of_crates);
+    println!("Scraping {} crates from crates.io...", number_of_crates);
 
-    let entries = crate_scraper::scrape_popular_by_configurations(client, number_of_crates as i64)
+    let entries = crate_scraper::scrape_by_distinct_configurations(client, number_of_crates as i64, min_features as i32, max_features as i32)
         .expect("Failed to scrape popular crates");
 
     let mut writer = csv::Writer::from_path(&paths.crate_entries)?;

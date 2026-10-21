@@ -53,19 +53,11 @@ pub fn fm_from_ac_poset(ac_poset: &DiGraph<Concept, ()>, features: &[&str], tree
         .collect::<Vec<_>>();
 
     if !unused_features.is_empty() {
-        let unused_features_groups = unused_features
-            .into_iter()
-            .enumerate()
-            .map(|(i, f)| Group::new(vec![f, Feature::new_leaf(format!("unused_{i}"), true)], 0, 0))
-            .collect::<Vec<_>>();
-
-        let unused_features_abstract_feature = Feature::new(
-            "unused_features".to_owned(), 
-            unused_features_groups, 
-            true,
-        );
-        let mandatory_group = Group::mandatory(vec![unused_features_abstract_feature]);
-        root_feature.groups.push(mandatory_group);
+        let unused_group = Group::mandatory(unused_features);
+        let hidden_unused_feature = Feature::new_leaf("__unused_features".to_owned(), true);
+        let unused_features_root = Feature::new("unused_features".to_owned(), vec![unused_group], true);
+        let unused_features_root_group = Group::new(vec![hidden_unused_feature, unused_features_root], 0, 0);
+        root_feature.groups.push(unused_features_root_group);
     }
     
     FeatureModel { root_feature, cross_tree_constraints }

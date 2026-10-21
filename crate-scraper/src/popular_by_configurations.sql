@@ -14,7 +14,7 @@ JOIN (
     WHERE created_at < '2025-10-01'
     ORDER BY crate_id, created_at DESC
 ) v ON v.crate_id = c.id
-WHERE v.features <> '{}'
+WHERE v.feature_count >= $2
 GROUP BY d.crate_id, c.name, v.num, v.has_lib, v.bin_names, cd.downloads
 ORDER BY configurations DESC
 LIMIT $1

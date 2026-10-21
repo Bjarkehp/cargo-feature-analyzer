@@ -6,34 +6,36 @@ use semver::Version;
 
 use crate::crate_entry::{CrateEntry, CrateType};  
 
-pub fn scrape_popular_by_configurations(client: &mut postgres::Client, count: i64) -> Result<Vec<CrateEntry>, Error> {
+pub fn scrape_by_distinct_configurations(client: &mut postgres::Client, count: i64, min_features: i32, max_features: i32) -> Result<Vec<CrateEntry>, Error> {
+    let query = include_str!("distinct_configurations.sql");
+    let params: &[&(dyn ToSql + Sync)] = &[&count, &min_features, &max_features];
+    scrape(client, query, params)
+}
+
+pub fn scrape_popular_by_configurations(client: &mut postgres::Client, count: i64, min_features: i32) -> Result<Vec<CrateEntry>, Error> {
     let query = include_str!("popular_by_configurations.sql");
-    let params: &[&(dyn ToSql + Sync)] = &[&count];
-    let crates = client.query(query, params)?
-        .into_iter()
-        .map(row_to_crate_id_and_data)
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(crates)
+    let params: &[&(dyn ToSql + Sync)] = &[&count, &min_features];
+    scrape(client, query, params)
 }
 
 pub fn scrape_popular_by_downloads(client: &mut postgres::Client, count: i64) -> Result<Vec<CrateEntry>, Error> {
     let query = include_str!("popular_by_downloads.sql");
     let params: &[&(dyn ToSql + Sync)] = &[&count];
-    let crates = client.query(query, params)?
-        .into_iter()
-        .map(row_to_crate_id_and_data)
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(crates)
+    scrape(client, query, params)
 }
 
 pub fn scrape_with_download_limit(client: &mut postgres::Client, count: i64, download_limit: i64) -> Result<Vec<CrateEntry>, Error> {
     let query = include_str!("download_limit.sql");
     let params: &[&(dyn ToSql + Sync)] = &[&count, &download_limit];
-    let crates = client.query(query, params)?
+    scrape(client, query, params)
+}
+
+fn scrape(client: &mut postgres::Client, query: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<CrateEntry>, Error> {
+    client
+        .query(query, params)?
         .into_iter()
         .map(row_to_crate_id_and_data)
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(crates)
+        .collect::<Result<Vec<_>, _>>()
 }
 
 fn row_to_crate_id_and_data(row: Row) -> Result<CrateEntry, Error> {

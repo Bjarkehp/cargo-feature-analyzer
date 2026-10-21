@@ -16,7 +16,7 @@ fn main() {
 
     let connection_string = "postgres://crates:crates@localhost:5432/crates_io_db";
     let mut client = postgres::Client::connect(connection_string, NoTls).unwrap();
-    let popular_crates = scrape_popular_by_configurations(&mut client, 1000).unwrap();
+    let popular_crates = scrape_popular_by_configurations(&mut client, 1000, 0).unwrap();
 
     let mut writer = csv::Writer::from_path(&args.destination)
         .unwrap_or_else(|e| panic!("Failed to create csv writer at {:?}: {e}", args.destination));

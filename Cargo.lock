@@ -1093,6 +1093,7 @@ name = "fm-synthesizer-but4reuse"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "clap",
  "configuration-scraper",
  "crate-util",
  "feature-model",
@@ -1101,6 +1102,7 @@ dependencies = [
  "slotmap",
  "smallvec",
  "toml 1.1.6+spec-1.1.0",
+ "walkdir",
 ]
 
 [[package]]
